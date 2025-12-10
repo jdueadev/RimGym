@@ -76,7 +76,20 @@
       <Content Include=".idea\.idea.RimworldMLBridge\.idea\workspace.xml" />
     </ItemGroup>
     <ItemGroup>
-      <PackageReference Include="Grpc.Core" Version="2.46.6" />
+      <!-- 
+        Grpc.Core configuration:
+        RimWorld's mod loader attempts to load ALL DLLs in the Assemblies/ folder as managed .NET assemblies.
+        The Grpc.Core package includes native C++ libraries (grpc_csharp_ext.x64.dll, grpc_csharp_ext.x86.dll)
+        that cause BadImageFormatException when RimWorld tries to load them as managed assemblies.
+        
+        Solution: ExcludeAssets="native" prevents these native runtime libraries from being copied to the output
+        directory, while keeping the managed Grpc.Core.dll assembly that contains the gRPC functionality.
+        
+        Note: This means gRPC server functionality may not work if it requires the native libraries at runtime.
+        However, this prevents the mod from failing to load entirely. If gRPC functionality is essential,
+        an alternative would be to manually handle the native libraries or use Grpc.Net.Client (client-only).
+      -->
+      <PackageReference Include="Grpc.Core" Version="2.46.6" ExcludeAssets="native" />
       <PackageReference Include="Grpc.Core.Api" Version="2.46.6" />
       <PackageReference Include="System.Buffers" Version="4.4.0" />
       <PackageReference Include="System.Memory" Version="4.5.3" />
@@ -84,6 +97,18 @@
       <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.2" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <!-- 
+      Post-build event to remove any native DLLs that might have been copied despite ExcludeAssets.
+      This is a safety measure to ensure no native DLLs end up in the Assemblies folder.
+    -->
+    <Target Name="RemoveNativeDlls" AfterTargets="Build">
+      <ItemGroup>
+        <NativeDllsToRemove Include="$(OutputPath)\grpc_csharp_ext*.dll" />
+        <NativeDllsToRemove Include="$(OutputPath)\runtimes\**\*.dll" />
+      </ItemGroup>
+      <Delete Files="@(NativeDllsToRemove)" ContinueOnError="true" />
+      <Message Text="Removed native gRPC DLLs from output directory to prevent RimWorld loading issues" Importance="high" Condition="'@(NativeDllsToRemove)' != ''" />
+    </Target>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
     <Target Name="BeforeBuild">
