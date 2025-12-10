@@ -106,8 +106,11 @@
         <NativeDllsToRemove Include="$(OutputPath)\grpc_csharp_ext*.dll" />
         <NativeDllsToRemove Include="$(OutputPath)\runtimes\**\*.dll" />
       </ItemGroup>
-      <Delete Files="@(NativeDllsToRemove)" ContinueOnError="true" />
-      <Message Text="Removed native gRPC DLLs from output directory to prevent RimWorld loading issues" Importance="high" Condition="'@(NativeDllsToRemove)' != ''" />
+      <Message Text="Checking for native gRPC DLLs in output directory..." Importance="low" />
+      <Delete Files="@(NativeDllsToRemove)" ContinueOnError="true">
+        <Output TaskParameter="DeletedFiles" ItemName="DeletedNativeDlls" />
+      </Delete>
+      <Message Text="Removed @(DeletedNativeDlls->Count()) native gRPC DLL(s) from output directory to prevent RimWorld loading issues" Importance="high" Condition="'@(DeletedNativeDlls)' != ''" />
     </Target>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
