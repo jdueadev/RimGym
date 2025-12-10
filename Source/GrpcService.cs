@@ -9,16 +9,16 @@ namespace RimworldMLBridge
     /// <summary>
     /// gRPC service implementation for ML Bridge
     /// </summary>
-    public class MLBridgeService : MLBridge.MLBridgeBase
+    public class MLBridgeService : Protos.MLBridge.MLBridgeBase
     {
-        private static long currentTick = 0;
-        private static object tickLock = new object();
+        private static long _currentTick = 0;
+        private static object _tickLock = new object();
 
         public override Task<AckMessage> SendTick(TickMessage request, ServerCallContext context)
         {
-            lock (tickLock)
+            lock (_tickLock)
             {
-                currentTick = request.TickCount;
+                _currentTick = request.TickCount;
             }
             
             Log.Message($"[MLBridge] Received tick: {request.TickCount}");
@@ -38,7 +38,7 @@ namespace RimworldMLBridge
             // Create a basic state response
             var state = new StateMessage
             {
-                FrameId = currentTick,
+                FrameId = _currentTick,
                 IsReady = true,
                 StatusMessage = $"Command {request.Type} executed"
             };
@@ -53,8 +53,8 @@ namespace RimworldMLBridge
                     
                     state.Global = new GlobalState
                     {
-                        Day = GenDate.DayOfTwelfth(ticksAbs, longitude),
-                        Year = GenDate.Year(ticksAbs, longitude)
+                        Day = 1, // TODO: Implement proper date calculation
+                        Year = 5500 // TODO: Implement proper date calculation
                     };
                 }
             }
@@ -74,7 +74,7 @@ namespace RimworldMLBridge
             
             var state = new StateMessage
             {
-                FrameId = currentTick,
+                FrameId = _currentTick,
                 IsReady = true,
                 StatusMessage = "State retrieved"
             };
@@ -89,15 +89,15 @@ namespace RimworldMLBridge
                     
                     state.Global = new GlobalState
                     {
-                        Day = GenDate.DayOfTwelfth(ticksAbs, longitude),
-                        Year = GenDate.Year(ticksAbs, longitude),
+                        Day = 1, // TODO: Implement proper date calculation
+                        Year = 5500, // TODO: Implement proper date calculation
                         Temperature = Find.CurrentMap.mapTemperature.OutdoorTemp
                     };
 
                     // Add pawns as entities
                     foreach (var pawn in Find.CurrentMap.mapPawns.FreeColonistsSpawned)
                     {
-                        var entity = new Entity
+                        var entity = new Protos.Entity
                         {
                             Id = pawn.thingIDNumber,
                             Type = "Pawn",
@@ -140,9 +140,9 @@ namespace RimworldMLBridge
 
         public static long GetCurrentTick()
         {
-            lock (tickLock)
+            lock (_tickLock)
             {
-                return currentTick;
+                return _currentTick;
             }
         }
     }
