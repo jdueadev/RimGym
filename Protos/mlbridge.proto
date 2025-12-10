@@ -1,0 +1,115 @@
+syntax = "proto3";
+
+option csharp_namespace = "RimworldMLBridge.Protos";
+
+package mlbridge;
+
+// Service definition for the ML Bridge
+service MLBridge {
+  // Send tick information to the agent
+  rpc SendTick(TickMessage) returns (AckMessage);
+  
+  // Execute a command from the agent
+  rpc ExecuteCommand(CommandMessage) returns (StateMessage);
+  
+  // Get current game state
+  rpc GetState(EmptyMessage) returns (StateMessage);
+}
+
+// Empty message for requests with no parameters
+message EmptyMessage {}
+
+// Tick notification message
+message TickMessage {
+  int64 tick_count = 1;
+  int64 frame_id = 2;
+}
+
+// Acknowledgment message
+message AckMessage {
+  int64 tick_count = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// Command types
+enum CommandType {
+  NO_OP = 0;
+  STEP = 1;
+  RESET = 2;
+  QUERY_STATE = 3;
+  EXECUTE_ACTION = 4;
+}
+
+// Command message from agent to game
+message CommandMessage {
+  CommandType type = 1;
+  int32 ticks_to_run = 2;
+  repeated Action actions = 3;
+}
+
+// Action verb types
+enum ActionVerb {
+  NONE = 0;
+  DRAFT = 1;
+  GOTO = 2;
+  ATTACK = 3;
+  BUILD = 4;
+  JOB_PRIORITY = 5;
+  HAUL = 6;
+  CLEAN = 7;
+}
+
+// Individual action for a pawn
+message Action {
+  int32 agent_id = 1;      // ThingID of the pawn
+  ActionVerb verb = 2;      // Action type
+  int32 target_id = 3;      // ThingID of target entity
+  Vector3 cell = 4;         // Target map coordinates
+  int32 priority = 5;       // Action priority
+}
+
+// 3D vector for positions
+message Vector3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+// Game state message
+message StateMessage {
+  int64 frame_id = 1;
+  GlobalState global = 2;
+  repeated Entity entities = 3;
+  bool is_ready = 4;
+  string status_message = 5;
+}
+
+// Global game state
+message GlobalState {
+  float wealth = 1;
+  string weather = 2;
+  int32 day = 3;
+  int32 year = 4;
+  float temperature = 5;
+}
+
+// Entity in the game world
+message Entity {
+  int32 id = 1;
+  string type = 2;          // Pawn, Item, Building
+  string def_name = 3;      // DefName from game
+  Vector3 position = 4;
+  int32 faction_id = 5;
+  EntityState state = 6;
+}
+
+// Entity state details
+message EntityState {
+  float health = 1;
+  float mood = 2;
+  float hunger = 3;
+  float rest = 4;
+  bool is_drafted = 5;
+  string current_job = 6;
+}
