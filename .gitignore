@@ -798,3 +798,15 @@ cython_debug/
 #.idea/
 
 /Source/Properties/
+
+# gRPC and Protobuf generated files
+python/*_pb2.py
+python/*_pb2_grpc.py
+python/__pycache__/
+
+# C# build artifacts
+Source/bin/
+Source/obj/
+Source/packages/
+*.user
+*.suo

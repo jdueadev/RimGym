@@ -11,21 +11,14 @@ namespace RimworldMLBridge
 
         public static void Postfix(TickManager __instance)
         {
-            if (!MlBridgeMod.Connected) return;
+            if (!MlBridgeMod.ServerRunning) return;
 
             tickCount++;
             // not time to report yet
             if (tickCount % reportEveryNTicks != 0) return;
-            // Send current tick to Python
-            MlBridgeMod.SendMessage($"TICK:{tickCount}");
-            // Wait for pytrhon to acknowledge (blocking!)
-            var response = MlBridgeMod.ReceiveMessage();
-
-            if (response != null)
-            {
-                Log.Message($"[MLBridge] Python said: {response}");
-            }
+            
+            // Log tick update (gRPC clients will poll via GetState or use streaming in future)
+            Log.Message($"[MLBridge] Tick: {tickCount} (Frame: {Find.TickManager.TicksAbs})");
         }
-
     }
 }
