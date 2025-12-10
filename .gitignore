@@ -13,7 +13,8 @@
 .venv
 .Source/packages
 uv.lock
-
+.github
+.config
 # AWS User-specific
 .idea/**/aws.xml
 
