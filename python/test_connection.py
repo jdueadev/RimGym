@@ -68,8 +68,9 @@ def main():
             print(f"\n[Frame {state.frame_id}] Status: {state.status_message}")
             
             if state.is_ready and state.HasField('global'):
-                print(f"  Day {state.global.day}, Year {state.global.year}")
-                print(f"  Temperature: {state.global.temperature:.1f}°C")
+                global_state = getattr(state, 'global')
+                print(f"  Day {global_state.day}, Year {global_state.year}")
+                print(f"  Temperature: {global_state.temperature:.1f}°C")
                 print(f"  Entities: {len(state.entities)}")
                 
                 # Print entity details
