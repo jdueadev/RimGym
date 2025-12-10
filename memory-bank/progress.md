@@ -59,27 +59,27 @@ Port robust data extraction services from RIMAPI for high-fidelity state.
 
 ## Phase III: Hybrid Valve ⏳ PLANNED
 
-### Goals
+### Phase III Goals
 
 - Implement AsyncMode toggle in C#
 - Complete TickManager prefix patch for mode switching
 - Add delta compression for real-time updates
 - Implement velocity vectors and timestamps
 
-### Estimated Effort
+### Phase III Estimated Effort
 
 ~2-3 weeks
 
 ## Phase IV: Python Client ⏳ PLANNED
 
-### Goals
+### Phase IV Goals
 
 - Develop triple-threaded SpectatorClient.py
 - Implement hierarchical policy (Executive/Reflex)
 - Add interrupt event handling
 - Create RL environment wrapper (Gymnasium-compatible)
 
-### Estimated Effort
+### Phase IV Estimated Effort
 
 ~3-4 weeks
 
