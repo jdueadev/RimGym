@@ -104,7 +104,7 @@ message Entity {
   EntityState state = 6;
 }
 
-// Entity state details
+// Entity state details (basic - deprecated, use ColonistState for pawns)
 message EntityState {
   float health = 1;
   float mood = 2;
@@ -112,4 +112,129 @@ message EntityState {
   float rest = 4;
   bool is_drafted = 5;
   string current_job = 6;
+}
+
+// ======================================================================
+// Phase II: Rich State Messages for High-Fidelity Data Extraction
+// ======================================================================
+
+// Skill passion level
+enum Passion {
+  PASSION_NONE = 0;
+  PASSION_MINOR = 1;
+  PASSION_MAJOR = 2;
+}
+
+// Pawn work type
+enum WorkType {
+  WORK_NONE = 0;
+  WORK_DOCTOR = 1;
+  WORK_BEDREST = 2;
+  WORK_PATIENT = 3;
+  WORK_BASIC = 4;
+  WORK_WARDEN = 5;
+  WORK_HANDLING = 6;
+  WORK_COOKING = 7;
+  WORK_HUNTING = 8;
+  WORK_CONSTRUCTION = 9;
+  WORK_GROWING = 10;
+  WORK_MINING = 11;
+  WORK_PLANT_CUTTING = 12;
+  WORK_SMITHING = 13;
+  WORK_TAILORING = 14;
+  WORK_ART = 15;
+  WORK_CRAFTING = 16;
+  WORK_HAULING = 17;
+  WORK_CLEANING = 18;
+  WORK_RESEARCH = 19;
+}
+
+// Individual skill data
+message SkillState {
+  string def_name = 1;       // Skill definition name (Shooting, Melee, Social, etc.)
+  string label = 2;           // Display name
+  int32 level = 3;            // 0-20
+  float xp = 4;               // Experience points
+  Passion passion = 5;        // Passion level
+  bool disabled = 6;          // If skill is disabled for this pawn
+}
+
+// Individual need data
+message NeedState {
+  string def_name = 1;        // Need definition name (Food, Rest, Recreation, Mood, etc.)
+  string label = 2;           // Display name
+  float cur_level = 3;        // Current level (0.0 - 1.0)
+  float max_level = 4;        // Maximum level (usually 1.0)
+  string category = 5;        // Need category
+}
+
+// Job state
+message JobState {
+  string def_name = 1;        // Job definition name
+  string label = 2;           // Display label
+  int32 target_thing_id = 3;  // Target entity ThingID (0 if none)
+  Vector3 target_position = 4;// Target location
+  int32 start_tick = 5;       // When job started
+}
+
+// Health capacity
+message HealthCapacity {
+  string label = 1;           // Capacity name (Consciousness, Moving, Manipulation, Sight, etc.)
+  float efficiency = 2;       // 0.0 - 1.0+ (can exceed 1.0 with bionics)
+  bool can_be_awake = 3;      // If pawn can be conscious
+}
+
+// Rich colonist state
+message ColonistState {
+  // Identity
+  int32 thing_id = 1;
+  string name = 2;
+  string def_name = 3;         // Pawn kind def
+  int32 faction_id = 4;
+  
+  // Position
+  Vector3 position = 5;
+  int32 map_id = 6;
+  
+  // Core stats
+  float health_percent = 7;    // Overall health 0.0 - 1.0
+  float mood_percent = 8;      // Current mood 0.0 - 1.0
+  bool is_drafted = 9;
+  bool is_downed = 10;
+  bool is_dead = 11;
+  
+  // Skills (20 fields reserved)
+  repeated SkillState skills = 12;
+  
+  // Needs (10 fields reserved)
+  repeated NeedState needs = 13;
+  
+  // Current job
+  JobState current_job = 14;
+  
+  // Health capacities
+  repeated HealthCapacity capacities = 15;
+  
+  // Work priorities (20 work types)
+  map<string, int32> work_priorities = 16; // work def name -> priority (0-4)
+  
+  // Additional info
+  int32 age_biological_ticks = 17;
+  int32 age_chronological_ticks = 18;
+  string gender = 19;
+  
+  // Performance metrics
+  float move_speed = 20;
+  float work_speed_global = 21;
+}
+
+// Extended state message with rich colonist data
+message RichStateMessage {
+  int64 frame_id = 1;
+  GlobalState global = 2;
+  repeated ColonistState colonists = 3;
+  repeated Entity other_entities = 4;  // Buildings, items, animals, etc.
+  bool is_ready = 5;
+  string status_message = 6;
+  int64 timestamp_ms = 7;              // Server timestamp for latency measurement
 }

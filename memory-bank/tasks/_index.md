@@ -2,11 +2,11 @@
 
 ## In Progress
 
-- None currently
+- [TASK002] RIMAPI Services Integration (Phase II) - Implementing ColonistService and Protobuf schema
 
 ## Pending
 
-- [TASK002] Create Services/ directory structure
+- [TASK003] Port MapService from RIMAPI
 - [TASK003] Port ColonistService from RIMAPI
 - [TASK004] Port MapService from RIMAPI
 - [TASK005] Extend Protobuf schema with ColonistState

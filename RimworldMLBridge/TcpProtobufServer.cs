@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Google.Protobuf;
 using RimworldMLBridge.Protos;
 using RimworldMLBridge.Services;
+using RimworldMLBridge.Adapters;
 using Verse;
 
 namespace RimworldMLBridge
@@ -15,6 +16,7 @@ namespace RimworldMLBridge
     /// <summary>
     /// High-performance TCP server using Protocol Buffers for serialization.
     /// Handles communication with Python RL agent without requiring native gRPC libraries.
+    /// Phase II: Uses RichStateMessage with high-fidelity ColonistState extraction.
     /// </summary>
     public class TcpProtobufServer
     {
@@ -29,7 +31,7 @@ namespace RimworldMLBridge
         private readonly ConcurrentQueue<CommandMessage> _commandQueue = new ConcurrentQueue<CommandMessage>();
 
         // Thread-safe queue for responses from game (main thread) to client (background thread)
-        private readonly ConcurrentQueue<StateMessage> _responseQueue = new ConcurrentQueue<StateMessage>();
+        private readonly ConcurrentQueue<RichStateMessage> _responseQueue = new ConcurrentQueue<RichStateMessage>();
 
         // Game state management
         private static long _currentTick = 0;
@@ -140,7 +142,7 @@ namespace RimworldMLBridge
                     _commandQueue.Enqueue(command);
 
                     // Wait for response from main thread (with timeout)
-                    StateMessage response = null;
+                    RichStateMessage response = null;
                     int timeout = 0;
                     while (timeout < ResponseTimeoutMs && !_responseQueue.TryDequeue(out response))
                     {
@@ -151,11 +153,12 @@ namespace RimworldMLBridge
                     if (response == null)
                     {
                         // Timeout - send error response
-                        response = new StateMessage
+                        response = new RichStateMessage
                         {
                             FrameId = _currentTick,
                             IsReady = false,
-                            StatusMessage = "Timeout waiting for game response"
+                            StatusMessage = "Timeout waiting for game response",
+                            TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                         };
                     }
 
@@ -192,25 +195,27 @@ namespace RimworldMLBridge
                 catch (Exception e)
                 {
                     Log.Error($"[MLBridge] Error executing command: {e.Message}");
-                    _responseQueue.Enqueue(new StateMessage
+                    _responseQueue.Enqueue(new RichStateMessage
                     {
                         FrameId = _currentTick,
                         IsReady = false,
-                        StatusMessage = $"Error: {e.Message}"
+                        StatusMessage = $"Error: {e.Message}",
+                        TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     });
                 }
             }
         }
 
-        private StateMessage ExecuteCommand(CommandMessage command)
+        private RichStateMessage ExecuteCommand(CommandMessage command)
         {
             Log.Message($"[MLBridge] Executing command: {command.Type}");
 
-            var state = new StateMessage
+            var state = new RichStateMessage
             {
                 FrameId = _currentTick,
                 IsReady = false,
-                StatusMessage = $"Command {command.Type} executed"
+                StatusMessage = $"Command {command.Type} executed",
+                TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             };
 
             // Check if game is loaded before executing commands
@@ -256,7 +261,11 @@ namespace RimworldMLBridge
             return state;
         }
 
-        private void PopulateGameState(StateMessage state)
+        /// <summary>
+        /// Populate rich game state with high-fidelity colonist data
+        /// Uses ColonistService + ColonistAdapter for efficient DTO→Protobuf conversion
+        /// </summary>
+        private void PopulateGameState(RichStateMessage state)
         {
             try
             {
@@ -290,38 +299,24 @@ namespace RimworldMLBridge
                     Year = BaseYear + (Find.TickManager.TicksAbs / TicksPerYear)
                 };
 
-                // Get colonists from ColonistService (more efficient than inline extraction)
-                var colonists = ServiceRegistry.Colonists.GetColonists();
-                foreach (var colonist in colonists)
-                {
-                    var entity = new Protos.Entity
-                    {
-                        Id = colonist.Id,
-                        Type = "Pawn",
-                        DefName = "Human", // Colonists are always human
-                        Position = new Protos.Vector3
-                        {
-                            X = colonist.Position.X,
-                            Y = colonist.Position.Y,
-                            Z = colonist.Position.Z
-                        },
-                        State = new EntityState
-                        {
-                            Health = colonist.Health,
-                            Mood = colonist.Mood,
-                            Hunger = colonist.Hunger,
-                            // Get additional data from the pawn directly for draft status and job
-                            IsDrafted = ColonistService.GetPawnById(colonist.Id)?.Drafted ?? false,
-                            CurrentJob = ColonistService.GetPawnById(colonist.Id)?.CurJobDef?.defName ?? "None"
-                        }
-                    };
+                // Phase II: Get detailed colonist data via Service→DTO→Protobuf pipeline
+                var colonistDTOs = ServiceRegistry.Colonists.GetColonistsDetailed();
+                var colonistAdapter = new ColonistAdapter();
 
-                    state.Entities.Add(entity);
+                foreach (var dto in colonistDTOs)
+                {
+                    var colonistState = colonistAdapter.ToProtobuf(dto);
+                    state.Colonists.Add(colonistState);
                 }
+
+                // Update timestamp
+                state.TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+                Log.Message($"[MLBridge] Populated state: {state.Colonists.Count} colonists, frame {state.FrameId}");
             }
             catch (Exception e)
             {
-                Log.Warning($"[MLBridge] Error populating state: {e.Message}");
+                Log.Warning($"[MLBridge] Error populating state: {e.Message}\n{e.StackTrace}");
                 state.IsReady = false;
                 state.StatusMessage = $"Error: {e.Message}";
             }

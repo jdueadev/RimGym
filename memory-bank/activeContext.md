@@ -1,35 +1,47 @@
 # Active Context
 
-## Current Focus (2025-12-10)
+## Current Focus (2025-12-10 Evening)
 
-**Phase II: RIMAPI Services Integration - "Organ Transplant"**
+### Phase II: RIMAPI Services Integration - 75% Complete
 
-Porting robust data extraction services from RIMAPI project to replace basic state extraction with high-fidelity DTOs.
+Successfully integrated high-fidelity colonist state extraction! TcpProtobufServer now uses RichStateMessage with full colonist data (skills, needs, jobs, health capacities).
 
 ## Recent Changes
 
-- ✅ Phase I Complete: TCP+Protobuf server operational
-- ✅ Basic state extraction (colonist position, health, needs)
-- ✅ STEP command for tick advancement
-- ✅ Native DLL exclusion fix (grpc_csharp_ext)
-- ✅ Thread-safe command queue implementation
-- ✅ Training mode with game pause between steps
+- ✅ **Phase II Core Complete**: Services → DTOs → Adapters → Protobuf pipeline operational
+- ✅ **Protobuf Schema**: Extended with ColonistState, RichStateMessage (21 colonist fields)
+- ✅ **ColonistAdapter**: Full DTO→Protobuf conversion implemented
+- ✅ **TcpProtobufServer**: Updated to use RichStateMessage instead of basic StateMessage
+- ✅ **Python Client**: Enhanced to display rich colonist data (skills, needs, capacities)
+- ✅ **Build Verified**: All code compiles successfully, Protobuf bindings generated
 
 ## Current Work
 
-- 🔄 Workspace organization and memory bank setup
-- 🔄 Creating documentation structure
-- 🔄 Planning Services/ DTOs/ Adapters/ architecture
+- ✅ Phase II Subtasks 2.1-2.5 Complete (Core integration)
+- 🔄 Next: Unit tests and performance benchmarking
 
 ## Next Steps (Priority Order)
 
-1. Complete workspace reorganization
-2. Create Services/, DTOs/, Adapters/ directories in RimworldMLBridge/
-3. Port ColonistService.cs from RIMAPI (pawn stats, needs, skills)
-4. Port MapService.cs from RIMAPI (terrain grid, weather)
-5. Extend mlbridge.proto with ColonistState, MapState messages
-6. Implement ProtobufAdapter classes for DTO→Protobuf mapping
-7. Test serialization performance (<1ms target)
+1. **Subtask 2.6**: Create unit tests for ColonistService and ColonistAdapter
+   - Test DTO extraction accuracy
+   - Test Protobuf conversion correctness
+   - Test edge cases (null values, missing data)
+
+2. **Subtask 2.7**: Benchmark serialization performance
+   - Test with 3, 10, 50 colonist colonies
+   - Measure end-to-end serialization time
+   - Verify <1ms target is met
+   - Profile and optimize if needed
+
+3. **End-to-End Testing**: Test with real RimWorld game
+   - Load a colony, connect client
+   - Verify all data extracts correctly
+   - Test STEP and QUERY_STATE commands
+   - Validate timestamp accuracy
+
+4. **Expand Services**: Port MapService and IncidentService
+   - High-fidelity terrain grid data
+   - Incident tracking for event-driven learning
 
 ## Active Decisions
 
@@ -38,6 +50,9 @@ Porting robust data extraction services from RIMAPI project to replace basic sta
 - **DEC-003**: gRPC vs raw TCP → Raw TCP due to native DLL incompatibility
 - **DEC-004**: Full state vs delta compression → Implement both, toggle by mode
 - **DEC-005**: Memory Bank structure → Following memory-bank.instructions.md specification
+- **DEC-006**: Use RichStateMessage for all state responses (not dual message types)
+- **DEC-007**: Always include timestamp for latency measurement
+- **DEC-008**: C# 7.3 compatibility requires traditional control flow patterns
 
 ## Blockers
 
