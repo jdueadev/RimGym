@@ -22,3 +22,9 @@ build-backend = "setuptools.build_meta"
 # Exclude non-Python directories from package discovery
 packages = []
 py-modules = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+]

@@ -1,6 +1,7 @@
 using HarmonyLib;
 using Verse;
 using System;
+using RimworldMLBridge.Services;
 
 namespace RimworldMLBridge
 {
@@ -15,6 +16,17 @@ namespace RimworldMLBridge
         {
             Log.Message("[MLBridge] =================================");
             Log.Message("[MLBridge] Initializing ML Bridge with TCP+Protobuf...");
+
+            try
+            {
+                // Initialize ServiceRegistry for data extraction services
+                ServiceRegistry.Initialize();
+                Log.Message("[MLBridge] Service registry initialized");
+            }
+            catch (Exception e)
+            {
+                Log.Error("[MLBridge] ServiceRegistry initialization failed: " + e.Message);
+            }
 
             try
             {

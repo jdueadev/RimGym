@@ -15,6 +15,52 @@
 uv.lock
 .github
 .config
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist/
+build/
+*.egg
+rimworldmlbridge.egg-info/
+
+# C#
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.cache
+.vs/
+*.dll
+*.pdb
+!1.6/Assemblies/*.dll
+
+# RimWorld Mod Output
+1.6/Assemblies/*.pdb
+1.6/Assemblies/*.xml
+1.6/Assemblies/grpc_csharp_ext*
+1.6/Assemblies/runtimes/
+
+# Generated Protobuf Files
+python/mlbridge_pb2.py
+python/mlbridge_pb2_grpc.py
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
 # AWS User-specific
 .idea/**/aws.xml
 

@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using RimworldMLBridge.Protos;
+using RimworldMLBridge.Services;
 using Verse;
 
 namespace RimworldMLBridge
@@ -259,7 +260,7 @@ namespace RimworldMLBridge
         {
             try
             {
-                if (Current.Game == null || Find.CurrentMap == null)
+                if (!ServiceRegistry.IsGameReady())
                 {
                     state.IsReady = false;
                     state.StatusMessage = "Game not loaded";
@@ -275,45 +276,45 @@ namespace RimworldMLBridge
                 const int TicksPerDay = 60000;
                 const int BaseYear = 5500;
                 const int TicksPerYear = 360000;
+
+                // Get weather from MapService
+                var mapId = ServiceRegistry.GetCurrentMapId();
+                var weather = ServiceRegistry.Maps.GetWeather(mapId);
+
                 // Global state
                 state.Global = new GlobalState
                 {
-                    Temperature = Find.CurrentMap.mapTemperature.OutdoorTemp,
-                    Weather = Find.CurrentMap.weatherManager.CurWeatherPerceived?.defName ?? "Clear",
-                    Day = Find.TickManager.TicksAbs / TicksPerDay, // Approximate day (60000 ticks per day)
-                    Year = BaseYear + (Find.TickManager.TicksAbs / TicksPerYear) // Approximate year
+                    Temperature = weather.Temperature,
+                    Weather = weather.Weather,
+                    Day = Find.TickManager.TicksAbs / TicksPerDay,
+                    Year = BaseYear + (Find.TickManager.TicksAbs / TicksPerYear)
                 };
 
-                // Colonist entities
-                foreach (var pawn in Find.CurrentMap.mapPawns.FreeColonistsSpawned)
+                // Get colonists from ColonistService (more efficient than inline extraction)
+                var colonists = ServiceRegistry.Colonists.GetColonists();
+                foreach (var colonist in colonists)
                 {
                     var entity = new Protos.Entity
                     {
-                        Id = pawn.thingIDNumber,
+                        Id = colonist.Id,
                         Type = "Pawn",
-                        DefName = pawn.def.defName,
+                        DefName = "Human", // Colonists are always human
                         Position = new Protos.Vector3
                         {
-                            X = pawn.Position.x,
-                            Y = pawn.Position.y,
-                            Z = pawn.Position.z
+                            X = colonist.Position.X,
+                            Y = colonist.Position.Y,
+                            Z = colonist.Position.Z
                         },
-                        FactionId = pawn.Faction?.loadID ?? -1,
                         State = new EntityState
                         {
-                            Health = pawn.health.summaryHealth.SummaryHealthPercent,
-                            IsDrafted = pawn.Drafted,
-                            CurrentJob = pawn.CurJobDef?.defName ?? "None"
+                            Health = colonist.Health,
+                            Mood = colonist.Mood,
+                            Hunger = colonist.Hunger,
+                            // Get additional data from the pawn directly for draft status and job
+                            IsDrafted = ColonistService.GetPawnById(colonist.Id)?.Drafted ?? false,
+                            CurrentJob = ColonistService.GetPawnById(colonist.Id)?.CurJobDef?.defName ?? "None"
                         }
                     };
-
-                    // Add needs
-                    if (pawn.needs != null)
-                    {
-                        entity.State.Mood = pawn.needs.mood?.CurLevel ?? 0;
-                        entity.State.Hunger = pawn.needs.food?.CurLevel ?? 0;
-                        entity.State.Rest = pawn.needs.rest?.CurLevel ?? 0;
-                    }
 
                     state.Entities.Add(entity);
                 }
