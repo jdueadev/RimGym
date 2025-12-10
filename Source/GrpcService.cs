@@ -48,10 +48,13 @@ namespace RimworldMLBridge
             {
                 if (Current.Game != null)
                 {
+                    var ticksAbs = Find.TickManager.TicksAbs;
+                    var longitude = Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x;
+                    
                     state.Global = new GlobalState
                     {
-                        Day = GenDate.DayOfTwelfth(Find.TickManager.TicksAbs, Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x),
-                        Year = GenDate.Year(Find.TickManager.TicksAbs, Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x)
+                        Day = GenDate.DayOfTwelfth(ticksAbs, longitude),
+                        Year = GenDate.Year(ticksAbs, longitude)
                     };
                 }
             }
@@ -81,10 +84,13 @@ namespace RimworldMLBridge
             {
                 if (Current.Game != null && Find.CurrentMap != null)
                 {
+                    var ticksAbs = Find.TickManager.TicksAbs;
+                    var longitude = Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x;
+                    
                     state.Global = new GlobalState
                     {
-                        Day = GenDate.DayOfTwelfth(Find.TickManager.TicksAbs, Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x),
-                        Year = GenDate.Year(Find.TickManager.TicksAbs, Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x),
+                        Day = GenDate.DayOfTwelfth(ticksAbs, longitude),
+                        Year = GenDate.Year(ticksAbs, longitude),
                         Temperature = Find.CurrentMap.mapTemperature.OutdoorTemp
                     };
 

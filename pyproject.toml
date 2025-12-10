@@ -2,7 +2,7 @@
 name = "rimworldmlbridge"
 version = "0.2.0"
 description = "RimWorld ML Bridge with gRPC and Protocol Buffers"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 dependencies = [
     "grpcio>=1.59.0",
     "grpcio-tools>=1.59.0",
