@@ -54,7 +54,7 @@ class TestListenerPerformance:
         start = time.perf_counter()
 
         for _ in range(iterations):
-            state = self.listener._parse_state_message(msg)
+            _ = self.listener._parse_state_message(msg)
 
         end = time.perf_counter()
         elapsed_ms = (end - start) * 1000
@@ -94,7 +94,7 @@ class TestListenerPerformance:
         start = time.perf_counter()
 
         for _ in range(iterations):
-            events = self.listener._detect_colonist_events(current, previous)
+            self.listener._detect_colonist_events(current, previous)
 
         end = time.perf_counter()
         elapsed_ms = (end - start) * 1000
@@ -130,7 +130,7 @@ class TestListenerPerformance:
         start = time.perf_counter()
 
         for _ in range(iterations):
-            events = self.listener._detect_colonist_events(current, previous)
+            self.listener._detect_colonist_events(current, previous)
 
         end = time.perf_counter()
         elapsed_ms = (end - start) * 1000
@@ -168,7 +168,7 @@ class TestListenerPerformance:
         start = time.perf_counter()
 
         for _ in range(iterations):
-            events = self.listener._detect_colonist_events(current, previous)
+            self.listener._detect_colonist_events(current, previous)
 
         end = time.perf_counter()
         elapsed_ms = (end - start) * 1000
@@ -226,7 +226,7 @@ class TestListenerPerformance:
 
         # Run many iterations
         for _ in range(1000):
-            events = self.listener._detect_colonist_events(current, previous)
+            self.listener._detect_colonist_events(current, previous)
 
         # Check GC stats
         gc_after = gc.get_count()

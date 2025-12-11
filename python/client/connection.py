@@ -114,7 +114,7 @@ class ConnectionManager:
                 if self._socket:
                     try:
                         self._socket.close()
-                    except:
+                    except OSError:
                         pass
                     self._socket = None
                 self._connected = False
@@ -186,7 +186,7 @@ class ConnectionManager:
                     # Socket exists, assume healthy if connected
                     return True
                 return False
-            except:
+            except OSError:
                 return False
 
     def send_command(

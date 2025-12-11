@@ -72,7 +72,7 @@ class StateQueue:
         except queue.Full:
             # Drop oldest state and try again
             try:
-                old_state = self._queue.get_nowait()
+                self._queue.get_nowait()  # Discard oldest
                 self._queue.put_nowait(state)
                 self._dropped_count += 1
 

@@ -126,7 +126,7 @@ class PerformanceBenchmarks(unittest.TestCase):
             state = client.state_queue.get(timeout=1.0)
             if state:
                 decision_start = time.time()
-                actions = policy.decide(state)
+                policy.decide(state)
                 decision_end = time.time()
 
                 latency_ms = (decision_end - decision_start) * 1000
@@ -195,7 +195,7 @@ class PerformanceBenchmarks(unittest.TestCase):
         for _ in range(100):
             for event in test_events:
                 start = time.time()
-                actions = policy.decide(event)
+                policy.decide(event)
                 end = time.time()
 
                 latency_ms = (end - start) * 1000
@@ -251,7 +251,7 @@ class PerformanceBenchmarks(unittest.TestCase):
         # Run 1000 extractions
         for _ in range(1000):
             start = time.time()
-            obs = ObservationSpace.extract_observation(test_state)
+            ObservationSpace.extract_observation(test_state)
             end = time.time()
 
             latency_ms = (end - start) * 1000
@@ -307,7 +307,7 @@ class PerformanceBenchmarks(unittest.TestCase):
             }
 
             start = time.time()
-            reward = calculator.compute_reward(varied_state)
+            calculator.compute_reward(varied_state)
             end = time.time()
 
             latency_ms = (end - start) * 1000

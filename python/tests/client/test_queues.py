@@ -212,8 +212,8 @@ class TestQueuesIntegration:
     def test_realistic_producer_consumer(self):
         """Test realistic multi-threaded scenario."""
         state_q = StateQueue(maxsize=10)
-        event_q = EventQueue(maxsize=100)
-        action_q = ActionQueue(maxsize=100)
+        EventQueue(maxsize=100)
+        ActionQueue(maxsize=100)
 
         stop_event = threading.Event()
         states_produced = []
