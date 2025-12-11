@@ -1,7 +1,7 @@
 # Compatibility alias - mlbridge_pb2 was renamed to rimgym_pb2
 # This file provides backwards compatibility for imports that reference mlbridge_pb2
 # The actual generated protobuf file is rimgym_pb2.py
-from shared.python.src import rimgym_pb2 as _rimgym_pb2
+from . import rimgym_pb2 as _rimgym_pb2
 
 # Re-export all public symbols from rimgym_pb2
 CommandMessage = _rimgym_pb2.CommandMessage
