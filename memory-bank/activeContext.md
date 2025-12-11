@@ -22,6 +22,7 @@
 ### Phase IV Architecture Design
 
 Designing triple-threaded client with:
+
 1. **Listener Thread**: Async state polling, event detection
 2. **Inference Thread**: High-level policy (Executive layer)
 3. **Actor Thread**: Immediate responses (Reflex layer)

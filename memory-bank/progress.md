@@ -128,6 +128,7 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
 ### Phase IV Subtasks
 
 **Planned** (will be added to tasks/_index.md):
+
 1. Architecture design and specification
 2. SpectatorClient base implementation
 3. Listener thread (async polling)
