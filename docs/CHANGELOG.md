@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Updated PR template to reference CONTRIBUTING.md for contributor guidelines
 - Consolidated documentation structure (architecture, API, guides)
 - Updated Harmony ID to `com.jmduea.rimworldmlbridge`
 - Standardized version numbers across all package files
@@ -22,6 +23,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `CONTRIBUTING.md` - Comprehensive contributor onboarding guide
+  - Prerequisites and development setup instructions
+  - Development workflow (branching, testing, commits, PRs)
+  - Testing guide (unit, integration, performance tests)
+  - Code style guidelines and formatting tools
+  - Commit message conventions with examples
+  - Project structure documentation
+  - Troubleshooting section for common issues
+  - Links to documentation and help resources
+- `scripts/verify_setup.py` - Development environment verification script
+  - Checks Python version (3.11+)
+  - Verifies module imports work correctly
+  - Checks package installation status
+  - Verifies pytest can discover tests
+  - Checks uv package manager availability
+  - Provides clear pass/fail feedback with troubleshooting steps
 - `Constants.cs` - Centralized C# configuration constants
 - `config.py` - Centralized Python client configuration
 - `docs/architecture/README.md` - Consolidated architecture documentation
