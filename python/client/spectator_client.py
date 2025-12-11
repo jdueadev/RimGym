@@ -12,8 +12,9 @@ from enum import Enum
 from typing import Any, Optional
 
 from .connection import ConnectionManager
+from .inference import InferenceThread
+from .listener import EventDetectionConfig, ListenerThread
 from .queues import ActionQueue, EventQueue, StateQueue
-from .listener import ListenerThread, EventDetectionConfig
 
 logger = logging.getLogger(__name__)
 
@@ -185,7 +186,7 @@ class SpectatorClient:
 
     def _start_threads(self) -> None:
         """Start all worker threads."""
-        
+
         # Start Listener thread (Phase IV.2)
         event_config = EventDetectionConfig()
         self._listener_thread = ListenerThread(
@@ -196,14 +197,27 @@ class SpectatorClient:
             poll_interval_ms=self.config.poll_interval_ms,
             health_check_interval_ms=self.config.health_check_interval_ms,
             event_config=event_config,
-            metrics_collector=self._metrics_collector if hasattr(self, '_metrics_collector') else None
+            metrics_collector=self._metrics_collector
+            if hasattr(self, "_metrics_collector")
+            else None,
         )
         self._listener_thread.start()
         logger.info("Listener thread started")
 
-        # TODO Phase IV.3: Start Inference thread
-        # self._inference_thread = InferenceThread(...)
-        # self._inference_thread.start()
+        # Start Inference thread (Phase IV.3)
+        if self.config.executive_policy:
+            self._inference_thread = InferenceThread(
+                policy=self.config.executive_policy,
+                state_queue=self.state_queue,
+                action_queue=self.action_queue,
+                stop_event=self._stop_event,
+                timeout_ms=self.config.max_inference_latency_ms,
+                metrics_collector=None,  # TODO: Add metrics collector
+            )
+            self._inference_thread.start()
+            logger.info("Inference thread started")
+        else:
+            logger.warning("No executive_policy configured, skipping Inference thread")
 
         # TODO Phase IV.4: Start Actor thread
         # self._actor_thread = ActorThread(...)

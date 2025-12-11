@@ -5,6 +5,7 @@ Provides a triple-threaded client for autonomous RL agent interaction with RimWo
 """
 
 from .connection import ConnectionManager
+from .inference import InferenceThread
 from .listener import EventDetectionConfig, ListenerThread
 from .metrics import MetricsCollector, PerformanceMetrics
 from .queues import ActionQueue, EventQueue, StateQueue
@@ -22,6 +23,7 @@ __all__ = [
     "PerformanceMetrics",
     "ListenerThread",
     "EventDetectionConfig",
+    "InferenceThread",
 ]
 
 __version__ = "0.3.0"
