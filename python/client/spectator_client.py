@@ -152,6 +152,9 @@ class SpectatorClient:
         }
         self._metrics_lock = threading.Lock()
 
+        # Optional metrics collector (can be set externally if needed)
+        self._metrics_collector: Optional[Any] = None
+
         logger.info(
             f"SpectatorClient initialized (mode={'training' if config.training_mode else 'inference'})"
         )
@@ -198,9 +201,7 @@ class SpectatorClient:
             poll_interval_ms=self.config.poll_interval_ms,
             health_check_interval_ms=self.config.health_check_interval_ms,
             event_config=event_config,
-            metrics_collector=self._metrics_collector
-            if hasattr(self, "_metrics_collector")
-            else None,
+            metrics_collector=self._metrics_collector,
         )
         self._listener_thread.start()
         logger.info("Listener thread started")
@@ -213,9 +214,7 @@ class SpectatorClient:
                 action_queue=self.action_queue,
                 stop_event=self._stop_event,
                 timeout_ms=self.config.max_inference_latency_ms,
-                metrics_collector=self._metrics_collector
-                if hasattr(self, "_metrics_collector")
-                else None,
+                metrics_collector=self._metrics_collector,
             )
             self._inference_thread.start()
             logger.info("Inference thread started")
@@ -230,9 +229,7 @@ class SpectatorClient:
                 action_queue=self.action_queue,
                 stop_event=self._stop_event,
                 timeout_ms=50,  # 50ms timeout for event queue
-                metrics_collector=self._metrics_collector
-                if hasattr(self, "_metrics_collector")
-                else None,
+                metrics_collector=self._metrics_collector,
             )
             self._actor_thread.start()
             logger.info("Actor thread started")

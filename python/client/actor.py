@@ -16,6 +16,9 @@ from .queues import ActionQueue, EventQueue
 
 logger = logging.getLogger(__name__)
 
+# Target latency budget for reflex reactions in milliseconds
+REFLEX_LATENCY_BUDGET_MS = 10.0
+
 
 class ActorThread(threading.Thread):
     """
@@ -148,11 +151,12 @@ class ActorThread(threading.Thread):
 
                     # Check latency
                     latency_ms = (time.time() - start_time) * 1000
-                    if latency_ms > 10.0:
+                    if latency_ms > REFLEX_LATENCY_BUDGET_MS:
                         self.latency_warnings += 1
                         logger.warning(
-                            "Reflex reaction took %.2fms (>10ms budget) for event: %s",
+                            "Reflex reaction took %.2fms (>%.0fms budget) for event: %s",
                             latency_ms,
+                            REFLEX_LATENCY_BUDGET_MS,
                             event_type,
                         )
 

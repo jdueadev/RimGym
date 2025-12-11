@@ -26,6 +26,12 @@ class ConnectionError(Exception):
     pass
 
 
+# Backoff configuration constants
+BACKOFF_BASE = 2  # Exponential base for backoff calculation
+BACKOFF_ATTEMPT_OFFSET = 2  # Offset for attempt count in backoff calculation
+MAX_BACKOFF_SECONDS = 10.0  # Maximum backoff delay
+
+
 class ConnectionManager:
     """
     Manages TCP connection to RimWorld server with reconnection logic.
@@ -217,9 +223,9 @@ class ConnectionManager:
             if not self._connected:
                 if self.auto_reconnect and attempts > 1:
                     backoff_seconds = (self.reconnect_backoff_ms / 1000.0) * (
-                        2 ** (attempts - 2)
+                        BACKOFF_BASE ** (attempts - BACKOFF_ATTEMPT_OFFSET)
                     )
-                    backoff_seconds = min(backoff_seconds, 10.0)  # Cap at 10s
+                    backoff_seconds = min(backoff_seconds, MAX_BACKOFF_SECONDS)
                     logger.info(
                         f"Auto-reconnect attempt {attempts}/{max_attempts} after {backoff_seconds:.1f}s"
                     )

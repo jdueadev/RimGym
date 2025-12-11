@@ -14,6 +14,9 @@ import time
 
 from client import ClientConfig, RichGameState, SpectatorClient
 
+# Display limit for colonist output
+MAX_DISPLAYED_COLONISTS = 5
+
 logging.basicConfig(
     level=logging.INFO, format="[%(asctime)s] [%(levelname)s] %(message)s"
 )
@@ -81,15 +84,15 @@ def demo_phase_v_observability():
         print_separator("COLONIST DATA")
         print(f"Total Colonists: {state.colonist_count}\n")
 
-        for colonist in state.colonists[:5]:  # Show first 5
+        for colonist in state.colonists[:MAX_DISPLAYED_COLONISTS]:
             print(f"  {colonist.name} (ID: {colonist.pawn_id})")
             print(f"    Health: {colonist.health * 100:.1f}%")
             print(f"    Position: ({colonist.x:.1f}, {colonist.y:.1f})")
             print(f"    Current Job: {colonist.current_job}")
             print()
 
-        if state.colonist_count > 5:
-            print(f"  ... and {state.colonist_count - 5} more colonists\n")
+        if state.colonist_count > MAX_DISPLAYED_COLONISTS:
+            print(f"  ... and {state.colonist_count - MAX_DISPLAYED_COLONISTS} more colonists\n")
 
         # Display map data
         if state.has_map_data:

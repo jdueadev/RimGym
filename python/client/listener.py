@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Set
 
-from mlbridge_pb2 import CommandMessage, StateMessage
+from mlbridge_pb2 import CommandMessage, CommandType, StateMessage
 
 from .queues import EventPriority, EventQueue, StateQueue
 
@@ -183,7 +183,7 @@ class ListenerThread(threading.Thread):
         try:
             # Create QUERY_STATE command
             command = CommandMessage()
-            command.type = 3  # QUERY_STATE from CommandType enum
+            command.type = CommandType.QUERY_STATE
 
             # Send and receive response
             response = self.connection.send_command(command, timeout=1.0)

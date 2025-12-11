@@ -11,6 +11,9 @@ import time
 
 from client import ClientConfig, SpectatorClient
 
+# Display limit for colonist output
+MAX_DISPLAYED_COLONISTS = 3
+
 logging.basicConfig(
     level=logging.INFO,
     format="[%(asctime)s] %(levelname)s: %(message)s",
@@ -72,7 +75,7 @@ def main():
                 )
 
                 # Show colonist details
-                for colonist in state.get("colonists", [])[:3]:  # Show first 3
+                for colonist in state.get("colonists", [])[:MAX_DISPLAYED_COLONISTS]:
                     health = colonist.get("health", 0)
                     mood = colonist.get("mood", 0)
                     job = colonist.get("current_job", "Unknown")

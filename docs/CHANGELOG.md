@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - 2025-12-11
 
+### Breaking Changes
+
+- **Python 3.11 Required**: Minimum Python version increased from 3.9 to 3.11
+  - Benefits: Enhanced performance, improved error messages, better typing support
+  - Action required: Upgrade Python environment if using an older version
+
 ### Changed
 
 - Consolidated documentation structure (architecture, API, guides)

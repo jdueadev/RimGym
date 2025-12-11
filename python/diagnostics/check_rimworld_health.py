@@ -26,6 +26,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from mlbridge_pb2 import CommandMessage, RichStateMessage
 
+# Minimum success rate threshold for health check to pass
+MIN_SUCCESS_RATE_PERCENT = 95.0
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -365,8 +368,8 @@ def main():
             interval_seconds=args.interval,
             output_file=args.output,
         )
-        # Exit with error if success rate < 95%
-        sys.exit(0 if stats["success_rate_percent"] >= 95 else 1)
+        # Exit with error if success rate < MIN_SUCCESS_RATE_PERCENT%
+        sys.exit(0 if stats["success_rate_percent"] >= MIN_SUCCESS_RATE_PERCENT else 1)
 
 
 if __name__ == "__main__":
