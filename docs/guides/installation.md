@@ -10,8 +10,8 @@
 
 ### For Python Client
 
-- Python 3.8+
-- pip package manager
+- Python 3.11+ (recommended) or Python 3.8+
+- UV package manager (recommended) or pip
 
 ## Step-by-Step Installation
 
@@ -58,9 +58,7 @@ chmod +x build.sh
 dotnet build RimworldMLBridge.sln -c Release
 
 # Generate Python protobuf files
-cd python
-python generate_proto.py
-cd ..
+uv run python python/generate_proto.py
 ```
 
 ### 4. Install Mod to RimWorld
@@ -96,7 +94,10 @@ Copy-Item -Path . -Destination "$env:RIMWORLD_DIR\Mods\RimworldMLBridge" -Recurs
 ### 5. Install Python Client
 
 ```bash
-# Install in development mode
+# Using UV (recommended)
+uv sync
+
+# Or using pip
 pip install -e .
 
 # Or install dependencies only
@@ -129,13 +130,12 @@ Look for these messages in the RimWorld log (accessible via Dev Mode → Debug L
 Run the test client to verify the connection:
 
 ```bash
-cd python
-python test_tcp_connection.py
+uv run python python/test_tcp_connection.py
 ```
 
 **Expected output:**
 
-```
+```text
 Connecting to RimWorld...
 Connected to RimWorld ML Bridge at localhost:50051
 Frame ID: 12345
@@ -240,7 +240,7 @@ Verify `mlbridge_pb2.py` is created in the `python/` directory.
 1. Verify mod is in `$RIMWORLD_DIR/Mods/RimworldMLBridge/`
 2. Check directory structure:
 
-   ```
+   ```text
    RimworldMLBridge/
    ├── About/
    │   └── About.xml

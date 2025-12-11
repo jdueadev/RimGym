@@ -36,16 +36,16 @@ theme:
 
 nav:
   - Home: index.md
+  - Changelog: CHANGELOG.md
   - Getting Started:
       - Installation: guides/installation.md
       - Quick Start: guides/quickstart.md
       - Phase IV Usage: guides/phase4_usage.md
       - Docker Setup: guides/docker-setup.md
   - Architecture:
-      - Overview: specs/architecture-overview.md
-      - Phase IV: specs/phase4-architecture.md
-      - Real-Time Design: specs/real-time-architecture.md
-      - TCP Protobuf: implementation/tcp-protobuf.md
+      - Overview: architecture/README.md
+      - Real-Time Design: specs/REAL_TIME_ARCHITECTURE_UPDATE.md
+      - TCP Protocol: implementation/TCP_PROTOBUF_IMPLEMENTATION.md
   - API Reference:
       - Python Client:
           - Overview: api/python/overview.md
