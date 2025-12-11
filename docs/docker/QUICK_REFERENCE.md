@@ -48,7 +48,7 @@ docker inspect rimworldmlbridge-integration-1 | grep -A 10 Health
 **Check line endings:**
 
 ```bash
-file docker/entrypoint.sh
+file scripts/entrypoint.sh
 # Should show: "ASCII text" (not "with CRLF")
 ```
 
@@ -56,8 +56,8 @@ file docker/entrypoint.sh
 
 ```powershell
 # PowerShell
-(Get-Content docker\entrypoint.sh -Raw) -replace "`r`n", "`n" | 
-  Set-Content docker\entrypoint.sh -NoNewline
+(Get-Content scripts/entrypoint.sh -Raw) -replace "`r`n", "`n" | 
+  Set-Content scripts/entrypoint.sh -NoNewline
 ```
 
 ### Connection Refused (Port 50051)

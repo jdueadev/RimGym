@@ -47,8 +47,8 @@ COPY . /app/
 # Restore and build C# project
 # The .csproj will automatically use Krafs.Rimworld.Ref NuGet package
 # when local RimWorld DLLs are not available
-RUN dotnet restore RimTCP.sln && \
-    dotnet build RimTCP.sln -c Release
+RUN dotnet restore src/RimTCP/RimTCP/RimTCP.sln && \
+    dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release
 
 # Install Python dependencies
 RUN uv sync
@@ -75,7 +75,7 @@ RUN mkdir -p ${RIMWORLD_PATH}/Mods/RimTCP && \
 ENV DISPLAY=:99
 
 # Entrypoint script
-COPY docker/entrypoint.sh /entrypoint.sh
+COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 WORKDIR /app
