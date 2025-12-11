@@ -47,23 +47,27 @@ Phase IV implements a **triple-threaded Python client** that enables autonomous 
 ## Design Goals
 
 ### 1. Real-Time Performance
+
 - **Training Mode**: Deterministic, lock-step with game ticks
 - **Inference Mode**: Low-latency observation/action pipeline
 - **Reflex Layer**: Sub-frame tactical responses
 
 ### 2. Robustness
+
 - Connection retry with exponential backoff
 - Graceful degradation when game pauses
 - Thread-safe state sharing
 - Clean shutdown handling
 
 ### 3. Extensibility
+
 - Pluggable policy modules (Executive/Reflex)
 - Custom event handlers
 - Configurable observation/action spaces
 - Easy integration with RL libraries
 
 ### 4. Debuggability
+
 - Comprehensive logging per thread
 - State replay capability
 - Performance metrics collection
@@ -118,6 +122,7 @@ Phase IV implements a **triple-threaded Python client** that enables autonomous 
 **Purpose**: Asynchronously poll game state and detect events.
 
 **Responsibilities**:
+
 - Poll QUERY_STATE at configured intervals (default: 100ms inference, tick-locked training)
 - Detect events from state changes (raids, fires, deaths, job completions)
 - Populate state queue for Inference thread
@@ -125,6 +130,7 @@ Phase IV implements a **triple-threaded Python client** that enables autonomous 
 - Track connection health and trigger reconnects
 
 **State Machine**:
+
 ```
 ┌─────────────┐
 │ CONNECTING  │──Success──▶ POLLING ◀──┐
@@ -139,6 +145,7 @@ Phase IV implements a **triple-threaded Python client** that enables autonomous 
 ```
 
 **Configuration**:
+
 ```python
 class ListenerConfig:
     poll_interval_ms: int = 100  # Inference mode
@@ -153,6 +160,7 @@ class ListenerConfig:
 **Purpose**: High-level strategic decision-making (Executive policy).
 
 **Responsibilities**:
+
 - Consume latest state from state queue
 - Run Executive policy (neural network or rule-based)
 - Generate high-level actions (assign jobs, manage priorities)
@@ -160,6 +168,7 @@ class ListenerConfig:
 - Update long-term strategy metrics
 
 **Processing Loop**:
+
 ```python
 while running:
     state = state_queue.get(timeout=1.0)  # Blocking
@@ -181,6 +190,7 @@ while running:
 **Purpose**: Immediate tactical responses (Reflex policy).
 
 **Responsibilities**:
+
 - Monitor event queue for urgent events
 - Run Reflex policy (fast, heuristic-based)
 - Generate immediate tactical actions (dodge, flee, fight)
@@ -188,6 +198,7 @@ while running:
 - Maintain low-latency response (<10ms)
 
 **Event Priorities**:
+
 ```python
 class EventPriority(Enum):
     CRITICAL = 0   # Under attack, fire spreading
@@ -197,6 +208,7 @@ class EventPriority(Enum):
 ```
 
 **Processing Loop**:
+
 ```python
 while running:
     event = event_queue.get(timeout=0.01)  # Non-blocking, 10ms
@@ -294,12 +306,14 @@ RimWorld Server
 **Output**: High-level actions (job assignments, priorities).
 
 **Examples**:
+
 - Assign colonist to mining task
 - Set research priority
 - Plan base expansion
 - Manage stockpile priorities
 
 **Implementation Options**:
+
 1. **Neural Network**: PPO/A3C trained on long episodes
 2. **Monte Carlo Tree Search**: Planning with game simulation
 3. **Rule-Based**: Hand-crafted strategy rules
@@ -314,12 +328,14 @@ RimWorld Server
 **Output**: Fast tactical actions (flee, fight, extinguish).
 
 **Examples**:
+
 - Dodge incoming projectile
 - Flee from predator
 - Extinguish fire immediately
 - Stop mental break violence
 
 **Implementation Options**:
+
 1. **Heuristic Rules**: Fast, deterministic responses
 2. **Lightweight NN**: Small network (<1ms inference)
 3. **Behavior Trees**: Structured reactive logic
@@ -328,6 +344,7 @@ RimWorld Server
 ### Policy Coordination
 
 **Conflict Resolution**:
+
 ```python
 def resolve_conflict(executive_action, reflex_action):
     """Reflex overrides Executive for same colonist."""
@@ -338,6 +355,7 @@ def resolve_conflict(executive_action, reflex_action):
 ```
 
 **Shared Context**:
+
 - Both policies access same observation
 - Reflex can read Executive's plan
 - Executive learns from Reflex overrides
@@ -364,6 +382,7 @@ def resolve_conflict(executive_action, reflex_action):
 | Need critical | Food/Rest < 0.1 | MEDIUM |
 
 **Implementation**:
+
 ```python
 class EventDetector:
     def __init__(self):
@@ -588,12 +607,14 @@ env.close()
 ### Phase IV.1: Core Infrastructure (Week 1)
 
 **Subtasks**:
+
 1. ConnectionManager with reconnection logic
 2. SpectatorClient orchestration
 3. Thread-safe queue implementations
 4. Basic logging and metrics
 
 **Deliverables**:
+
 - `connection.py`: TCP connection management
 - `client.py`: SpectatorClient main class
 - `queues.py`: Shared state/event/action queues
@@ -602,12 +623,14 @@ env.close()
 ### Phase IV.2: Listener Thread (Week 1-2)
 
 **Subtasks**:
+
 1. Implement polling loop
 2. State deserialization
 3. Event detection system
 4. Health monitoring
 
 **Deliverables**:
+
 - `listener.py`: ListenerThread implementation
 - `events.py`: Event detection and classification
 - Integration tests with mock RimWorld server
@@ -615,12 +638,14 @@ env.close()
 ### Phase IV.3: Inference Thread (Week 2)
 
 **Subtasks**:
+
 1. Inference loop implementation
 2. Abstract Policy interface
 3. Simple rule-based Executive policy
 4. Action generation and queuing
 
 **Deliverables**:
+
 - `inference.py`: InferenceThread implementation
 - `policies/executive.py`: Base executive policy
 - `policies/rules.py`: Simple rule-based policy
@@ -629,12 +654,14 @@ env.close()
 ### Phase IV.4: Actor Thread (Week 2-3)
 
 **Subtasks**:
+
 1. Actor loop implementation
 2. Priority-based event handling
 3. Simple rule-based Reflex policy
 4. Conflict resolution with Executive
 
 **Deliverables**:
+
 - `actor.py`: ActorThread implementation
 - `policies/reflex.py`: Base reflex policy
 - `policies/heuristics.py`: Fast heuristic policy
@@ -643,12 +670,14 @@ env.close()
 ### Phase IV.5: Gymnasium Wrapper (Week 3)
 
 **Subtasks**:
+
 1. Observation space definition
 2. Action space definition
 3. Reward function design
 4. Episode management (reset/step/close)
 
 **Deliverables**:
+
 - `gym_env.py`: RimWorldEnv implementation
 - `spaces.py`: Custom observation/action spaces
 - `rewards.py`: Reward function implementations
@@ -657,12 +686,14 @@ env.close()
 ### Phase IV.6: Integration & Testing (Week 3-4)
 
 **Subtasks**:
+
 1. End-to-end testing with RimWorld
 2. Performance benchmarking
 3. Stress testing (long episodes, disconnects)
 4. Documentation and examples
 
 **Deliverables**:
+
 - `tests/integration/`: Full integration test suite
 - `examples/`: Example scripts (training, inference)
 - Performance report
@@ -689,6 +720,7 @@ env.close()
 ### Risk: Network Latency Spikes
 
 **Mitigation**:
+
 - Velocity-based position extrapolation
 - Predictive state estimation
 - Action buffering and batching
@@ -696,6 +728,7 @@ env.close()
 ### Risk: Game Pause/Speed Changes
 
 **Mitigation**:
+
 - Auto-detect mode switches
 - Graceful thread synchronization
 - Separate training/inference configs
@@ -703,6 +736,7 @@ env.close()
 ### Risk: Thread Deadlocks
 
 **Mitigation**:
+
 - Timeout on all queue operations
 - No nested locks
 - Thread health monitoring
@@ -710,6 +744,7 @@ env.close()
 ### Risk: Policy Bugs
 
 **Mitigation**:
+
 - Extensive unit tests
 - Safe fallback policies
 - Action validation before execution
@@ -770,24 +805,28 @@ class ClientConfig:
 ## Appendix B: Testing Strategy
 
 ### Unit Tests
+
 - Connection manager retry logic
 - Event detection accuracy
 - Policy decision consistency
 - Queue thread-safety
 
 ### Integration Tests
+
 - Full client lifecycle (start → run → stop)
 - Mode switching (training ↔ inference)
 - Reconnection after disconnect
 - Long-running stability (1hr+)
 
 ### Performance Tests
+
 - Latency benchmarks
 - Throughput stress tests
 - Memory leak detection
 - CPU profiling
 
 ### End-to-End Tests
+
 - Real RimWorld game scenarios
 - Multi-colonist coordination
 - Raid response
