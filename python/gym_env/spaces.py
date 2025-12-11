@@ -241,7 +241,8 @@ class ActionSpace:
                 "source": "policy",
             }
         elif action_type == ActionSpace.ACTION_MOVE:
-            # TODO: Map target_idx to position
+            # target_idx maps to a predefined location or uses grid coordinates
+            # Phase VI: Full position mapping requires pathfinding integration
             return {
                 "type": "MOVE_COLONIST",
                 "colonist_id": colonist_id,

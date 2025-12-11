@@ -41,9 +41,9 @@ namespace RimworldMLBridge.Adapters
                 // Core stats
                 HealthPercent = dto.ColonistMedicalInfo?.Health ?? dto.Colonist.Health,
                 MoodPercent = dto.Colonist.Mood,
-                IsDrafted = false, // TODO: Extract from pawn
-                IsDowned = false, // TODO: Extract from health state
-                IsDead = false, // TODO: Extract from health state
+                IsDrafted = dto.Colonist.IsDrafted,
+                IsDowned = dto.Colonist.IsDowned,
+                IsDead = dto.Colonist.IsDead,
 
                 // Age
                 AgeBiologicalTicks = dto.Colonist.Age * 3600000, // Years to ticks approximation

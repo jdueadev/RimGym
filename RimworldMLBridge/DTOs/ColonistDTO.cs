@@ -16,6 +16,11 @@ namespace RimworldMLBridge.DTOs
         public float Mood { get; set; }
         public float Hunger { get; set; }
         public PositionDTO Position { get; set; }
+
+        // Status flags
+        public bool IsDrafted { get; set; }
+        public bool IsDowned { get; set; }
+        public bool IsDead { get; set; }
     }
 
     /// <summary>

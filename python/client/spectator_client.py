@@ -213,7 +213,9 @@ class SpectatorClient:
                 action_queue=self.action_queue,
                 stop_event=self._stop_event,
                 timeout_ms=self.config.max_inference_latency_ms,
-                metrics_collector=None,  # TODO: Add metrics collector
+                metrics_collector=self._metrics_collector
+                if hasattr(self, "_metrics_collector")
+                else None,
             )
             self._inference_thread.start()
             logger.info("Inference thread started")
@@ -228,7 +230,9 @@ class SpectatorClient:
                 action_queue=self.action_queue,
                 stop_event=self._stop_event,
                 timeout_ms=50,  # 50ms timeout for event queue
-                metrics_collector=None,  # TODO: Add metrics collector
+                metrics_collector=self._metrics_collector
+                if hasattr(self, "_metrics_collector")
+                else None,
             )
             self._actor_thread.start()
             logger.info("Actor thread started")

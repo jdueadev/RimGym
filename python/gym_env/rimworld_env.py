@@ -254,10 +254,15 @@ class RimWorldEnv(gym.Env):
 
         Returns:
             True if successful
+
+        Note:
+            RESET command is planned for Phase VI. RimWorld game reset requires
+            a save/load cycle which is complex to implement. For training,
+            use manual save file management or Docker container restart.
         """
-        # TODO: Implement RESET command in protobuf protocol
-        # For now, assume server handles reset externally
-        logger.warning("RESET command not yet implemented in protocol")
+        # Phase VI: RESET command requires save/load cycle in RimWorld
+        # For now, assume server handles reset externally (Docker restart, manual reload)
+        logger.warning("RESET command planned for Phase VI - use manual reset")
         return True
 
     def _send_step_command(self, ticks: int = 60):
@@ -266,7 +271,11 @@ class RimWorldEnv(gym.Env):
 
         Args:
             ticks: Number of ticks to advance
+
+        Note:
+            Full STEP integration requires active connection to TcpProtobufServer.
+            Use SpectatorClient for production workloads.
         """
-        # TODO: Send STEP command via client
-        # For now, sleep to simulate step
+        # Phase VI: Full STEP integration via SpectatorClient
+        # For now, simulate timing for standalone testing
         time.sleep(ticks / 60.0)  # Approximate timing

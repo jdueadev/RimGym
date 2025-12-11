@@ -201,6 +201,7 @@ class RewardCalculator:
         Compute reward based on productivity (work completion).
 
         Future implementation: track work completion, building progress, etc.
+        Planned for Phase VI with action execution and job tracking.
 
         Args:
             state: Current state
@@ -209,7 +210,8 @@ class RewardCalculator:
         Returns:
             Productivity reward
         """
-        # TODO: Implement when work tracking available
+        # Phase VI: Implement when work tracking and job completion events available
+        # Will require tracking job queues and completion rates per colonist
         return 0.0
 
     def _compute_resource_reward(
@@ -219,6 +221,7 @@ class RewardCalculator:
         Compute reward based on resource management.
 
         Future implementation: track food, medicine, materials.
+        Requires MapState.items resource aggregation.
 
         Args:
             state: Current state
@@ -227,7 +230,8 @@ class RewardCalculator:
         Returns:
             Resource management reward
         """
-        # TODO: Implement when resource tracking available
+        # Phase VI: Implement when resource inventory tracking available
+        # Will aggregate Item counts by category from MapState
         return 0.0
 
     def _compute_terminal_reward(self, state: Dict[str, Any]) -> float:

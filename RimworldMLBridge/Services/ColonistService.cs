@@ -127,7 +127,11 @@ namespace RimworldMLBridge.Services
                     X = pawn.Position.x,
                     Y = pawn.Position.y,
                     Z = pawn.Position.z
-                }
+                },
+                // Status flags - extracted from pawn state
+                IsDrafted = pawn.Drafted,
+                IsDowned = pawn.Downed,
+                IsDead = pawn.Dead
             };
         }
 

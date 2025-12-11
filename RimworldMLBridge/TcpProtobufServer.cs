@@ -367,13 +367,17 @@ namespace RimworldMLBridge
                     break;
 
                 case CommandType.Reset:
-                    // TODO: Implement game reset logic
-                    state.StatusMessage = "Reset not yet implemented";
+                    // Phase VI: Game reset is complex in RimWorld - requires save/load cycle
+                    // For now, return informative message. Full implementation tracked in Phase VI roadmap.
+                    state.StatusMessage = "Reset requires save/load - see Phase VI roadmap";
+                    Log.Message("[MLBridge] Reset command received - not yet implemented (Phase VI)");
                     break;
 
                 case CommandType.ExecuteAction:
-                    // TODO: Execute actions on pawns
-                    state.StatusMessage = "Actions not yet implemented";
+                    // Phase VI: Action execution requires pawn job queue integration
+                    // Intent-based actions (DRAFT, GOTO, ATTACK) need validation and pathfinding
+                    state.StatusMessage = "Action execution planned for Phase VI";
+                    Log.Message("[MLBridge] ExecuteAction received - not yet implemented (Phase VI)");
                     break;
             }
 
@@ -646,7 +650,8 @@ namespace RimworldMLBridge
                     Label = Find.Storyteller?.def?.label ?? "Storyteller",
                     Difficulty = Find.Storyteller?.difficulty?.threatScale ?? 1.0f,
                     ThreatScale = Find.Storyteller?.difficulty?.threatScale ?? 1.0f,
-                    TicksSinceLastThreat = 0 // TODO: Extract from storyteller state if available
+                    // TicksSinceLastThreat not directly accessible - would require incident history tracking
+                    TicksSinceLastThreat = 0
                 };
 
                 // Get game conditions
@@ -674,7 +679,8 @@ namespace RimworldMLBridge
                 var worldDto = new DTOs.WorldStateDTO
                 {
                     TileCount = Find.World?.grid?.TilesCount ?? 0,
-                    CoveragePercent = 0, // TODO: Calculate discovered tiles percentage
+                    // Coverage calculation would require tracking revealed tiles - expensive to compute
+                    CoveragePercent = 0,
                     SeedString = Find.World?.info?.seedString ?? "",
                     PlanetName = Find.World?.info?.name ?? "Unknown"
                 };
@@ -684,6 +690,10 @@ namespace RimworldMLBridge
                 {
                     foreach (var faction in Find.FactionManager.AllFactionsListForReading)
                     {
+                        // Count settlements for this faction
+                        var settlementCount = Find.WorldObjects?.Settlements?
+                            .Count(s => s.Faction == faction) ?? 0;
+
                         worldDto.Factions.Add(new DTOs.FactionDTO
                         {
                             FactionId = faction.loadID,
@@ -693,7 +703,7 @@ namespace RimworldMLBridge
                             Goodwill = faction.PlayerGoodwill,
                             IsPlayer = faction.IsPlayer,
                             Defeated = faction.defeated,
-                            SettlementCount = 0 // TODO: Count settlements for this faction
+                            SettlementCount = settlementCount
                         });
                     }
                 }

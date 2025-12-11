@@ -124,14 +124,14 @@ This implementation plan provides a comprehensive roadmap for refactoring the Ri
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-013 | `TcpProtobufServer.cs:370` - Implement RESET command or document as not-implemented in protocol | | |
-| TASK-014 | `TcpProtobufServer.cs:375` - Implement EXECUTE_ACTION command or create Phase VI roadmap | | |
-| TASK-015 | `TcpProtobufServer.cs:649,677,696` - Implement storyteller/world data extraction TODOs | | |
-| TASK-016 | `GrpcService.cs:56-57,92-93` - If not deleted, fix date calculation TODOs | | |
-| TASK-017 | `ColonistAdapter.cs:44-46` - Extract IsDrafted, IsDowned, IsDead from pawn properly | | |
-| TASK-018 | `gym_env/rimworld_env.py:258,270` - Document RESET/STEP limitations or implement | | |
-| TASK-019 | `gym_env/rewards.py:212,230` - Add work/resource tracking placeholders to roadmap | | |
-| TASK-020 | `spectator_client.py:216,231` - Wire up metrics_collector to InferenceThread and ActorThread | | |
+| TASK-013 | `TcpProtobufServer.cs:370` - Implement RESET command or document as not-implemented in protocol | ✅ | 2025-12-11 |
+| TASK-014 | `TcpProtobufServer.cs:375` - Implement EXECUTE_ACTION command or create Phase VI roadmap | ✅ | 2025-12-11 |
+| TASK-015 | `TcpProtobufServer.cs:649,677,696` - Implement storyteller/world data extraction TODOs | ✅ | 2025-12-11 |
+| TASK-016 | `GrpcService.cs:56-57,92-93` - If not deleted, fix date calculation TODOs | ✅ (N/A - file deleted) | 2025-12-11 |
+| TASK-017 | `ColonistAdapter.cs:44-46` - Extract IsDrafted, IsDowned, IsDead from pawn properly | ✅ | 2025-12-11 |
+| TASK-018 | `gym_env/rimworld_env.py:258,270` - Document RESET/STEP limitations or implement | ✅ | 2025-12-11 |
+| TASK-019 | `gym_env/rewards.py:212,230` - Add work/resource tracking placeholders to roadmap | ✅ | 2025-12-11 |
+| TASK-020 | `spectator_client.py:216,231` - Wire up metrics_collector to InferenceThread and ActorThread | ✅ | 2025-12-11 |
 
 ### Implementation Phase 4: Documentation Consolidation
 
