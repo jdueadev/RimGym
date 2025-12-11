@@ -1,6 +1,7 @@
 ## Description
 
 <!-- Provide a clear and concise description of your changes -->
+<!-- Please review CONTRIBUTING.md before submitting: https://github.com/jmduea/RimGym/blob/main/CONTRIBUTING.md -->
 
 Fixes #(issue number)
 
