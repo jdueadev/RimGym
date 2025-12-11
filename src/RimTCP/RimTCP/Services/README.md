@@ -4,7 +4,7 @@ This directory contains data extraction services ported from the RIMAPI project.
 
 ## Purpose
 
-Provide high-fidelity, robust data extraction from RimWorld game objects without coupling to HTTP/JSON layers. These services act as the "data layer" for RimTPC, converting complex RimWorld objects into structured DTOs.
+Provide high-fidelity, robust data extraction from RimWorld game objects without coupling to HTTP/JSON layers. These services act as the "data layer" for RimTCP, converting complex RimWorld objects into structured DTOs.
 
 ## Architecture Pattern
 

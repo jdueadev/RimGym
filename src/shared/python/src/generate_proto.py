@@ -46,8 +46,11 @@ def main():
         print(result.stderr)
         sys.exit(1)
 
-    print("Successfully generated:")
+    print("Successfully generated the protobuf message file (no gRPC service stubs):")
     print(f"  - {script_dir / 'rimgym_pb2.py'}")
+    print(
+        "Note: gRPC service stubs (e.g., rimgym_pb2_grpc.py) are NOT generated. Only the protobuf message file is produced."
+    )
 
 
 if __name__ == "__main__":
