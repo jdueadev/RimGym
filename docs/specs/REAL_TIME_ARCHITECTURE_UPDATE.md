@@ -4,7 +4,7 @@
 
 This report establishes the technical framework for **"Project Aether,"** an initiative to engineer autonomous AI agents capable of mastering *RimWorld*. Unlike previous iterations focused solely on step-locked training, this roadmap targets a **Real-Time Hybrid Architecture**. The objective is to develop an "Archotech" intelligence that operates under realistic time constraints, balancing long-term strategic planning with immediate tactical reflexes.
 
-The architecture fuses low-level C\# systems engineering with high-level Pythonic deep learning. It addresses the critical challenge of **"Frame Slip"**—where the simulation advances while the agent "thinks"—by implementing a **Hierarchical Control System** and an **Intent-Based Action API**. Furthermore, it adopts an "Organ Transplant" development strategy, integrating high-fidelity data extraction logic from the *RIMAPI* project into a lightweight, high-performance TCP/Protobuf bridge.
+The architecture fuses low-level C\# systems engineering with high-level Pythonic deep learning. It addresses the critical challenge of **"Frame Slip"**—where the simulation advances while the agent "thinks"—by implementing a **Hierarchical Control System** and an **Intent-Based Action API**. Furthermore, it adopts an "Organ Transplant" development strategy, integrating high-fidelity data extraction logic from the *RIMAPI* project into a lightweight, high-performance TCP/Protobuf bridge (RimTCP).
 
 ## **1\. Theoretical Framework: The Real-Time Constraint**
 
@@ -26,7 +26,7 @@ To handle this, we reject the "Puppeteer" model (micromanaging every tick) in fa
 
 ### **2.1 The "Hybrid Valve" Tick Lifecycle**
 
-To support both accelerated training and realistic inference, the C\# Bridge (TickPatch.cs) must implement a **Dual-Mode Valve**:
+To support both accelerated training and realistic inference, the C\# Bridge (RimTCP) must implement a **Dual-Mode Valve**:
 
 1. **Training Mode (Synchronous):** The TickManager is strictly hijacked. The game pauses every $N$ ticks and waits for a STEP command. This ensures data purity and perfect reproducibility for RL training.  
 2. **Inference Mode (Asynchronous):** The TickManager runs freely. The Bridge serves QUERY\_STATE requests on demand without blocking the game. This tests the agent's ability to survive in a chaotic, real-time environment.

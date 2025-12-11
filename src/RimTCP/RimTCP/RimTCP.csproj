@@ -1,0 +1,114 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <!-- Project Configuration -->
+        <OutputType>Library</OutputType>
+        <TargetFramework>net480</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <LangVersion>8.0</LangVersion>
+
+        <!-- Mod Metadata -->
+        <VersionPrefix>1.0.0.0</VersionPrefix>
+        <PackageId>RimTCP</PackageId>
+        <Authors>Jon Duea</Authors>
+        <Description>Custom TCP bridge to enable RimGym reinforcement learning environment.</Description>
+        <Copyright>Copyright © 2025</Copyright>
+
+        <!-- Build Configuration -->
+        <!-- Configurable RimWorld version for mod compatibility -->
+        <RimWorldVersion Condition="'$(RimWorldVersion)' == ''">1.6</RimWorldVersion>
+        <OutputPath>..\$(RimWorldVersion)\Assemblies</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+        <!-- Debug Configuration - Enable PDB for development builds -->
+        <DebugType Condition="'$(Configuration)' == 'Debug'">portable</DebugType>
+        <DebugType Condition="'$(Configuration)' != 'Debug'">none</DebugType>
+        <DebugSymbols Condition="'$(Configuration)' == 'Debug'">true</DebugSymbols>
+        <DebugSymbols Condition="'$(Configuration)' != 'Debug'">false</DebugSymbols>
+
+        <!-- Assembly Info -->
+        <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+        <!-- Code Analysis - Enable for better code quality -->
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
+
+        <!-- RimWorld Installation Paths - Environment variable override support -->
+        <RimWorldPath Condition="'$(RimWorldPath)' == '' AND '$(RIMWORLD_PATH)' != ''">$(RIMWORLD_PATH)</RimWorldPath>
+        <RimWorldPath Condition="'$(RimWorldPath)' == ''">C:\gaming\steamapps\common\RimWorld\RimWorldWin64_Data\Managed</RimWorldPath>
+        <WorkshopPath Condition="'$(WorkshopPath)' == ''">C:\gaming\steamapps\workshop\content\294100</WorkshopPath>
+        <HarmonyPath Condition="'$(HarmonyPath)' == ''">$(WorkshopPath)\2009463077\Current\Assemblies</HarmonyPath>
+
+        <!-- Build Options -->
+        <SkipNativeCleanup Condition="'$(SkipNativeCleanup)' == ''">false</SkipNativeCleanup>
+    </PropertyGroup>
+
+    <!-- Package References -->
+    <ItemGroup>
+        <PackageReference Include="Google.Protobuf" Version="3.25.1" />
+        <PackageReference Include="Grpc.Core" Version="2.46.6" ExcludeAssets="native" />
+        <PackageReference Include="Grpc.Tools" Version="2.57.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
+    </ItemGroup>
+
+    <!-- Protocol Buffer Files -->
+    <ItemGroup>
+        <Protobuf Include="..\..\shared\Protos\rimgym.proto" GrpcServices="Server" />
+    </ItemGroup>
+
+    <!-- RimWorld Assembly References (Local Installation) -->
+    <ItemGroup Condition="Exists('$(RimWorldPath)\Assembly-CSharp.dll')">
+        <Reference Include="Assembly-CSharp">
+            <HintPath>$(RimWorldPath)\Assembly-CSharp.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(RimWorldPath)\UnityEngine.CoreModule.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+        <Reference Include="0Harmony">
+            <HintPath>$(HarmonyPath)\0Harmony.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+
+    <!-- Fallback Package References (CI/Docker) -->
+    <ItemGroup Condition="!Exists('$(RimWorldPath)\Assembly-CSharp.dll')">
+        <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    </ItemGroup>
+
+    <!-- Build Targets -->
+    <Target Name="ValidateRimWorldPaths" BeforeTargets="Build">
+        <Warning Condition="!Exists('$(RimWorldPath)')" Text="RimWorld installation not found at '$(RimWorldPath)'. Using NuGet fallback packages." />
+        <Warning Condition="!Exists('$(HarmonyPath)\0Harmony.dll')" Text="Harmony not found at '$(HarmonyPath)'. Ensure Harmony mod is installed." />
+    </Target>
+
+    <!-- Clean up native libraries incompatible with RimWorld's mod loader -->
+    <Target Name="RemoveNativeDlls" AfterTargets="AfterBuild" Condition="'$(SkipNativeCleanup)' != 'true'">
+        <ItemGroup>
+            <NativeDllsToRemove Include="$(OutputPath)grpc_csharp_ext*.*" />
+            <NativeDllsToRemove Include="$(OutputPath)libgrpc_csharp_ext*.*" />
+            <NativeDllsToRemove Include="$(OutputPath)*.so" />
+            <NativeDllsToRemove Include="$(OutputPath)*.dylib" />
+        </ItemGroup>
+
+        <Message Text="Removing native gRPC libraries incompatible with RimWorld..." Importance="normal" />
+        <Delete Files="@(NativeDllsToRemove)" ContinueOnError="true" />
+
+        <RemoveDir Directories="$(OutputPath)runtimes" Condition="Exists('$(OutputPath)runtimes')" ContinueOnError="true" />
+
+        <Message Text="Native library cleanup completed: @(NativeDllsToRemove->Count()) files removed" Importance="high" />
+    </Target>
+
+    <!-- Post-build validation -->
+    <Target Name="ValidateBuildOutput" AfterTargets="RemoveNativeDlls">
+        <ItemGroup>
+            <OutputAssemblies Include="$(OutputPath)*.dll" />
+        </ItemGroup>
+        <Message Text="Build validation: $(OutputAssemblies->Count()) assemblies generated in $(OutputPath)" Importance="normal" />
+        <Error Condition="$(OutputAssemblies->Count()) == 0" Text="No assemblies were generated. Build may have failed." />
+    </Target>
+</Project>

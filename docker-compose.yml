@@ -26,8 +26,8 @@ services:
       target: test-runner
     volumes:
       # Mount only specific directories, not .venv which causes issues
-      - ./python:/app/python
-      - ./Protos:/app/Protos
+      - ./src/RimGym/python:/app/python
+      - ./src/shared/Protos:/app/Protos
       - rimworld-data:/opt/rimworld
     environment:
       - RIMWORLD_PATH=/opt/rimworld

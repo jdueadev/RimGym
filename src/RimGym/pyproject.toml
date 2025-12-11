@@ -1,0 +1,46 @@
+[project]
+name = "rimgym"
+version = "0.5.0"
+description = "RimGym - RL Agent Client & Gymnasium Environment for RimWorld"
+requires-python = ">=3.11"
+dependencies = [
+    "protobuf>=4.24.0",
+    "gymnasium>=0.29.0",
+    "numpy>=1.24.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+]
+train = [
+    "stable-baselines3>=2.0.0",
+    "tensorboard>=2.14.0"
+]
+docs = [
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.4.0",
+    "mkdocstrings[python]>=0.24.0",
+    "pymdown-extensions>=10.4.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+# Python packages are in the python/ directory
+package-dir = {"" = "python"}
+packages = ["client", "policies", "gym_env"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-cov>=7.0.0",
+    "grpcio-tools>=1.59.0",
+    "pytest-timeout>=2.4.0",
+    "ruff>=0.14.8",
+    "mypy>=1.19.0",
+]

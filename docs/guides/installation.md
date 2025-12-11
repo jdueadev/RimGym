@@ -1,267 +1,108 @@
 # Installation Guide
 
+This guide covers the installation of the **RimGym** ecosystem, including the **RimTCP** mod for RimWorld and the **RimGym** Python environment.
+
 ## Prerequisites
 
-### For C# Development
+### For RimTCP (The Mod)
 
-- .NET SDK 4.7.2 or higher
-- RimWorld 1.6+ installation
-- Visual Studio 2019+ or JetBrains Rider (optional, for development)
+- **RimWorld** (Version 1.6+)
+- **Harmony** (Mod dependency, usually installed via Steam Workshop)
+- **.NET Framework 4.8 SDK** (For building from source)
 
-### For Python Client
+### For RimGym (The Python Client)
 
-- Python 3.11+ (recommended) or Python 3.8+
-- UV package manager (recommended) or pip
+- **Python 3.11+** (Recommended)
+- **[uv](https://github.com/astral-sh/uv)** (Strongly recommended package manager)
 
-## Step-by-Step Installation
+---
 
-### 1. Clone Repository
+## Part 1: Installing the RimTCP Mod
 
-```bash
-git clone https://github.com/jmduea/RimworldMLBridge.git
-cd RimworldMLBridge
-```
+You can either install the mod from a pre-built release or build it from source.
 
-### 2. Set Environment Variables
+### Option A: Build from Source (Recommended for Developers)
 
-#### Linux/Mac
+1. **Clone the Repository**
 
-```bash
-export RIMWORLD_DIR="/path/to/RimWorld"
-export WORKSHOP_PATH="/path/to/Steam/steamapps/workshop/content/294100"
-export HARMONY_PATH="$WORKSHOP_PATH/2009463077/Current/Assemblies"
-```
+    ```bash
+    git clone https://github.com/jmduea/RimworldMLBridge.git
+    cd RimworldMLBridge
+    ```
 
-#### Windows (PowerShell)
+2. **Set Environment Variables**
+    Set `RIMWORLD_DIR` to your RimWorld installation directory.
 
-```powershell
-$env:RIMWORLD_DIR="C:\Program Files (x86)\Steam\steamapps\common\RimWorld"
-$env:WORKSHOP_PATH="C:\Program Files (x86)\Steam\steamapps\workshop\content\294100"
-$env:HARMONY_PATH="$env:WORKSHOP_PATH\2009463077\Current\Assemblies"
-```
+    **Windows (PowerShell):**
 
-**Note**: Adjust paths based on your Steam installation directory.
+    ```powershell
+    $env:RIMWORLD_DIR="C:\Program Files (x86)\Steam\steamapps\common\RimWorld"
+    ```
 
-### 3. Build the Mod
+    **Linux/Mac:**
 
-#### Linux/Mac
+    ```bash
+    export RIMWORLD_DIR="/path/to/RimWorld"
+    ```
 
-```bash
-chmod +x build.sh
-./build.sh
-```
+3. **Build the Mod**
 
-#### Windows
+    ```bash
+    dotnet build src/RimTCP/RimTCP.sln -c Release
+    ```
 
-```powershell
-# Build using dotnet CLI
-dotnet build RimworldMLBridge.sln -c Release
+    This will compile the mod and place the assemblies in `src/RimTCP/1.6/Assemblies/`.
 
-# Generate Python protobuf files
-uv run python python/generate_proto.py
-```
+4. **Install to RimWorld**
+    Create a symbolic link from your RimWorld `Mods` folder to the `src/RimTCP` directory.
 
-### 4. Install Mod to RimWorld
+    **Windows (PowerShell as Admin):**
 
-#### Option A: Symlink (Recommended for Development)
+    ```powershell
+    New-Item -ItemType SymbolicLink -Path "$env:RIMWORLD_DIR\Mods\RimTCP" -Target "$PWD\src\RimTCP"
+    ```
 
-**Linux/Mac:**
+    **Linux/Mac:**
 
-```bash
-ln -s "$(pwd)" "$RIMWORLD_DIR/Mods/RimworldMLBridge"
-```
+    ```bash
+    ln -s "$(pwd)/src/RimTCP" "$RIMWORLD_DIR/Mods/RimTCP"
+    ```
 
-**Windows (PowerShell as Administrator):**
+5. **Enable the Mod**
+    Launch RimWorld, go to **Mods**, and enable **RimTCP**. Ensure **Harmony** is loaded before it.
 
-```powershell
-New-Item -ItemType SymbolicLink -Path "$env:RIMWORLD_DIR\Mods\RimworldMLBridge" -Target (Get-Location).Path
-```
+---
 
-#### Option B: Copy (For Production)
+## Part 2: Setting up the RimGym Python Environment
 
-**Linux/Mac:**
+1. **Navigate to the Python Directory**
 
-```bash
-cp -r . "$RIMWORLD_DIR/Mods/RimworldMLBridge"
-```
+    ```bash
+    cd src/RimGym
+    ```
 
-**Windows:**
+2. **Install Dependencies**
+    Using `uv` (recommended):
 
-```powershell
-Copy-Item -Path . -Destination "$env:RIMWORLD_DIR\Mods\RimworldMLBridge" -Recurse -Force
-```
+    ```bash
+    uv sync
+    ```
 
-### 5. Install Python Client
+    Or using standard pip:
 
-```bash
-# Using UV (recommended)
-uv sync
+    ```bash
+    pip install -e .
+    ```
 
-# Or using pip
-pip install -e .
+3. **Verify Installation**
+    Run the connection test (ensure RimWorld is running with the mod enabled and a save loaded):
 
-# Or install dependencies only
-pip install protobuf
-```
+    ```bash
+    uv run examples/test_connection.py
+    ```
 
-### 6. Verify Installation
+---
 
-#### Start RimWorld
+## Part 3: Setting up the Dashboard (RimStats)
 
-1. Launch RimWorld
-2. Go to **Mods** menu
-3. Enable "RimWorld ML Bridge" in the mod list
-4. Ensure "Harmony" mod is also enabled (it's a dependency)
-5. Restart RimWorld if prompted
-6. Load or start a new game
-
-#### Check the Log
-
-Look for these messages in the RimWorld log (accessible via Dev Mode → Debug Log):
-
-```
-[MLBridge] Mod initialized successfully
-[MLBridge] TCP+Protobuf server started successfully!
-[MLBridge] Listening on localhost:50051
-```
-
-#### Test Connection
-
-Run the test client to verify the connection:
-
-```bash
-uv run python python/test_tcp_connection.py
-```
-
-**Expected output:**
-
-```text
-Connecting to RimWorld...
-Connected to RimWorld ML Bridge at localhost:50051
-Frame ID: 12345
-Colonists: 3
-  - Human (ID: 1001) Health: 100.0%
-  - Human (ID: 1002) Health: 95.2%
-  - Human (ID: 1003) Health: 100.0%
-✓ Test successful!
-```
-
-## Troubleshooting
-
-### "Could not load 0Harmony.dll"
-
-**Cause**: Harmony mod is not installed or not found.
-
-**Solution**:
-
-1. Install Harmony mod from Steam Workshop (ID: 2009463077)
-2. Verify `HARMONY_PATH` environment variable points to correct location
-3. Check that `0Harmony.dll` exists at `$HARMONY_PATH/0Harmony.dll`
-
-### "BadImageFormatException" or "Could not load grpc_csharp_ext"
-
-**Cause**: Native DLLs were included in the build output.
-
-**Solution**:
-
-1. Run verification script:
-
-   ```bash
-   ./verify_build.sh  # Linux/Mac
-   # or
-   Get-ChildItem 1.6\Assemblies\*.dll | Where-Object { $_.Name -like "*csharp_ext*" }  # Windows
-   ```
-
-2. If native DLLs are found, rebuild:
-
-   ```bash
-   dotnet clean
-   ./build.sh  # or dotnet build for Windows
-   ```
-
-3. Verify `RimworldMLBridge.csproj` has `ExcludeAssets="native"` on Grpc.Core reference
-
-### "Connection refused" in Python Client
-
-**Cause**: RimWorld is not running, mod is not loaded, or game is not started.
-
-**Solution**:
-
-1. Ensure RimWorld is running
-2. Load a game (server doesn't start in main menu)
-3. Check RimWorld log for "[MLBridge] TCP+Protobuf server started"
-4. Verify nothing else is using port 50051:
-
-   ```bash
-   # Linux/Mac
-   lsof -i :50051
-   
-   # Windows
-   netstat -ano | findstr :50051
-   ```
-
-5. Check firewall settings (Windows may block localhost connections)
-
-### Build Fails: "RimWorld assemblies not found"
-
-**Cause**: `RIMWORLD_DIR` not set or pointing to wrong location.
-
-**Solution**:
-
-1. Verify RimWorld installation directory
-2. Update environment variables
-3. Check paths in `RimworldMLBridge.csproj`:
-
-   ```xml
-   <RimWorldPath>$(RIMWORLD_DIR)</RimWorldPath>
-   ```
-
-4. Try setting path directly in `.csproj` if environment variable doesn't work
-
-### Python Import Error: "No module named 'mlbridge_pb2'"
-
-**Cause**: Protobuf files not generated.
-
-**Solution**:
-
-```bash
-cd python
-python generate_proto.py
-```
-
-Verify `mlbridge_pb2.py` is created in the `python/` directory.
-
-### Mod Doesn't Appear in RimWorld
-
-**Cause**: Mod not in correct directory or `About.xml` is malformed.
-
-**Solution**:
-
-1. Verify mod is in `$RIMWORLD_DIR/Mods/RimworldMLBridge/`
-2. Check directory structure:
-
-   ```text
-   RimworldMLBridge/
-   ├── About/
-   │   └── About.xml
-   └── 1.6/
-       └── Assemblies/
-           └── RimworldMLBridge.dll
-   ```
-
-3. Verify `About.xml` is valid XML
-
-## Next Steps
-
-Once installation is complete:
-
-- Read the [Python Client Guide](python-client.md) for usage examples (Coming Soon)
-- Review the [Architecture Overview](../specs/ARCHITECTURE.md) to understand the system
-- Check the [Memory Bank](../../memory-bank/) for current project status
-- Explore example training scripts (Coming Soon)
-
-## Getting Help
-
-- Check [Troubleshooting Guide](troubleshooting.md) for common issues (Coming Soon)
-- Review [GitHub Issues](https://github.com/jmduea/RimworldMLBridge/issues) for known problems
-- Submit new issues with detailed error logs and environment info
+See [src/RimStats/README.md](../../src/RimStats/README.md) for dashboard installation instructions.

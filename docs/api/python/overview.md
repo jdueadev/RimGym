@@ -28,7 +28,9 @@ graph TD
 
 ## Core Components
 
-### ::: client.connection.ConnectionManager
+### ConnectionManager
+
+`client.connection.ConnectionManager`
 
 Manages TCP connection to RimWorld server with automatic reconnection.
 
@@ -55,7 +57,9 @@ await manager.connect()
 state = await manager.send_command(QueryStateCommand())
 ```
 
-### ::: client.spectator_client.SpectatorClient
+### SpectatorClient
+
+`client.spectator_client.SpectatorClient`
 
 Main orchestrator managing all client threads.
 
@@ -89,7 +93,9 @@ client.start()
 client.stop()
 ```
 
-### ::: client.listener.ListenerThread
+### ListenerThread
+
+`client.listener.ListenerThread`
 
 Polls game state and detects events.
 
@@ -110,7 +116,9 @@ listener_config = {
 }
 ```
 
-### ::: client.inference.InferenceThread
+### InferenceThread
+
+`client.inference.InferenceThread`
 
 Executes strategic policy (Executive).
 
@@ -123,7 +131,9 @@ Executes strategic policy (Executive).
 
 **Latency Budget:** 10-100ms per decision
 
-### ::: client.actor.ActorThread
+### ActorThread
+
+`client.actor.ActorThread`
 
 Executes tactical policy (Reflex).
 
@@ -138,7 +148,9 @@ Executes tactical policy (Reflex).
 
 ## Policies
 
-### ::: policies.policy.Policy
+### Policy Base Class
+
+`policies.policy.Policy`
 
 Abstract base class for policies.
 
@@ -157,7 +169,9 @@ class Policy(ABC):
         pass
 ```
 
-### ::: policies.executive.ExecutivePolicy
+### ExecutivePolicy
+
+`policies.executive.ExecutivePolicy`
 
 Strategic planning policy.
 
@@ -178,7 +192,9 @@ class MyExecutive(Policy):
         return actions
 ```
 
-### ::: policies.reflex.ReflexPolicy
+### ReflexPolicy
+
+`policies.reflex.ReflexPolicy`
 
 Tactical response policy.
 
@@ -197,7 +213,9 @@ class CombatReflex(Policy):
 
 ## Gymnasium Environment
 
-### ::: gym_env.rimworld_env.RimWorldEnv
+### RimWorldEnv
+
+`gym_env.rimworld_env.RimWorldEnv`
 
 OpenAI Gymnasium-compatible environment wrapper.
 
@@ -233,7 +251,7 @@ model.save("rimworld_agent")
 
 ## Event System
 
-### ::: client.events.Event
+### Event
 
 Represents game events detected by Listener.
 
@@ -267,7 +285,9 @@ event = Event(
 
 ## Metrics and Monitoring
 
-### ::: client.metrics.MetricsCollector
+### MetricsCollector
+
+`client.metrics.MetricsCollector`
 
 Collects performance metrics.
 
