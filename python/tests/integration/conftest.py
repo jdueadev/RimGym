@@ -10,7 +10,7 @@ import pytest
 @pytest.fixture(scope="module")
 def client():
     """Create a HybridValveClient for integration testing.
-    
+
     This fixture is used by test_hybrid_valve.py tests.
     Tests are skipped if RimWorld is not running.
     """

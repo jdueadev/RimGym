@@ -1,7 +1,7 @@
-using HarmonyLib;
-using Verse;
 using System;
+using HarmonyLib;
 using RimworldMLBridge.Services;
+using Verse;
 
 namespace RimworldMLBridge
 {
@@ -13,9 +13,9 @@ namespace RimworldMLBridge
         public static int Port = 50051;
 
         // Phase III: Hybrid Valve - Execution mode control
-        public static bool TrainingMode = true;  // Default to training mode (synchronous)
+        public static bool TrainingMode = true; // Default to training mode (synchronous)
         public static bool StepPermitted = false; // In training mode, only advance when true
-        public static int TicksToRun = 0;        // Number of ticks to run in current step
+        public static int TicksToRun = 0; // Number of ticks to run in current step
 
         static MlBridgeMod()
         {
@@ -95,7 +95,7 @@ namespace RimworldMLBridge
     {
         private static int _consecutiveErrors = 0;
         private const int MaxConsecutiveErrors = 10;
-        
+
         static void Postfix()
         {
             if (MlBridgeMod.ServerRunning && MlBridgeMod.Server != null)
@@ -104,24 +104,28 @@ namespace RimworldMLBridge
                 {
                     // Process queued commands from TCP client
                     MlBridgeMod.Server.ProcessCommands();
-                    
+
                     // TASK-008: Heartbeat for server health monitoring
                     MlBridgeMod.Server.Heartbeat();
-                    
+
                     // Reset error counter on successful execution
                     _consecutiveErrors = 0;
                 }
                 catch (Exception e)
                 {
                     _consecutiveErrors++;
-                    
+
                     // Log error with context
-                    Log.Error($"[MLBridge] Error in main loop (count={_consecutiveErrors}): {e.Message}");
-                    
+                    Log.Error(
+                        $"[MLBridge] Error in main loop (count={_consecutiveErrors}): {e.Message}"
+                    );
+
                     // If too many consecutive errors, disable to prevent game instability
                     if (_consecutiveErrors >= MaxConsecutiveErrors)
                     {
-                        Log.Error($"[MLBridge] Too many consecutive errors ({MaxConsecutiveErrors}), disabling server to protect game stability");
+                        Log.Error(
+                            $"[MLBridge] Too many consecutive errors ({MaxConsecutiveErrors}), disabling server to protect game stability"
+                        );
                         try
                         {
                             MlBridgeMod.StopServer();

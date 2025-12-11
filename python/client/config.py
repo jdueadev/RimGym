@@ -8,7 +8,6 @@ All values can be overridden via environment variables with the MLBRIDGE_ prefix
 import os
 from dataclasses import dataclass
 
-
 # Network Configuration
 DEFAULT_HOST = os.environ.get("MLBRIDGE_HOST", "localhost")
 DEFAULT_PORT = int(os.environ.get("MLBRIDGE_PORT", "50051"))

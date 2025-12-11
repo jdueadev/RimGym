@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using RimworldMLBridge.DTOs;
 using RimWorld;
+using RimworldMLBridge.DTOs;
 using Verse;
 
 namespace RimworldMLBridge.Services
@@ -22,10 +22,10 @@ namespace RimworldMLBridge.Services
             try
             {
                 var map = Find.CurrentMap;
-                if (map == null) return null;
+                if (map == null)
+                    return null;
 
-                return map.mapPawns.AllPawns
-                    .FirstOrDefault(p => p.thingIDNumber == id);
+                return map.mapPawns.AllPawns.FirstOrDefault(p => p.thingIDNumber == id);
             }
             catch (Exception ex)
             {
@@ -44,14 +44,17 @@ namespace RimworldMLBridge.Services
             try
             {
                 var map = Find.CurrentMap;
-                if (map == null) return colonists;
+                if (map == null)
+                    return colonists;
 
                 var freeColonists = map.mapPawns?.FreeColonists;
-                if (freeColonists == null) return colonists;
+                if (freeColonists == null)
+                    return colonists;
 
                 foreach (var pawn in freeColonists)
                 {
-                    if (pawn == null) continue;
+                    if (pawn == null)
+                        continue;
                     colonists.Add(CreateColonistDTO(pawn));
                 }
             }
@@ -81,14 +84,17 @@ namespace RimworldMLBridge.Services
             try
             {
                 var map = Find.CurrentMap;
-                if (map == null) return colonists;
+                if (map == null)
+                    return colonists;
 
                 var freeColonists = map.mapPawns?.FreeColonists;
-                if (freeColonists == null) return colonists;
+                if (freeColonists == null)
+                    return colonists;
 
                 foreach (var pawn in freeColonists)
                 {
-                    if (pawn == null) continue;
+                    if (pawn == null)
+                        continue;
                     colonists.Add(PawnToDetailedDTO(pawn));
                 }
             }
@@ -126,12 +132,12 @@ namespace RimworldMLBridge.Services
                 {
                     X = pawn.Position.x,
                     Y = pawn.Position.y,
-                    Z = pawn.Position.z
+                    Z = pawn.Position.z,
                 },
                 // Status flags - extracted from pawn state
                 IsDrafted = pawn.Drafted,
                 IsDowned = pawn.Downed,
-                IsDead = pawn.Dead
+                IsDead = pawn.Dead,
             };
         }
 
@@ -154,16 +160,18 @@ namespace RimworldMLBridge.Services
                         Skills = GetSkills(pawn),
                         CurrentJob = pawn.CurJob?.def?.defName ?? "",
                         Traits = GetTraits(pawn),
-                        WorkPriorities = GetWorkPriorities(pawn)
+                        WorkPriorities = GetWorkPriorities(pawn),
                     },
                     ColonistMedicalInfo = new ColonistMedicalInfoDTO
                     {
                         Health = pawn.health?.summaryHealth?.SummaryHealthPercent ?? 1f,
                         Hediffs = GetHediffs(pawn),
-                        MedicalPolicyId = (int)(pawn.playerSettings?.medCare ?? MedicalCareCategory.NoCare),
-                        IsSelfTendAllowed = pawn.playerSettings?.selfTend ?? false
+                        MedicalPolicyId = (int)(
+                            pawn.playerSettings?.medCare ?? MedicalCareCategory.NoCare
+                        ),
+                        IsSelfTendAllowed = pawn.playerSettings?.selfTend ?? false,
                     },
-                    ColonistSocialInfo = CreatePawnSocialInfoDTO(pawn)
+                    ColonistSocialInfo = CreatePawnSocialInfoDTO(pawn),
                 };
             }
             catch (Exception ex)
@@ -171,7 +179,7 @@ namespace RimworldMLBridge.Services
                 Log.Warning($"[MLBridge] Error converting pawn to DTO: {ex.Message}");
                 return new ColonistDetailedDTO
                 {
-                    Colonist = new ColonistDTO { Id = pawn.thingIDNumber, Name = "Error" }
+                    Colonist = new ColonistDTO { Id = pawn.thingIDNumber, Name = "Error" },
                 };
             }
         }
@@ -183,10 +191,11 @@ namespace RimworldMLBridge.Services
         {
             try
             {
-                if (pawn.skills?.skills == null) return new List<SkillDTO>();
+                if (pawn.skills?.skills == null)
+                    return new List<SkillDTO>();
 
-                return pawn.skills.skills
-                    .Where(skill => skill?.def != null)
+                return pawn
+                    .skills.skills.Where(skill => skill?.def != null)
                     .Select(skill => new SkillDTO
                     {
                         Name = skill.def.defName,
@@ -203,7 +212,7 @@ namespace RimworldMLBridge.Services
                         XpSinceLastLevel = skill.xpSinceLastLevel,
                         Aptitude = skill.Aptitude,
                         Passion = (int)skill.passion,
-                        DisabledWorkTags = (int)skill.def.disablingWorkTags
+                        DisabledWorkTags = (int)skill.def.disablingWorkTags,
                     })
                     .ToList();
             }
@@ -220,17 +229,18 @@ namespace RimworldMLBridge.Services
         {
             try
             {
-                if (pawn.story?.traits?.allTraits == null) return new List<TraitDTO>();
+                if (pawn.story?.traits?.allTraits == null)
+                    return new List<TraitDTO>();
 
-                return pawn.story.traits.allTraits
-                    .Where(t => t != null)
+                return pawn
+                    .story.traits.allTraits.Where(t => t != null)
                     .Select(t => new TraitDTO
                     {
                         Name = t.def.defName,
                         Label = t.Label,
                         Description = t.def.description ?? "",
                         DisabledWorkTags = (int)t.def.disabledWorkTags,
-                        Suppressed = t.Suppressed
+                        Suppressed = t.Suppressed,
                     })
                     .ToList();
             }
@@ -249,21 +259,25 @@ namespace RimworldMLBridge.Services
 
             try
             {
-                if (pawn.workSettings == null) return priorities;
+                if (pawn.workSettings == null)
+                    return priorities;
 
                 foreach (WorkTypeDef workType in DefDatabase<WorkTypeDef>.AllDefs)
                 {
-                    if (workType == null) continue;
+                    if (workType == null)
+                        continue;
 
                     var priority = pawn.workSettings.GetPriority(workType);
                     if (priority > 0)
                     {
-                        priorities.Add(new WorkPriorityDTO
-                        {
-                            WorkType = workType.defName,
-                            Priority = priority,
-                            IsTotallyDisabled = pawn.WorkTypeIsDisabled(workType)
-                        });
+                        priorities.Add(
+                            new WorkPriorityDTO
+                            {
+                                WorkType = workType.defName,
+                                Priority = priority,
+                                IsTotallyDisabled = pawn.WorkTypeIsDisabled(workType),
+                            }
+                        );
                     }
                 }
 
@@ -283,10 +297,11 @@ namespace RimworldMLBridge.Services
         {
             try
             {
-                if (pawn.health?.hediffSet?.hediffs == null) return new List<HediffDTO>();
+                if (pawn.health?.hediffSet?.hediffs == null)
+                    return new List<HediffDTO>();
 
-                return pawn.health.hediffSet.hediffs
-                    .Where(h => h != null)
+                return pawn
+                    .health.hediffSet.hediffs.Where(h => h != null)
                     .Select(h => HediffToDTO(h))
                     .ToList();
             }
@@ -301,7 +316,8 @@ namespace RimworldMLBridge.Services
         /// </summary>
         public static HediffDTO HediffToDTO(Hediff hediff)
         {
-            if (hediff == null) return null;
+            if (hediff == null)
+                return null;
 
             return new HediffDTO
             {
@@ -324,7 +340,7 @@ namespace RimworldMLBridge.Services
                 BleedRate = hediff.BleedRate,
                 IsLethal = hediff.IsLethal,
                 PainFactor = hediff.PainFactor,
-                PainOffset = hediff.PainOffset
+                PainOffset = hediff.PainOffset,
             };
         }
 
@@ -338,7 +354,7 @@ namespace RimworldMLBridge.Services
                 Id = pawn.ThingID,
                 Name = pawn.Name?.ToString(),
                 DirectRelations = new List<RelationDTO>(),
-                ChildrenCount = pawn.relations?.ChildrenCount ?? 0
+                ChildrenCount = pawn.relations?.ChildrenCount ?? 0,
             };
 
             try
@@ -347,14 +363,17 @@ namespace RimworldMLBridge.Services
                 {
                     foreach (var relation in pawn.relations.DirectRelations)
                     {
-                        if (relation?.otherPawn == null) continue;
+                        if (relation?.otherPawn == null)
+                            continue;
 
-                        dto.DirectRelations.Add(new RelationDTO
-                        {
-                            RelationDefName = relation.def?.defName,
-                            OtherPawnId = relation.otherPawn.ThingID,
-                            OtherPawnName = relation.otherPawn.Name?.ToString()
-                        });
+                        dto.DirectRelations.Add(
+                            new RelationDTO
+                            {
+                                RelationDefName = relation.def?.defName,
+                                OtherPawnId = relation.otherPawn.ThingID,
+                                OtherPawnName = relation.otherPawn.Name?.ToString(),
+                            }
+                        );
                     }
                 }
             }
@@ -376,7 +395,8 @@ namespace RimworldMLBridge.Services
             try
             {
                 var pawn = GetPawnById(pawnId);
-                if (pawn == null) return inventory;
+                if (pawn == null)
+                    return inventory;
 
                 // Inventory items
                 if (pawn.inventory?.innerContainer != null)
@@ -423,17 +443,19 @@ namespace RimworldMLBridge.Services
                 ThingId = thing.thingIDNumber,
                 DefName = thing.def?.defName,
                 Label = thing.Label,
-                Categories = thing.def?.thingCategories?.Select(c => c.defName).ToList() ?? new List<string>(),
+                Categories =
+                    thing.def?.thingCategories?.Select(c => c.defName).ToList()
+                    ?? new List<string>(),
                 Position = new PositionDTO
                 {
                     X = thing.Position.x,
                     Y = thing.Position.y,
-                    Z = thing.Position.z
+                    Z = thing.Position.z,
                 },
                 StackCount = thing.stackCount,
                 MarketValue = thing.MarketValue,
                 IsForbidden = thing.IsForbidden(Faction.OfPlayer),
-                Quality = -1
+                Quality = -1,
             };
 
             if (thing.TryGetQuality(out QualityCategory quality))

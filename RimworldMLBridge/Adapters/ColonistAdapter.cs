@@ -34,7 +34,7 @@ namespace RimworldMLBridge.Adapters
                 {
                     X = dto.Colonist.Position?.X ?? 0,
                     Y = dto.Colonist.Position?.Y ?? 0,
-                    Z = dto.Colonist.Position?.Z ?? 0
+                    Z = dto.Colonist.Position?.Z ?? 0,
                 },
                 MapId = 1, // Could extract from game if needed
 
@@ -48,7 +48,7 @@ namespace RimworldMLBridge.Adapters
                 // Age
                 AgeBiologicalTicks = dto.Colonist.Age * 3600000, // Years to ticks approximation
                 AgeChronologicalTicks = dto.Colonist.Age * 3600000,
-                Gender = dto.Colonist.Gender ?? "Male"
+                Gender = dto.Colonist.Gender ?? "Male",
             };
 
             // Convert skills
@@ -62,72 +62,84 @@ namespace RimworldMLBridge.Adapters
 
             // Convert needs (create from available DTO data)
             // Food (Hunger)
-            state.Needs.Add(new NeedState
-            {
-                DefName = "Food",
-                Label = "Food",
-                CurLevel = dto.Colonist.Hunger,
-                MaxLevel = 1.0f,
-                Category = "Basic"
-            });
+            state.Needs.Add(
+                new NeedState
+                {
+                    DefName = "Food",
+                    Label = "Food",
+                    CurLevel = dto.Colonist.Hunger,
+                    MaxLevel = 1.0f,
+                    Category = "Basic",
+                }
+            );
 
             // Rest (Sleep)
-            state.Needs.Add(new NeedState
-            {
-                DefName = "Rest",
-                Label = "Rest",
-                CurLevel = dto.Sleep,
-                MaxLevel = 1.0f,
-                Category = "Basic"
-            });
+            state.Needs.Add(
+                new NeedState
+                {
+                    DefName = "Rest",
+                    Label = "Rest",
+                    CurLevel = dto.Sleep,
+                    MaxLevel = 1.0f,
+                    Category = "Basic",
+                }
+            );
 
             // Mood
-            state.Needs.Add(new NeedState
-            {
-                DefName = "Mood",
-                Label = "Mood",
-                CurLevel = dto.Colonist.Mood,
-                MaxLevel = 1.0f,
-                Category = "Basic"
-            });
+            state.Needs.Add(
+                new NeedState
+                {
+                    DefName = "Mood",
+                    Label = "Mood",
+                    CurLevel = dto.Colonist.Mood,
+                    MaxLevel = 1.0f,
+                    Category = "Basic",
+                }
+            );
 
             // Comfort
             if (dto.Comfort > 0)
             {
-                state.Needs.Add(new NeedState
-                {
-                    DefName = "Comfort",
-                    Label = "Comfort",
-                    CurLevel = dto.Comfort,
-                    MaxLevel = 1.0f,
-                    Category = "Comfort"
-                });
+                state.Needs.Add(
+                    new NeedState
+                    {
+                        DefName = "Comfort",
+                        Label = "Comfort",
+                        CurLevel = dto.Comfort,
+                        MaxLevel = 1.0f,
+                        Category = "Comfort",
+                    }
+                );
             }
 
             // Beauty
             if (dto.SurroundingBeauty > 0)
             {
-                state.Needs.Add(new NeedState
-                {
-                    DefName = "Beauty",
-                    Label = "Beauty",
-                    CurLevel = dto.SurroundingBeauty,
-                    MaxLevel = 1.0f,
-                    Category = "Environment"
-                });
+                state.Needs.Add(
+                    new NeedState
+                    {
+                        DefName = "Beauty",
+                        Label = "Beauty",
+                        CurLevel = dto.SurroundingBeauty,
+                        MaxLevel = 1.0f,
+                        Category = "Environment",
+                    }
+                );
             }
 
             // Outdoors (Fresh Air)
             if (dto.FreshAir > 0)
             {
-                state.Needs.Add(new NeedState
-                {
-                    DefName = "Outdoors",
-                    Label = "Outdoors",
-                    CurLevel = dto.FreshAir,
-                    MaxLevel = 1.0f,
-                    Category = "Environment"
-                });
+                state.Needs.Add(
+                    new NeedState
+                    {
+                        DefName = "Outdoors",
+                        Label = "Outdoors",
+                        CurLevel = dto.FreshAir,
+                        MaxLevel = 1.0f,
+                        Category = "Environment",
+                    }
+                );
             }
 
             // Current job
@@ -139,7 +151,7 @@ namespace RimworldMLBridge.Adapters
                     Label = dto.ColonistWorkInfo.CurrentJob,
                     TargetThingId = 0,
                     TargetPosition = new Protos.Vector3(),
-                    StartTick = 0
+                    StartTick = 0,
                 };
             }
 
@@ -156,12 +168,14 @@ namespace RimworldMLBridge.Adapters
             }
 
             // Health capacities (derive from health data)
-            state.Capacities.Add(new HealthCapacity
-            {
-                Label = "Consciousness",
-                Efficiency = dto.ColonistMedicalInfo?.Health ?? 1.0f,
-                CanBeAwake = true
-            });
+            state.Capacities.Add(
+                new HealthCapacity
+                {
+                    Label = "Consciousness",
+                    Efficiency = dto.ColonistMedicalInfo?.Health ?? 1.0f,
+                    CanBeAwake = true,
+                }
+            );
 
             return state;
         }
@@ -171,7 +185,8 @@ namespace RimworldMLBridge.Adapters
         /// </summary>
         private SkillState MapSkillToProtobuf(SkillDTO skill)
         {
-            if (skill == null) return null;
+            if (skill == null)
+                return null;
 
             return new SkillState
             {
@@ -180,7 +195,7 @@ namespace RimworldMLBridge.Adapters
                 Level = skill.Level,
                 Xp = skill.XpTotalEarned,
                 Passion = MapPassion(skill.Passion),
-                Disabled = skill.TotallyDisabled || skill.PermanentlyDisabled
+                Disabled = skill.TotallyDisabled || skill.PermanentlyDisabled,
             };
         }
 
@@ -190,8 +205,10 @@ namespace RimworldMLBridge.Adapters
         private Passion MapPassion(int passionValue)
         {
             // RimWorld passion: 0 = None, 1 = Minor, 2 = Major
-            if (passionValue == 2) return Passion.Major;
-            if (passionValue == 1) return Passion.Minor;
+            if (passionValue == 2)
+                return Passion.Major;
+            if (passionValue == 1)
+                return Passion.Minor;
             return Passion.None;
         }
     }
