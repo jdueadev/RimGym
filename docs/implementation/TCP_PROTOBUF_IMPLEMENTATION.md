@@ -2,7 +2,7 @@
 
 ## Overview
 
-RimWorld ML Bridge now uses **TCP sockets with Protocol Buffers** for communication instead of gRPC. This change was necessary because:
+RimTPC now uses **TCP sockets with Protocol Buffers** for communication instead of gRPC. This change was necessary because:
 
 1. **gRPC requires native C++ libraries** (`grpc_csharp_ext.dll`) that cannot be loaded by RimWorld's Mono runtime
 2. RimWorld's mod loader attempts to load ALL `.dll` files as managed assemblies, causing crashes with native libraries
@@ -27,7 +27,7 @@ RimWorld ML Bridge now uses **TCP sockets with Protocol Buffers** for communicat
 - No native library dependencies
 - Thread-safe command queue using `ConcurrentQueue<T>`
 - Proper main-thread execution for all Unity/RimWorld API calls
-- Supports all protobuf message types defined in `mlbridge.proto`
+- Supports all protobuf message types defined in `rimtcp.proto`
 
 ### Python (Client Side)
 
@@ -42,13 +42,13 @@ RimWorld ML Bridge now uses **TCP sockets with Protocol Buffers** for communicat
 ### 1. Build the C# Mod
 
 ```powershell
-cdRimGym
+cd RimTCP/RimTCP
 dotnet build
 ```
 
 The mod will be output to `1.6/Assemblies/` and should contain:
 
-- ✅ `RimworldMLBridge.dll` (main mod)
+- ✅ `RimTCP.dll` (main mod)
 - ✅ `Google.Protobuf.dll` (protobuf runtime - managed code only)
 - ✅ `Grpc.Core.Api.dll` (gRPC definitions - no native code)
 - ✅ `Grpc.Core.dll` (managed wrapper - won't be used but harmless)
@@ -56,17 +56,17 @@ The mod will be output to `1.6/Assemblies/` and should contain:
 
 ### 2. Generate Python Protobuf Files
 
-```bash
-cd python
-python generate_proto.py
+```powershell
+# from project root
+uv run src/shared/python/src/generate_proto.py
 ```
 
-This creates `mlbridge_pb2.py` from `Protos/mlbridge.proto`.
+This creates `rimtcp_pb2.py` from `src/shared/Protos/rimtcp.proto`.
 
 ### 3. Install Python Dependencies
 
-```bash
-pip install protobuf
+```powershell
+uv add protobuf
 ```
 
 Note: You do NOT need `grpcio` anymore!
@@ -76,27 +76,26 @@ Note: You do NOT need `grpcio` anymore!
 Load RimWorld with the mod enabled. Check the log for:
 
 ```
-[MLBridge] =================================
-[MLBridge] Initializing ML Bridge with TCP+Protobuf...
-[MLBridge] Harmony patches applied successfully
-[MLBridge] TCP+Protobuf server started successfully!
-[MLBridge] Listening on localhost:50051
-[MLBridge] Ready for Python client connections
-[MLBridge] =================================
+[RimTCP] =================================
+[RimTCP] Initializing RimTCP with TCP+Protobuf...
+[RimTCP] Harmony patches applied successfully
+[RimTCP] TCP+Protobuf server started successfully!
+[RimTCP] Listening on localhost:50051
+[RimTCP] Ready for Python client connections
+[RimTCP] =================================
 ```
 
 ### 5. Run Python Client
 
-```bash
-cd python
-python test_tcp_connection.py
+```powershell
+uv run src/RimGym/tests/client/test_tcp_connection.py
 ```
 
 Expected output:
 
 ```
 Connecting to RimWorld...
-Connected to RimWorld ML Bridge at localhost:50051
+Connected to RimTCP at localhost:50051
 
 1. Querying initial state...
    Frame ID: 12345
@@ -166,6 +165,6 @@ Each request gets exactly one response.
 
 **"Connection closed while receiving data"**: The game may have crashed or the mod failed to load. Check `Player.log`
 
-**Protobuf errors**: Regenerate Python files with `python generate_proto.py`
+**Protobuf errors**: Regenerate Python files with `generate_proto.py`
 
 **Thread-related crashes**: Commands are automatically queued and executed on the main thread - if you see thread errors, it's a bug in the server code
