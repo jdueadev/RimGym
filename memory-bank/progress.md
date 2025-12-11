@@ -106,7 +106,7 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
 - ✅ All edge cases handled (pause state, speed changes)
 - ✅ Ready for production use
 
-## Phase IV: Python Client 🔄 IN PROGRESS
+## Phase IV: Python Client 🔄 IN PROGRESS (16% Complete)
 
 ### Phase IV Goals
 
@@ -115,28 +115,60 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
 - Add interrupt event handling
 - Create RL environment wrapper (Gymnasium-compatible)
 
+### Phase IV.1: Core Infrastructure ✅ COMPLETE
+
+**Components Implemented** (All tests passing):
+
+1. **ConnectionManager** (python/client/connection.py - 270 lines)
+   - TCP socket with reconnection: exponential backoff (1s→2s→4s...→30s, 10 attempts)
+   - Length-prefixed protobuf framing (4-byte big-endian header)
+   - Thread-safe with `threading.Lock`, health monitoring
+   - Context manager support
+
+2. **SpectatorClient** (python/client/spectator_client.py - 280 lines)
+   - Main orchestrator with lifecycle states (INITIALIZED→RUNNING→STOPPED)
+   - ClientConfig for flexible configuration (training/inference modes)
+   - Metrics thread for performance monitoring
+   - Queue wiring and thread management
+
+3. **Queue System** (python/client/queues.py - 265 lines)
+   - StateQueue: FIFO maxsize=10, auto-drops oldest, `get_latest()`
+   - EventQueue: Priority-based (CRITICAL/HIGH/MEDIUM/LOW), maxsize=100
+   - ActionQueue: FIFO maxsize=100
+   - All queues track dropped items, thread-safe
+
+4. **Metrics** (python/client/metrics.py - 270 lines)
+   - MetricsCollector with sliding window stats (10s default)
+   - PerformanceMetrics dataclass for snapshots
+   - Tracks: throughput, latencies, queue health, connection status
+
+**Testing & Validation** ✅
+- Unit tests: test_connection.py (180 lines), test_queues.py (250 lines)
+- Component test: test_phase_iv1.py (155 lines)
+- **All 7 tests passing**: imports, queues, connection, metrics, config, client
+- Dependencies synced: protobuf==6.33.2, gymnasium==1.2.2, pytest==9.0.2
+
+### Phase IV Subtasks (1 of 6 Complete)
+
+| Phase | Component | Status | Progress |
+|-------|-----------|--------|----------|
+| IV.1 | Core Infrastructure | ✅ Complete | 100% |
+| IV.2 | Listener Thread | ⏳ Next | 0% |
+| IV.3 | Inference Thread | Pending | 0% |
+| IV.4 | Actor Thread | Pending | 0% |
+| IV.5 | Gymnasium Wrapper | Pending | 0% |
+| IV.6 | Integration & Testing | Pending | 0% |
+
 ### Status
 
 - ✅ **Phase I-III Complete**: Foundation ready, PR #3 merged
-- 🚀 **Starting Phase IV**: Architecture design phase
-- 📋 **Branch**: Working on main (clean)
+- ✅ **Phase IV.1 Complete**: Core infrastructure implemented and tested
+- 🚀 **Next**: Phase IV.2 Listener Thread (state polling, event detection)
+- 📋 **Branch**: feature/phase4-python-client
 
 ### Phase IV Estimated Effort
 
-~3-4 weeks
-
-### Phase IV Subtasks
-
-**Planned** (will be added to tasks/_index.md):
-
-1. Architecture design and specification
-2. SpectatorClient base implementation
-3. Listener thread (async polling)
-4. Inference thread (Executive policy)
-5. Actor thread (Reflex policy)
-6. Event system and interrupts
-7. Gymnasium environment wrapper
-8. Integration testing and benchmarks
+~3-4 weeks total (1 week complete)
 
 ## Known Issues
 
