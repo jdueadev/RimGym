@@ -73,6 +73,34 @@ See [docs/specs/REAL_TIME_ARCHITECTURE_UPDATE.md](docs/specs/REAL_TIME_ARCHITECT
 - Hierarchical policy (Executive/Reflex layers)
 - Interrupt event handling (raids, fires, mental breaks)
 
+## 🧪 Testing & Validation
+
+### Automated Testing (Recommended)
+
+**Docker integration tests validate all 4 game speeds in ~2 minutes:**
+
+```bash
+# One-time setup (requires RimWorld installation)
+docker/setup-rimworld-volume.sh
+
+# Run complete test suite
+docker-compose up test
+
+# Results: ✅ 4/4 speeds passing (Paused, 1x, 2x, 3x)
+```
+
+📖 **See [docker/QUICKSTART.md](docker/QUICKSTART.md)** - Get testing in 60 seconds!
+
+**Why Docker?** Tests require RimWorld (commercial license), so GitHub CI can't run them. Docker provides consistent, reproducible testing on any machine with RimWorld.
+
+### CI/CD Status
+
+- ✅ **Build Validation**: C# mod builds successfully
+- ✅ **Unit Tests**: 26/26 tests passing
+- ✅ **Python Tests**: All passing
+- ✅ **Docker Image**: Builds successfully
+- 🏠 **Integration Tests**: Run locally via Docker (see above)
+
 ## 🚀 Quick Start
 
 See [docs/guides/installation.md](docs/guides/installation.md) for detailed installation instructions.

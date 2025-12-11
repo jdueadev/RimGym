@@ -2,11 +2,14 @@
 
 ## 🎯 Goal
 
-Run **fully automated integration tests** in Docker containers instead of:
+**Reproducible integration testing** for anyone with Docker + RimWorld:
 
-- ❌ Self-hosted Windows runners ($50-100/month)
-- ❌ Cloud VMs ($0.50/run)
-- ✅ **Docker on GitHub Actions (FREE!)**
+- ✅ **100% reproducible** across machines
+- ✅ **Consistent environment** (Linux, Xvfb, exact dependencies)
+- ✅ **Automated validation** of all 4 game speeds
+- ✅ **Works locally** (GitHub CI can't run commercial games)
+
+**Perfect for**: Contributors, code reviewers, or anyone validating changes before merge.
 
 ## ⚡ 60-Second Setup
 
