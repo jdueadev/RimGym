@@ -5,9 +5,10 @@ Provides a triple-threaded client for autonomous RL agent interaction with RimWo
 """
 
 from .connection import ConnectionManager
-from .spectator_client import SpectatorClient, ClientConfig, ClientState
-from .queues import StateQueue, EventQueue, ActionQueue
+from .listener import EventDetectionConfig, ListenerThread
 from .metrics import MetricsCollector, PerformanceMetrics
+from .queues import ActionQueue, EventQueue, StateQueue
+from .spectator_client import ClientConfig, ClientState, SpectatorClient
 
 __all__ = [
     "ConnectionManager",
@@ -19,6 +20,8 @@ __all__ = [
     "ActionQueue",
     "MetricsCollector",
     "PerformanceMetrics",
+    "ListenerThread",
+    "EventDetectionConfig",
 ]
 
 __version__ = "0.3.0"
