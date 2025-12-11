@@ -1,0 +1,52 @@
+{
+    "name": "rimworld-ml-dashboard-frontend",
+    "version": "0.1.0",
+    "private": true,
+    "dependencies": {
+        "@tanstack/react-query": "^5.17.0",
+        "@testing-library/jest-dom": "^6.1.5",
+        "@testing-library/react": "^14.1.2",
+        "@testing-library/user-event": "^14.5.1",
+        "@types/jest": "^29.5.11",
+        "@types/node": "^20.10.6",
+        "@types/react": "^18.2.46",
+        "@types/react-dom": "^18.2.18",
+        "plotly.js": "^2.28.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-plotly.js": "^2.6.0",
+        "react-scripts": "5.0.1",
+        "typescript": "^5.3.3",
+        "web-vitals": "^3.5.1"
+    },
+    "devDependencies": {
+        "@types/plotly.js": "^2.29.0",
+        "autoprefixer": "^10.4.16",
+        "postcss": "^8.4.32",
+        "tailwindcss": "^3.4.0"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject"
+    },
+    "eslintConfig": {
+        "extends": [
+            "react-app",
+            "react-app/jest"
+        ]
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    }
+}
