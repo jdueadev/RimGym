@@ -196,10 +196,10 @@ Pawn GetPawn(int thingID) {
 
 ## Logging Conventions
 
-All logs prefixed with `[MLBridge]` for easy filtering:
+All logs prefixed with `[RimTCP]` for easy filtering:
 
 ```csharp
-Log.Message("[MLBridge] TCP+Protobuf server started successfully!");
-Log.Warning("[MLBridge] No game loaded, waiting...");
-Log.Error("[MLBridge] Command processing failed: " + e.Message);
+Log.Message("[RimTCP] TCP+Protobuf server started successfully!");
+Log.Warning("[RimTCP] No game loaded, waiting...");
+Log.Error("[RimTCP] Command processing failed: " + e.Message);
 ```

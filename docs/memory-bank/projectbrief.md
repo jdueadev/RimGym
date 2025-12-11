@@ -25,7 +25,7 @@ Enable autonomous AI agents to master RimWorld through deep reinforcement learni
 
 ## Constraints
 
-- RimWorld's Mono runtime cannot load native C++ libraries
+- RimWorld's Mono runtime cannot load native C# libraries
 - Unity single-threaded architecture (all game API calls on main thread)
 - .NET Framework 4.8 compatibility required
 - RimWorld 1.6+ mod structure compliance
@@ -47,5 +47,5 @@ All major phases complete:
 ## Key Stakeholders
 
 - **ML Researchers**: Simple, reliable Python API with Gymnasium interface
-- **RimWorld Modders**: Clean, maintainable C# code
-- **Project Lead**: Strategic direction and architecture decisions
+- **RimWorld Modders**: Clean, maintainable C# code that provides performant access to game state.
+- **Me (Jon Duea)**: Cause I think this is awesome.

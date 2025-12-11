@@ -6,9 +6,9 @@
 
 - **Framework**: .NET Framework 4.8 (RimWorld compatibility)
 - **Language Version**: C# 7.3
-- **IDE**: Visual Studio 2019+ or Rider
+- **IDE**: Visual Studio 2019+, or Rider
 - **Version**: 0.5.0
-- **Harmony ID**: `com.jmduea.rimworldmlbridge`
+- **Harmony ID**: `com.jmduea.rimtcp`
 
 ### Key Dependencies
 

@@ -9,7 +9,7 @@ Existing RimWorld ML research uses fragile pixel-based approaches or low-fidelit
 A semantic-level bridge that exposes RimWorld's internal state as structured Protobuf messages, allowing ML agents to:
 
 - Read high-fidelity game state (health, mood, skills, jobs, threats)
-- Issue intent-based commands (not brittle coordinates)
+- Issue intent-based commands
 - Train efficiently with >1000 TPS throughput
 - Handle real-time inference with latency tolerance
 
