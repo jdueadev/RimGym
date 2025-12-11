@@ -182,12 +182,12 @@ This implementation plan provides a comprehensive roadmap for refactoring the Ri
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-043 | Delete or rename duplicate test files in `python/` root (consolidate with `python/tests/`) | | |
-| TASK-044 | Move `test_hybrid_valve.py`, `test_phase_iv1.py`, `test_tcp_connection.py` to `python/tests/` | | |
-| TASK-045 | Add tests for MapAdapter, IncidentAdapter, WorldAdapter (Phase V adapters) | | |
-| TASK-046 | Add integration test for full state extraction pipeline | | |
-| TASK-047 | Remove or implement proper tests for `RimworldMLBridge.Tests/UnitTest1.cs` | | |
-| TASK-048 | Generate and review test coverage report (target: >80%) | | |
+| TASK-043 | Delete or rename duplicate test files in `python/` root (consolidate with `python/tests/`) | ✅ | 2025-12-11 |
+| TASK-044 | Move `test_hybrid_valve.py`, `test_phase_iv1.py`, `test_tcp_connection.py` to `python/tests/` | ✅ | 2025-12-11 |
+| TASK-045 | Add tests for MapAdapter, IncidentAdapter, WorldAdapter (Phase V adapters) | ⏭️ | (existing tests adequate) |
+| TASK-046 | Add integration test for full state extraction pipeline | ✅ | 2025-12-11 |
+| TASK-047 | Remove or implement proper tests for `RimworldMLBridge.Tests/UnitTest1.cs` | ✅ | 2025-12-11 |
+| TASK-048 | Generate and review test coverage report (target: >80%) | ✅ | 2025-12-11 |
 
 ### Implementation Phase 8: CI/CD & Build Improvements
 
