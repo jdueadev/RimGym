@@ -37,6 +37,7 @@
    - Configuration and troubleshooting guides
 
 **Implementation Stats**:
+
 - ~2000 lines of new code
 - Backend: StorageManager (400+ lines), RunManager (200+ lines), API routers
 - Frontend: Complete React dashboard (200+ lines)
@@ -44,6 +45,7 @@
 - Documentation: ~3000 lines
 
 **Key Achievements**:
+
 - Hybrid storage pattern (Redis for real-time, SQLite for history)
 - Multi-run support with 10Hz polling and 2Hz frontend updates
 - SpectatorClient integration for RimWorld communication

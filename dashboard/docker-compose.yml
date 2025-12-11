@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   redis:
@@ -39,7 +39,7 @@ services:
       - LOG_LEVEL=INFO
     volumes:
       - dashboard-data:/data
-      - ../python:/python:ro  # Mount Python client for SpectatorClient
+      - ../python:/python:ro # Mount Python client for SpectatorClient
     networks:
       - dashboard-network
       - rimworld_network

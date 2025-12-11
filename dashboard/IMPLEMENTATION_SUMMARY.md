@@ -43,6 +43,7 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 ### Backend (FastAPI + Python)
 
 **StorageManager** (`app/storage/storage_manager.py` - 400+ lines):
+
 - Redis client for hot data (current state, circular buffers, threats)
 - SQLite for historical data (runs, episodes, incidents, metrics)
 - Async operations with thread-safe executors
@@ -51,6 +52,7 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 - Automatic TTL management and cleanup
 
 **RunManager** (`app/services/run_manager.py` - 200+ lines):
+
 - Manages multiple concurrent RimWorld connections
 - SpectatorClient integration per run
 - 10Hz polling with protobuf → JSON transformation
@@ -59,6 +61,7 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 - Concurrent polling tasks with error isolation
 
 **REST API** (routers: runs, colonists, metrics, incidents):
+
 - `GET /api/v1/runs` - List all registered runs
 - `POST /api/v1/runs` - Register new run
 - `GET /api/v1/runs/{run_id}` - Get run details
@@ -70,6 +73,7 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 - `GET /api/v1/runs/{run_id}/threats` - Get active threats
 
 **WebSocket** (`app/websocket.py`):
+
 - `/ws/runs/{run_id}/state` - Real-time state updates
 - `/ws/runs/all` - Aggregate run updates
 - Connection manager with broadcasting
@@ -78,6 +82,7 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 ### Frontend (React + TypeScript)
 
 **Dashboard** (`src/App.tsx` - 200+ lines):
+
 - Real-time run cards with status indicators
 - Auto-refresh every 2 seconds using React Query
 - Color-coded status badges (active/stale/pending/completed/failed)
@@ -90,6 +95,7 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 - Empty state with refresh button
 
 **Technologies**:
+
 - React 18 with TypeScript
 - @tanstack/react-query for data fetching
 - Tailwind CSS for styling
@@ -98,6 +104,7 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 ### Infrastructure (Docker)
 
 **Backend Dockerfile**:
+
 - Multi-stage build (builder + runtime)
 - Python 3.11-slim base
 - uv for fast dependency installation
@@ -105,12 +112,14 @@ A complete, production-ready real-time monitoring dashboard for RimWorld ML Brid
 - Non-root user for security
 
 **Frontend Dockerfile**:
+
 - Multi-stage build (Node 20 builder + Nginx runtime)
 - Production-optimized build
 - Nginx for serving static assets
 - Health check on port 3000
 
 **docker-compose.yml**:
+
 - Redis 7 with appendonly persistence
 - Backend with volume mounts for Python client
 - Frontend with CORS configuration
@@ -180,6 +189,7 @@ dashboard/
 ## Performance Characteristics
 
 ### Latency
+
 - API response: <100ms
 - WebSocket updates: 500ms (2Hz)
 - State polling: 100ms (10Hz)
@@ -187,17 +197,20 @@ dashboard/
 - SQLite queries: 10-100ms
 
 ### Throughput
+
 - 10 requests/second per endpoint
 - 5-10 concurrent runs supported
 - 1000-state circular buffer per run
 
 ### Memory
+
 - ~80MB per run
 - 400-800MB for 5-10 runs
 - Redis: 50MB per run (state buffer)
 - SQLite: Grows with history
 
 ### Network
+
 - Upstream: 2.5MB/s (5 runs × 500KB/s)
 - Downstream: 800KB/s (8 clients × 100KB/s)
 
@@ -264,6 +277,7 @@ curl -X POST http://localhost:8000/api/v1/runs \
 ### Monitor
 
 The dashboard will automatically:
+
 1. Connect to RimWorld instance
 2. Poll game state every 100ms
 3. Store in Redis + SQLite
@@ -302,12 +316,14 @@ python tests/integration/test_dashboard_e2e.py
 ## Next Steps
 
 ### Immediate Enhancements
+
 - [ ] Complete metrics time-series implementation
 - [ ] Add Plotly charts for training curves
 - [ ] Implement colonist detail view
 - [ ] Add incident timeline visualization
 
 ### Future Features
+
 - [ ] Multi-run comparison charts
 - [ ] Docker auto-discovery integration
 - [ ] Authentication and authorization
@@ -317,6 +333,7 @@ python tests/integration/test_dashboard_e2e.py
 - [ ] Model versioning integration
 
 ### Performance Optimization
+
 - [ ] Connection pooling for Redis
 - [ ] Query optimization in SQLite
 - [ ] Delta compression for WebSocket
@@ -334,6 +351,7 @@ python tests/integration/test_dashboard_e2e.py
 ✅ **Complete and Functional Dashboard**
 
 The dashboard provides a solid foundation for monitoring RimWorld ML training with:
+
 - Real-time visualization of multiple training runs
 - Hybrid storage for both hot and cold data
 - Production-ready Docker deployment

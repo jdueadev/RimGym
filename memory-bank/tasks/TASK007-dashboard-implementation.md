@@ -21,6 +21,7 @@ The implementation follows the comprehensive architecture specification in `docs
 ## Implementation Plan
 
 ### Phase 1: Backend Core ✅
+
 1. ✅ Storage Manager with Redis + SQLite
 2. ✅ Run Manager with SpectatorClient integration
 3. ✅ REST API endpoints (runs, colonists, metrics, incidents)
@@ -28,18 +29,21 @@ The implementation follows the comprehensive architecture specification in `docs
 5. ✅ Configuration management
 
 ### Phase 2: Frontend Core ✅
+
 1. ✅ React app with Tailwind CSS
 2. ✅ Run cards with status indicators
 3. ✅ Quick stats dashboard
 4. ✅ API integration with polling
 
 ### Phase 3: Docker Integration ✅
+
 1. ✅ Backend Dockerfile with multi-stage build
 2. ✅ Frontend Dockerfile with Nginx
 3. ✅ docker-compose.yml with Redis + Backend + Frontend
 4. ✅ Network configuration for RimWorld connectivity
 
 ### Phase 4: Documentation ✅
+
 1. ✅ Comprehensive README
 2. ✅ Getting Started guide
 3. ✅ API documentation
@@ -50,6 +54,7 @@ The implementation follows the comprehensive architecture specification in `docs
 **Overall Status:** Completed - 100%
 
 ### Subtasks
+
 | ID | Description | Status | Updated | Notes |
 |----|-------------|--------|---------|-------|
 | 1.1 | StorageManager implementation | Complete | 2025-12-11 | Redis + SQLite with async operations |
@@ -72,6 +77,7 @@ The implementation follows the comprehensive architecture specification in `docs
 ## Progress Log
 
 ### 2025-12-11
+
 - Implemented StorageManager with full Redis + SQLite integration
   - Redis: Current state, circular buffer, metadata, threats
   - SQLite: Runs, episodes, incidents, metrics, colonist snapshots
@@ -104,6 +110,7 @@ The implementation follows the comprehensive architecture specification in `docs
 ## Key Files Created/Modified
 
 ### Backend
+
 - `dashboard/backend/app/storage/storage_manager.py` - Redis + SQLite integration (400+ lines)
 - `dashboard/backend/app/services/run_manager.py` - Run orchestration with SpectatorClient (200+ lines)
 - `dashboard/backend/app/main.py` - FastAPI application with lifespan management
@@ -113,17 +120,20 @@ The implementation follows the comprehensive architecture specification in `docs
 - `dashboard/backend/app/websocket.py` - WebSocket connection manager
 
 ### Frontend
+
 - `dashboard/frontend/src/App.tsx` - Complete React dashboard (200+ lines)
 - `dashboard/frontend/package.json` - Dependencies and scripts
 - `dashboard/frontend/tsconfig.json` - TypeScript configuration
 - `dashboard/frontend/tailwind.config.js` - Tailwind CSS config
 
 ### Docker
+
 - `dashboard/backend/Dockerfile` - Multi-stage Python build
 - `dashboard/frontend/Dockerfile` - Multi-stage Node build + Nginx
 - `dashboard/docker-compose.yml` - 3-service stack
 
 ### Documentation
+
 - `dashboard/README.md` - Original scaffolding docs
 - `dashboard/GETTING_STARTED.md` - Quick start guide
 - `docs/specs/DASHBOARD_ARCHITECTURE.md` - Comprehensive architecture (1000+ lines)
@@ -131,24 +141,28 @@ The implementation follows the comprehensive architecture specification in `docs
 ## Technical Highlights
 
 ### Storage Layer
+
 - **Redis**: O(1) operations for hot data with TTL-based expiration
 - **SQLite**: WAL mode for concurrent reads, async operations via executor
 - **Write-through pattern**: Fast Redis writes, async SQLite persistence
 - **Read pattern**: Redis first, SQLite fallback
 
 ### Run Management
+
 - **SpectatorClient integration**: Reuses proven Python client
 - **Async polling**: asyncio tasks per run with error isolation
 - **State transformation**: Protobuf → JSON serialization
 - **Health monitoring**: Stale detection, auto-reconnect
 
 ### API Design
+
 - **RESTful**: Standard HTTP methods and status codes
 - **WebSocket**: Real-time updates with heartbeat mechanism
 - **Error handling**: Consistent error responses with details
 - **Validation**: Pydantic models for request/response
 
 ### Frontend
+
 - **React Query**: Automatic caching and background updates
 - **Component-based**: Modular, reusable components
 - **Responsive**: Mobile-friendly with Tailwind CSS
@@ -186,6 +200,7 @@ The implementation follows the comprehensive architecture specification in `docs
 **Status**: ✅ COMPLETE - All core functionality implemented and documented
 
 The dashboard is now fully functional with:
+
 - ✅ Backend API with Redis + SQLite storage
 - ✅ Frontend with real-time updates
 - ✅ Docker stack for easy deployment
@@ -194,6 +209,7 @@ The dashboard is now fully functional with:
 Ready for testing and deployment!
 
 **Total Implementation**: ~2000 lines of new code
+
 - Backend: ~1200 lines (Python)
 - Frontend: ~300 lines (TypeScript/React)
 - Docker/Config: ~200 lines

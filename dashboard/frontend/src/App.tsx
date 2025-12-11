@@ -175,9 +175,9 @@ function Dashboard() {
                             <p className="text-2xl font-bold text-white">
                                 {data && data.runs.length > 0
                                     ? (
-                                          data.runs.reduce((sum, r) => sum + r.current_reward, 0) /
-                                          data.runs.length
-                                      ).toFixed(2)
+                                        data.runs.reduce((sum, r) => sum + r.current_reward, 0) /
+                                        data.runs.length
+                                    ).toFixed(2)
                                     : '0.00'}
                             </p>
                         </div>

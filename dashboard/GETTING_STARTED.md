@@ -10,13 +10,14 @@ docker-compose up -d
 ```
 
 This starts:
+
 - **Redis**: Hot data storage (port 6379)
 - **Backend**: FastAPI server (port 8000)  
 - **Frontend**: React app (port 3000)
 
 ### 2. Access the Dashboard
 
-Open your browser to http://localhost:3000
+Open your browser to <http://localhost:3000>
 
 ### 3. Register a Training Run
 
@@ -41,6 +42,7 @@ curl -X POST http://localhost:8000/api/v1/runs \
 ### 4. Monitor Your Training
 
 The dashboard will:
+
 - Connect to the RimWorld instance via TCP
 - Poll game state every 100ms
 - Display real-time colonist counts, rewards, and status
@@ -51,6 +53,7 @@ The dashboard will:
 ### Dashboard Features
 
 **Run Cards**: Each active training run gets a card showing:
+
 - Run name and ID
 - Algorithm and scenario
 - Current status (active/stale/completed)
@@ -59,6 +62,7 @@ The dashboard will:
 - Connection info
 
 **Quick Stats**: Aggregate statistics across all runs:
+
 - Total active runs
 - Total colonists
 - Average reward
@@ -93,7 +97,7 @@ Edit `src/App.tsx` to modify the UI.
 
 ## Next Steps
 
-- View API documentation: http://localhost:8000/docs
+- View API documentation: <http://localhost:8000/docs>
 - Check backend logs: `docker-compose logs dashboard-backend`
 - Monitor Redis: `docker-compose exec redis redis-cli monitor`
 - Query SQLite: `sqlite3 data/dashboard.db "SELECT * FROM runs;"`
@@ -101,15 +105,18 @@ Edit `src/App.tsx` to modify the UI.
 ## Troubleshooting
 
 **No runs showing up?**
+
 - Check if RimWorld is running with the ML Bridge mod
 - Verify the port (default 50051) is accessible
 - Check backend logs for connection errors
 
 **Frontend not loading?**
+
 - Check if backend is running: `curl http://localhost:8000/health`
 - Verify CORS settings in backend config
 
 **Performance issues?**
+
 - Reduce poll frequency in `config.py`
 - Limit number of concurrent runs
 - Check Redis memory usage

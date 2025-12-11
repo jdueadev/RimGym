@@ -21,7 +21,7 @@ class StorageManager:
         self.sqlite_path = sqlite_path
         self.redis_client: Optional[redis.Redis] = None
         self.sqlite_conn: Optional[sqlite3.Connection] = None
-        
+
         # Configuration
         self.state_buffer_size = 1000
         self.redis_ttl_seconds = 7 * 24 * 3600  # 7 days
@@ -31,9 +31,7 @@ class StorageManager:
         # Connect to Redis
         try:
             self.redis_client = redis.from_url(
-                self.redis_url, 
-                encoding="utf-8", 
-                decode_responses=True
+                self.redis_url, encoding="utf-8", decode_responses=True
             )
             await self.redis_client.ping()
             logger.info(f"Connected to Redis at {self.redis_url}")
@@ -45,14 +43,14 @@ class StorageManager:
         try:
             db_path = Path(self.sqlite_path)
             db_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             # Use asyncio to run blocking SQLite operations
             self.sqlite_conn = sqlite3.connect(str(db_path), check_same_thread=False)
             self.sqlite_conn.row_factory = sqlite3.Row
-            
+
             # Enable WAL mode for better concurrency
             self.sqlite_conn.execute("PRAGMA journal_mode=WAL")
-            
+
             # Create tables
             await self._create_tables()
             logger.info(f"Initialized SQLite database at {self.sqlite_path}")
@@ -65,7 +63,7 @@ class StorageManager:
         if self.redis_client:
             await self.redis_client.close()
             logger.info("Closed Redis connection")
-        
+
         if self.sqlite_conn:
             self.sqlite_conn.close()
             logger.info("Closed SQLite connection")
@@ -77,7 +75,7 @@ class StorageManager:
     def _create_tables_sync(self) -> None:
         """Create SQLite tables (synchronous)"""
         cursor = self.sqlite_conn.cursor()
-        
+
         # Runs table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS runs (
@@ -93,8 +91,10 @@ class StorageManager:
                 config_json TEXT
             )
         """)
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_runs_started ON runs(started_at DESC)")
-        
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_runs_started ON runs(started_at DESC)"
+        )
+
         # Episodes table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS episodes (
@@ -110,8 +110,10 @@ class StorageManager:
                 UNIQUE(run_id, episode_num)
             )
         """)
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_episodes_run ON episodes(run_id, episode_num)")
-        
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_episodes_run ON episodes(run_id, episode_num)"
+        )
+
         # Incidents table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS incidents (
@@ -123,8 +125,10 @@ class StorageManager:
                 details_json TEXT
             )
         """)
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_incidents_run ON incidents(run_id, timestamp DESC)")
-        
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_incidents_run ON incidents(run_id, timestamp DESC)"
+        )
+
         # Metrics hourly rollups
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS metrics_hourly (
@@ -139,8 +143,10 @@ class StorageManager:
                 UNIQUE(run_id, hour_bucket, metric_name)
             )
         """)
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_metrics_run_time ON metrics_hourly(run_id, hour_bucket)")
-        
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_metrics_run_time ON metrics_hourly(run_id, hour_bucket)"
+        )
+
         # Colonist snapshots
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS colonist_snapshots (
@@ -157,34 +163,36 @@ class StorageManager:
                 skills_json TEXT
             )
         """)
-        cursor.execute("CREATE INDEX IF NOT EXISTS idx_colonist_run_time ON colonist_snapshots(run_id, timestamp)")
-        
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_colonist_run_time ON colonist_snapshots(run_id, timestamp)"
+        )
+
         self.sqlite_conn.commit()
 
     async def push_state(self, run_id: str, state: Dict[str, Any]) -> None:
         """Store game state (Redis for hot data)"""
         if not self.redis_client:
             return
-        
+
         try:
             pipe = self.redis_client.pipeline()
-            
+
             # Current state snapshot
             pipe.set(
                 f"run:{run_id}:current",
                 json.dumps(state),
-                ex=30  # 30s TTL
+                ex=30,  # 30s TTL
             )
-            
+
             # Circular buffer of states
             pipe.lpush(f"run:{run_id}:states", json.dumps(state))
             pipe.ltrim(f"run:{run_id}:states", 0, self.state_buffer_size - 1)
             pipe.expire(f"run:{run_id}:states", self.redis_ttl_seconds)
-            
+
             # Update run metadata
             pipe.hset(f"run:{run_id}:meta", "last_update", int(time.time()))
             pipe.hset(f"run:{run_id}:meta", "status", "active")
-            
+
             await pipe.execute()
         except Exception as e:
             logger.error(f"Failed to push state to Redis: {e}")
@@ -193,7 +201,7 @@ class StorageManager:
         """Get current state snapshot"""
         if not self.redis_client:
             return None
-        
+
         try:
             data = await self.redis_client.get(f"run:{run_id}:current")
             return json.loads(data) if data else None
@@ -206,8 +214,12 @@ class StorageManager:
         # Try Redis first
         state = await self.get_current_state(run_id)
         if state and "colonists" in state:
-            return {"run_id": run_id, "colonists": state["colonists"], "timestamp": state.get("timestamp")}
-        
+            return {
+                "run_id": run_id,
+                "colonists": state["colonists"],
+                "timestamp": state.get("timestamp"),
+            }
+
         # Fallback to SQLite
         try:
             cursor = await asyncio.get_event_loop().run_in_executor(
@@ -220,8 +232,8 @@ class StorageManager:
                         SELECT MAX(timestamp) FROM colonist_snapshots WHERE run_id = ?
                     )
                     """,
-                    (run_id, run_id)
-                )
+                    (run_id, run_id),
+                ),
             )
             rows = cursor.fetchall()
             if rows:
@@ -229,7 +241,7 @@ class StorageManager:
                 return {"run_id": run_id, "colonists": colonists}
         except Exception as e:
             logger.error(f"Failed to get colonists from SQLite: {e}")
-        
+
         return None
 
     async def get_metrics(
@@ -244,7 +256,7 @@ class StorageManager:
             "window_start": int(time.time()) - window_seconds,
             "window_end": int(time.time()),
             "data_points": [],
-            "statistics": {}
+            "statistics": {},
         }
 
     async def get_episodes(self, run_id: str, limit: int) -> List[Dict[str, Any]]:
@@ -261,8 +273,8 @@ class StorageManager:
                     ORDER BY episode_num DESC
                     LIMIT ?
                     """,
-                    (run_id, limit)
-                )
+                    (run_id, limit),
+                ),
             )
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
@@ -283,8 +295,8 @@ class StorageManager:
                     ORDER BY timestamp DESC
                     LIMIT ?
                     """,
-                    (run_id, limit)
-                )
+                    (run_id, limit),
+                ),
             )
             rows = cursor.fetchall()
             incidents = []
@@ -303,7 +315,7 @@ class StorageManager:
         """Get active threats from Redis"""
         if not self.redis_client:
             return []
-        
+
         try:
             # Get threats from sorted set (score = timestamp)
             now = int(time.time())
@@ -311,7 +323,7 @@ class StorageManager:
                 f"run:{run_id}:threats",
                 now - 3600,  # Last hour
                 now,
-                withscores=True
+                withscores=True,
             )
             return [json.loads(threat[0]) for threat in threats]
         except Exception as e:
@@ -338,9 +350,9 @@ class StorageManager:
                         episode_data.get("started_at"),
                         episode_data.get("ended_at"),
                         episode_data.get("final_colonist_count"),
-                        episode_data.get("final_wealth")
-                    )
-                )
+                        episode_data.get("final_wealth"),
+                    ),
+                ),
             )
             self.sqlite_conn.commit()
         except Exception as e:
@@ -361,9 +373,9 @@ class StorageManager:
                         incident.get("timestamp"),
                         incident.get("incident_type"),
                         incident.get("severity"),
-                        json.dumps(incident.get("details", {}))
-                    )
-                )
+                        json.dumps(incident.get("details", {})),
+                    ),
+                ),
             )
             self.sqlite_conn.commit()
         except Exception as e:
