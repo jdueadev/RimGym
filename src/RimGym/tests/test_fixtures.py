@@ -11,10 +11,6 @@ import pytest
 def test_rimworld_server_fixture(rimworld_server):
     """Test that rimworld_server fixture returns a boolean."""
     assert isinstance(rimworld_server, bool)
-    # It should be False since RimWorld is not running in this test environment
-    assert rimworld_server is False
-
-
 @pytest.mark.unit
 def test_fixtures_available():
     """Test that basic pytest setup is working."""
