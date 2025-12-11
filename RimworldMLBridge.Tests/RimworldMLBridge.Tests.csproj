@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8" ?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net480</TargetFramework>
@@ -10,6 +10,8 @@
                           Version="6.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk"
                           Version="17.8.0" />
+        <PackageReference Include="Moq"
+                          Version="4.20.70" />
         <PackageReference Include="xunit"
                           Version="2.6.2" />
         <PackageReference Include="xunit.runner.visualstudio"

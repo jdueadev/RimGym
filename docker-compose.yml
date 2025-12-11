@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Development environment
+  dev:
+    build:
+      context: .
+      target: builder
+    volumes:
+      - .:/app
+      - rimworld-data:/opt/rimworld
+    environment:
+      - RIMWORLD_PATH=/opt/rimworld
+    command: interactive
+    stdin_open: true
+    tty: true
+
+  # Test runner
+  test:
+    build:
+      context: .
+      target: test-runner
+    volumes:
+      - rimworld-data:/opt/rimworld
+    environment:
+      - RIMWORLD_PATH=/opt/rimworld
+      - DISPLAY=:99
+    # Command is already set in Dockerfile as CMD ["test"]
+
+  # Build-only service
+  build:
+    build:
+      context: .
+      target: builder
+    volumes:
+      - .:/app
+    command: build
+
+volumes:
+  rimworld-data:
+    external: true
+    name: rimworld-data

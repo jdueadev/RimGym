@@ -39,6 +39,23 @@ enum CommandType {
   RESET = 2;
   QUERY_STATE = 3;
   EXECUTE_ACTION = 4;
+  SET_MODE = 5;          // Phase III: Switch between training and inference modes
+  SET_SPEED = 6;         // Set game speed (for testing automation)
+}
+
+// Execution mode for Hybrid Valve
+enum ExecutionMode {
+  MODE_TRAINING = 0;     // Synchronous: Game pauses between steps
+  MODE_INFERENCE = 1;    // Asynchronous: Game runs freely
+}
+
+// Game speed settings
+enum GameSpeed {
+  SPEED_PAUSED = 0;      // Game paused
+  SPEED_NORMAL = 1;      // 1x speed (60 ticks/sec)
+  SPEED_FAST = 2;        // 2x speed (120 ticks/sec)
+  SPEED_SUPERFAST = 3;   // 3x speed (180 ticks/sec)
+  SPEED_ULTRAFAST = 4;   // 4x speed (240 ticks/sec)
 }
 
 // Command message from agent to game
@@ -46,6 +63,8 @@ message CommandMessage {
   CommandType type = 1;
   int32 ticks_to_run = 2;
   repeated Action actions = 3;
+  ExecutionMode mode = 4;  // For SET_MODE command
+  GameSpeed speed = 5;     // For SET_SPEED command
 }
 
 // Action verb types
@@ -102,6 +121,7 @@ message Entity {
   Vector3 position = 4;
   int32 faction_id = 5;
   EntityState state = 6;
+  Vector3 velocity = 7;     // Phase III: Velocity vector for position extrapolation
 }
 
 // Entity state details (basic - deprecated, use ColonistState for pawns)
@@ -226,6 +246,9 @@ message ColonistState {
   // Performance metrics
   float move_speed = 20;
   float work_speed_global = 21;
+  
+  // Phase III: Motion tracking for position extrapolation under latency
+  Vector3 velocity = 22;       // Velocity vector (units per second)
 }
 
 // Extended state message with rich colonist data
@@ -237,4 +260,7 @@ message RichStateMessage {
   bool is_ready = 5;
   string status_message = 6;
   int64 timestamp_ms = 7;              // Server timestamp for latency measurement
+  float delta_time_ms = 8;             // Phase III: Time since last frame (for velocity calculation)
+  bool is_delta = 9;                   // Phase III: True if this is a delta update (only changed entities)
+  ExecutionMode current_mode = 10;     // Phase III: Current execution mode
 }

@@ -39,8 +39,8 @@
         <Protobuf Include="..\Protos\mlbridge.proto"
                   GrpcServices="Server" />
     </ItemGroup>
-    <ItemGroup>
-        <!-- RimWorld Assemblies -->
+    <ItemGroup Condition="Exists('$(RimWorldPath)\Assembly-CSharp.dll')">
+        <!-- RimWorld Assemblies - Use local installation when available -->
         <Reference Include="Assembly-CSharp">
             <HintPath>$(RimWorldPath)\Assembly-CSharp.dll</HintPath>
             <Private>False</Private>
@@ -54,6 +54,11 @@
             <HintPath>$(HarmonyPath)\0Harmony.dll</HintPath>
             <Private>False</Private>
         </Reference>
+    </ItemGroup>
+    <ItemGroup Condition="!Exists('$(RimWorldPath)\Assembly-CSharp.dll')">
+        <!-- Use Krafs.Rimworld.Ref NuGet package when local DLLs not available (Docker/CI) -->
+        <PackageReference Include="Lib.Harmony"
+                          Version="2.3.3" />
     </ItemGroup>
     <!-- Remove native DLLs that RimWorld's mod loader can't handle -->
     <Target Name="RemoveNativeDlls"

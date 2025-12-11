@@ -13,7 +13,6 @@
 .venv
 .Source/packages
 uv.lock
-.github
 .config
 
 # Python
@@ -855,3 +854,5 @@ Source/obj/
 Source/packages/
 *.user
 *.suo
+
+test_results.txt

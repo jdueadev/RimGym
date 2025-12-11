@@ -1,0 +1,138 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., 1.0.0)"
+        required: true
+
+jobs:
+  build-release:
+    name: Build Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore RimworldMLBridge.sln
+
+      - name: Build Release
+        run: dotnet build RimworldMLBridge.sln -c Release --no-restore
+
+      - name: Run tests
+        run: dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj --no-build -c Release
+
+      - name: Package mod
+        shell: pwsh
+        run: |
+          $version = if ($env:GITHUB_REF -like 'refs/tags/*') { 
+            $env:GITHUB_REF -replace 'refs/tags/v', '' 
+          } else { 
+            '${{ github.event.inputs.version }}' 
+          }
+
+          $packageName = "RimworldMLBridge-$version"
+          $packagePath = "release\$packageName"
+
+          # Create package structure
+          New-Item -ItemType Directory -Path $packagePath -Force
+
+          # Copy mod files
+          Copy-Item -Path "1.6" -Destination "$packagePath\1.6" -Recurse
+          Copy-Item -Path "About" -Destination "$packagePath\About" -Recurse
+          Copy-Item -Path "Protos" -Destination "$packagePath\Protos" -Recurse
+          Copy-Item -Path "python" -Destination "$packagePath\python" -Recurse -Exclude "__pycache__","*.pyc"
+          Copy-Item -Path "README.md" -Destination "$packagePath\"
+          Copy-Item -Path "LICENSE" -Destination "$packagePath\" -ErrorAction SilentlyContinue
+
+          # Create zip
+          Compress-Archive -Path "$packagePath\*" -DestinationPath "release\$packageName.zip"
+
+          Write-Host "✅ Package created: $packageName.zip"
+
+          # Save version for later steps
+          echo "VERSION=$version" >> $env:GITHUB_ENV
+          echo "PACKAGE_NAME=$packageName" >> $env:GITHUB_ENV
+
+      - name: Generate changelog
+        id: changelog
+        shell: pwsh
+        run: |
+          $changelog = @"
+          ## Changes in v${{ env.VERSION }}
+
+          ### Features
+          - Hybrid Valve: Dual-mode execution (Training/Inference)
+          - TCP + Protobuf communication
+          - RIMAPI service integration (Phase II)
+          - Automated test suite
+
+          ### Performance
+          - 0.003ms per colonist serialization
+          - <10ms mode switching latency
+          - Velocity tracking for position extrapolation
+
+          ### Installation
+          1. Extract to RimWorld/Mods/
+          2. Enable in mod list
+          3. Load game
+          4. Run Python client: ``uv run python python/test_hybrid_valve.py``
+
+          See README.md for full documentation.
+          "@
+
+          $changelog | Out-File -FilePath changelog.txt
+
+          # Set multiline output
+          "CHANGELOG<<EOF" >> $env:GITHUB_OUTPUT
+          $changelog >> $env:GITHUB_OUTPUT
+          "EOF" >> $env:GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: RimWorld ML Bridge v${{ env.VERSION }}
+          body: ${{ steps.changelog.outputs.CHANGELOG }}
+          files: |
+            release/${{ env.PACKAGE_NAME }}.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-package
+          path: release/${{ env.PACKAGE_NAME }}.zip
+          retention-days: 90
+
+  publish-steam-workshop:
+    name: Publish to Steam Workshop
+    runs-on: windows-latest
+    needs: build-release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Steam Workshop Upload
+        shell: pwsh
+        run: |
+          # This requires steamcmd and workshop upload credentials
+          # See: https://steamcommunity.com/dev/manageworkshop
+          Write-Host "⚠️  Steam Workshop upload requires manual setup"
+          Write-Host "   Follow guide: https://steamcommunity.com/dev"

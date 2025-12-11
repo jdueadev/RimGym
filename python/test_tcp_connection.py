@@ -116,38 +116,50 @@ def main():
             # Display rich colonist data (Phase II)
             for colonist in state.colonists:
                 print(f"\n     === {colonist.name} (ID: {colonist.thing_id}) ===")
-                print(f"       Position: ({colonist.position.x:.1f}, {colonist.position.y:.1f}, {colonist.position.z:.1f})")
-                print(f"       Health: {colonist.health_percent:.1%}, Mood: {colonist.mood_percent:.1%}")
-                print(f"       Drafted: {colonist.is_drafted}, Downed: {colonist.is_downed}")
-                
+                print(
+                    f"       Position: ({colonist.position.x:.1f}, {colonist.position.y:.1f}, {colonist.position.z:.1f})"
+                )
+                print(
+                    f"       Health: {colonist.health_percent:.1%}, Mood: {colonist.mood_percent:.1%}"
+                )
+                print(
+                    f"       Drafted: {colonist.is_drafted}, Downed: {colonist.is_downed}"
+                )
+
                 # Display current job
-                if colonist.HasField('current_job'):
+                if colonist.HasField("current_job"):
                     print(f"       Job: {colonist.current_job.def_name}")
-                
+
                 # Display skills (top 3 by level)
                 if colonist.skills:
-                    top_skills = sorted(colonist.skills, key=lambda s: s.level, reverse=True)[:3]
-                    print(f"       Top Skills:")
+                    top_skills = sorted(
+                        colonist.skills, key=lambda s: s.level, reverse=True
+                    )[:3]
+                    print("       Top Skills:")
                     for skill in top_skills:
                         passion_str = ""
                         if skill.passion == mlbridge_pb2.Passion.PASSION_MINOR:
                             passion_str = " +"
                         elif skill.passion == mlbridge_pb2.Passion.PASSION_MAJOR:
                             passion_str = " ++"
-                        print(f"         • {skill.def_name}: {skill.level}{passion_str}")
-                
+                        print(
+                            f"         • {skill.def_name}: {skill.level}{passion_str}"
+                        )
+
                 # Display needs
                 if colonist.needs:
-                    print(f"       Needs:")
+                    print("       Needs:")
                     for need in colonist.needs:
                         if need.cur_level > 0:  # Only show needs with values
                             print(f"         • {need.def_name}: {need.cur_level:.1%}")
-                
+
                 # Display health capacities
                 if colonist.capacities:
-                    critical_caps = [c for c in colonist.capacities if c.efficiency < 1.0]
+                    critical_caps = [
+                        c for c in colonist.capacities if c.efficiency < 1.0
+                    ]
                     if critical_caps:
-                        print(f"       Health Issues:")
+                        print("       Health Issues:")
                         for cap in critical_caps:
                             print(f"         • {cap.label}: {cap.efficiency:.1%}")
 
