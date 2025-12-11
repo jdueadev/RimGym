@@ -12,7 +12,6 @@
 .idea
 .venv
 .Source/packages
-uv.lock
 .config
 
 # Python

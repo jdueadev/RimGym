@@ -28,7 +28,7 @@ namespace RimworldMLBridge.Adapters
                 Name = dto.Colonist.Name ?? "",
                 DefName = "Human", // Could be extracted if needed
                 FactionId = 1, // Player faction
-                
+
                 // Position
                 Position = new Protos.Vector3
                 {
@@ -37,14 +37,14 @@ namespace RimworldMLBridge.Adapters
                     Z = dto.Colonist.Position?.Z ?? 0
                 },
                 MapId = 1, // Could extract from game if needed
-                
+
                 // Core stats
                 HealthPercent = dto.ColonistMedicalInfo?.Health ?? dto.Colonist.Health,
                 MoodPercent = dto.Colonist.Mood,
                 IsDrafted = false, // TODO: Extract from pawn
                 IsDowned = false, // TODO: Extract from health state
                 IsDead = false, // TODO: Extract from health state
-                
+
                 // Age
                 AgeBiologicalTicks = dto.Colonist.Age * 3600000, // Years to ticks approximation
                 AgeChronologicalTicks = dto.Colonist.Age * 3600000,

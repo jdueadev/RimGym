@@ -20,9 +20,9 @@ namespace RimworldMLBridge
             {
                 _currentTick = request.TickCount;
             }
-            
+
             Log.Message($"[MLBridge] Received tick: {request.TickCount}");
-            
+
             return Task.FromResult(new AckMessage
             {
                 TickCount = request.TickCount,
@@ -34,7 +34,7 @@ namespace RimworldMLBridge
         public override Task<StateMessage> ExecuteCommand(CommandMessage request, ServerCallContext context)
         {
             Log.Message($"[MLBridge] Executing command: {request.Type}");
-            
+
             // Create a basic state response
             var state = new StateMessage
             {
@@ -50,7 +50,7 @@ namespace RimworldMLBridge
                 {
                     var ticksAbs = Find.TickManager.TicksAbs;
                     var longitude = Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x;
-                    
+
                     state.Global = new GlobalState
                     {
                         Day = 1, // TODO: Implement proper date calculation
@@ -71,7 +71,7 @@ namespace RimworldMLBridge
         public override Task<StateMessage> GetState(EmptyMessage request, ServerCallContext context)
         {
             Log.Message($"[MLBridge] Getting current state");
-            
+
             var state = new StateMessage
             {
                 FrameId = _currentTick,
@@ -86,7 +86,7 @@ namespace RimworldMLBridge
                 {
                     var ticksAbs = Find.TickManager.TicksAbs;
                     var longitude = Find.WorldGrid.LongLatOf(Find.CurrentMap.Tile).x;
-                    
+
                     state.Global = new GlobalState
                     {
                         Day = 1, // TODO: Implement proper date calculation

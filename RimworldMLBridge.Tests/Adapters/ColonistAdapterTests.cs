@@ -36,16 +36,16 @@ namespace RimworldMLBridge.Tests.Adapters
             Assert.Equal("John Smith", result.Name);
             Assert.Equal("Human", result.DefName);
             Assert.Equal(1, result.FactionId);
-            
+
             // Position
             Assert.Equal(10f, result.Position.X);
             Assert.Equal(20f, result.Position.Y);
             Assert.Equal(5f, result.Position.Z);
-            
+
             // Core stats
             Assert.Equal(0.95f, result.HealthPercent);
             Assert.Equal(0.75f, result.MoodPercent);
-            
+
             // Age
             Assert.Equal(25 * 3600000, result.AgeBiologicalTicks);
             Assert.Equal("Male", result.Gender);
@@ -63,19 +63,19 @@ namespace RimworldMLBridge.Tests.Adapters
             // Assert - Skills
             Assert.NotEmpty(result.Skills);
             Assert.Equal(3, result.Skills.Count);
-            
+
             var shootingSkill = result.Skills.FirstOrDefault(s => s.DefName == "Shooting");
             Assert.NotNull(shootingSkill);
             Assert.Equal(12, shootingSkill.Level);
             Assert.Equal(Passion.Major, shootingSkill.Passion);
             Assert.Equal(5000f, shootingSkill.Xp);
             Assert.False(shootingSkill.Disabled);
-            
+
             var constructionSkill = result.Skills.FirstOrDefault(s => s.DefName == "Construction");
             Assert.NotNull(constructionSkill);
             Assert.Equal(8, constructionSkill.Level);
             Assert.Equal(Passion.Minor, constructionSkill.Passion);
-            
+
             var cookingSkill = result.Skills.FirstOrDefault(s => s.DefName == "Cooking");
             Assert.NotNull(cookingSkill);
             Assert.Equal(Passion.None, cookingSkill.Passion);
@@ -120,16 +120,16 @@ namespace RimworldMLBridge.Tests.Adapters
             // Assert - Needs
             Assert.NotEmpty(result.Needs);
             Assert.True(result.Needs.Count >= 3); // Food, Rest, Mood at minimum
-            
+
             var foodNeed = result.Needs.FirstOrDefault(n => n.DefName == "Food");
             Assert.NotNull(foodNeed);
             Assert.Equal(0.8f, foodNeed.CurLevel);
             Assert.Equal(1.0f, foodNeed.MaxLevel);
-            
+
             var restNeed = result.Needs.FirstOrDefault(n => n.DefName == "Rest");
             Assert.NotNull(restNeed);
             Assert.Equal(0.6f, restNeed.CurLevel);
-            
+
             var moodNeed = result.Needs.FirstOrDefault(n => n.DefName == "Mood");
             Assert.NotNull(moodNeed);
             Assert.Equal(0.75f, moodNeed.CurLevel);

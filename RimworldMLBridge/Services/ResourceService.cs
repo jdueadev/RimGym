@@ -321,7 +321,7 @@ namespace RimworldMLBridge.Services
         private bool IsThingInCategory(Thing thing, string categoryDef)
         {
             var categories = thing.def.thingCategories;
-            return categories != null && categories.Any(c => 
+            return categories != null && categories.Any(c =>
                 c.defName.Equals(categoryDef, StringComparison.OrdinalIgnoreCase));
         }
 

@@ -37,7 +37,7 @@ namespace RimworldMLBridge
         // Game state management
         private static long _currentTick = 0;
         private static readonly object _tickLock = new object();
-        
+
         // Phase III: Velocity and timing tracking
         private long _lastFrameTimestamp = 0;  // Timestamp of last frame in milliseconds
         private readonly ConcurrentDictionary<int, Vector3> _lastPositions = new ConcurrentDictionary<int, Vector3>();
@@ -240,18 +240,18 @@ namespace RimworldMLBridge
                     if (MlBridgeMod.TrainingMode)
                     {
                         int ticksToRun = command.TicksToRun > 0 ? command.TicksToRun : 60;
-                        
+
                         // Ensure game is unpaused so ticks can advance
                         if (Find.TickManager.Paused)
                         {
                             Find.TickManager.CurTimeSpeed = TimeSpeed.Normal;
                             Log.Message("[MLBridge] Auto-unpaused game for training mode STEP");
                         }
-                        
+
                         // Set flags to allow tick advancement
                         MlBridgeMod.TicksToRun = ticksToRun;
                         MlBridgeMod.StepPermitted = true;
-                        
+
                         state.StatusMessage = $"Step initiated: {ticksToRun} ticks (Training Mode)";
                         Log.Message($"[MLBridge] STEP command: granting permission for {ticksToRun} ticks");
                     }
@@ -264,8 +264,8 @@ namespace RimworldMLBridge
 
                 case CommandType.QueryState:
                     // Return current state without advancing
-                    state.StatusMessage = MlBridgeMod.TrainingMode ? 
-                        "State queried (Training Mode)" : 
+                    state.StatusMessage = MlBridgeMod.TrainingMode ?
+                        "State queried (Training Mode)" :
                         "State queried (Inference Mode)";
                     break;
 
@@ -273,20 +273,20 @@ namespace RimworldMLBridge
                     // Phase III: Switch between training and inference modes
                     bool newMode = (command.Mode == ExecutionMode.ModeTraining);
                     string modeStr = newMode ? "TRAINING (Synchronous)" : "INFERENCE (Asynchronous)";
-                    
+
                     if (MlBridgeMod.TrainingMode != newMode)
                     {
                         MlBridgeMod.TrainingMode = newMode;
                         MlBridgeMod.StepPermitted = false; // Reset step permission on mode change
                         MlBridgeMod.TicksToRun = 0;
-                        
+
                         // When switching to inference mode, ensure game is unpaused
                         if (!newMode && Find.TickManager.Paused)
                         {
                             Find.TickManager.CurTimeSpeed = TimeSpeed.Normal;
                             Log.Message("[MLBridge] Auto-unpaused game for inference mode");
                         }
-                        
+
                         Log.Message($"[MLBridge] Mode switched to: {modeStr}");
                         state.StatusMessage = $"Mode changed to {modeStr}";
                     }
@@ -300,7 +300,7 @@ namespace RimworldMLBridge
                     // Set game speed for testing automation
                     TimeSpeed newSpeed = ConvertGameSpeed(command.Speed);
                     TimeSpeed oldSpeed = Find.TickManager.CurTimeSpeed;
-                    
+
                     if (oldSpeed != newSpeed)
                     {
                         Find.TickManager.CurTimeSpeed = newSpeed;
@@ -366,7 +366,7 @@ namespace RimworldMLBridge
                 state.TimestampMs = currentTime;
 
                 // Phase III: Set current execution mode
-                state.CurrentMode = MlBridgeMod.TrainingMode ? 
+                state.CurrentMode = MlBridgeMod.TrainingMode ?
                     ExecutionMode.ModeTraining : ExecutionMode.ModeInference;
 
                 const int TicksPerDay = 60000;
@@ -394,7 +394,7 @@ namespace RimworldMLBridge
                 {
                     var colonistState = colonistAdapter.ToProtobuf(dto);
                     state.Colonists.Add(colonistState);
-                    
+
                     // Phase III: Calculate velocity for position extrapolation
                     CalculateVelocity(colonistState, currentTime);
                 }
@@ -437,7 +437,7 @@ namespace RimworldMLBridge
                     float velocityX = (currentPos.X - lastPos.X) / deltaSeconds;
                     float velocityY = (currentPos.Y - lastPos.Y) / deltaSeconds;
                     float velocityZ = (currentPos.Z - lastPos.Z) / deltaSeconds;
-                    
+
                     colonist.Velocity = new Vector3
                     {
                         X = velocityX,

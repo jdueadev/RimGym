@@ -201,13 +201,13 @@ namespace RimworldMLBridge.Services
                 }
 
                 // Check for mech clusters
-                result.HasMechCluster = lords.Any(l => 
-                    l.LordJobType != null && 
+                result.HasMechCluster = lords.Any(l =>
+                    l.LordJobType != null &&
                     l.LordJobType.Contains("MechCluster"));
 
                 // Check for infestations
-                result.HasInfestation = lords.Any(l => 
-                    l.LordJobType != null && 
+                result.HasInfestation = lords.Any(l =>
+                    l.LordJobType != null &&
                     (l.LordJobType.Contains("Infestation") || l.LordJobType.Contains("Hive")));
 
                 // Get active game conditions
@@ -310,7 +310,7 @@ namespace RimworldMLBridge.Services
                 return "Misc";
             if (def.category == IncidentCategoryDefOf.Special)
                 return "Special";
-            
+
             return def.category.defName ?? "Unknown";
         }
 
@@ -320,12 +320,12 @@ namespace RimworldMLBridge.Services
                 return false;
 
             // Check for common hostile lord job types
-            var hostileTypes = new[] { 
-                "AssaultColony", "Raid", "Siege", "Kidnap", 
-                "Steal", "MechCluster", "Infestation" 
+            var hostileTypes = new[] {
+                "AssaultColony", "Raid", "Siege", "Kidnap",
+                "Steal", "MechCluster", "Infestation"
             };
 
-            return hostileTypes.Any(t => 
+            return hostileTypes.Any(t =>
                 lord.LordJobType.Contains(t, StringComparison.OrdinalIgnoreCase));
         }
 

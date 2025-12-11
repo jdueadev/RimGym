@@ -32,7 +32,7 @@ namespace RimworldMLBridge.Tests.Performance
         {
             // Arrange
             var colonists = CreateColonistDTOs(3);
-            
+
             // Warmup - JIT compile the code path
             MeasureSerializationTime(colonists, null);
 
@@ -42,7 +42,7 @@ namespace RimworldMLBridge.Tests.Performance
             // Assert - Target: <1ms total, <0.35ms per colonist
             Assert.True(result.TotalMilliseconds < 1.0,
                 $"Serialization took {result.TotalMilliseconds:F3}ms, exceeds 1ms target");
-            
+
             var perColonist = result.TotalMilliseconds / 3;
             Assert.True(perColonist < 0.35,
                 $"Per-colonist serialization took {perColonist:F3}ms, exceeds 0.35ms target");
@@ -53,7 +53,7 @@ namespace RimworldMLBridge.Tests.Performance
         {
             // Arrange
             var colonists = CreateColonistDTOs(10);
-            
+
             // Warmup - JIT compile the code path
             MeasureSerializationTime(colonists, null);
 
@@ -63,7 +63,7 @@ namespace RimworldMLBridge.Tests.Performance
             // Assert - Target: <5ms total, <0.5ms per colonist
             Assert.True(result.TotalMilliseconds < 5.0,
                 $"Serialization took {result.TotalMilliseconds:F3}ms, exceeds 5ms target");
-            
+
             var perColonist = result.TotalMilliseconds / 10;
             Assert.True(perColonist < 0.5,
                 $"Per-colonist serialization took {perColonist:F3}ms, exceeds 0.5ms target");
@@ -74,7 +74,7 @@ namespace RimworldMLBridge.Tests.Performance
         {
             // Arrange
             var colonists = CreateColonistDTOs(50);
-            
+
             // Warmup - JIT compile the code path
             MeasureSerializationTime(colonists, null);
 
@@ -84,7 +84,7 @@ namespace RimworldMLBridge.Tests.Performance
             // Assert - Target: <25ms total, <0.5ms per colonist
             Assert.True(result.TotalMilliseconds < 25.0,
                 $"Serialization took {result.TotalMilliseconds:F3}ms, exceeds 25ms target");
-            
+
             var perColonist = result.TotalMilliseconds / 50;
             Assert.True(perColonist < 0.5,
                 $"Per-colonist serialization took {perColonist:F3}ms, exceeds 0.5ms target");
@@ -99,7 +99,7 @@ namespace RimworldMLBridge.Tests.Performance
 
             // Act - Measure protobuf message creation time
             var states = colonists.Select(c => _adapter.ToProtobuf(c)).ToList();
-            
+
             stopwatch.Stop();
 
             // Assert & Report
@@ -148,7 +148,7 @@ namespace RimworldMLBridge.Tests.Performance
         {
             // Arrange
             var colonists = CreateColonistDTOs(10);
-            
+
             // Force GC before test
             GC.Collect();
             GC.WaitForPendingFinalizers();

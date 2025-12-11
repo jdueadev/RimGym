@@ -37,13 +37,13 @@ namespace RimworldMLBridge
             if (MlBridgeMod.StepPermitted && MlBridgeMod.TicksToRun > 0)
             {
                 MlBridgeMod.TicksToRun--;
-                
+
                 // If this was the last tick in the step, revoke permission
                 if (MlBridgeMod.TicksToRun == 0)
                 {
                     MlBridgeMod.StepPermitted = false;
                 }
-                
+
                 return true; // Execute the tick
             }
 
@@ -59,7 +59,7 @@ namespace RimworldMLBridge
             if (!MlBridgeMod.ServerRunning) return;
 
             tickCount++;
-            
+
             // Log periodically (not every tick to avoid spam)
             if (tickCount % _reportEveryNTicks == 0)
             {
