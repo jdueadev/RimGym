@@ -10,6 +10,8 @@ import unittest
 from typing import List
 
 import numpy as np
+import pytest
+
 from client import ClientConfig, SpectatorClient
 from policies import ExecutivePolicy, ReflexPolicy
 
@@ -21,6 +23,9 @@ RIMWORLD_PORT = 50051
 CONNECTION_TIMEOUT = 30.0
 
 
+@pytest.mark.integration
+@pytest.mark.performance
+@pytest.mark.slow
 class PerformanceBenchmarks(unittest.TestCase):
     """Performance benchmarks for Phase IV components."""
 

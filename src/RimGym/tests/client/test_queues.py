@@ -5,9 +5,12 @@ Unit tests for queue implementations.
 import threading
 import time
 
+import pytest
+
 from client.queues import ActionQueue, EventPriority, EventQueue, StateQueue
 
 
+@pytest.mark.unit
 class TestStateQueue:
     """Test StateQueue functionality."""
 
@@ -109,6 +112,7 @@ class TestStateQueue:
         assert q.empty()
 
 
+@pytest.mark.unit
 class TestEventQueue:
     """Test EventQueue functionality."""
 
@@ -163,6 +167,7 @@ class TestEventQueue:
         assert EventPriority.HIGH.value < EventPriority.MEDIUM.value
 
 
+@pytest.mark.unit
 class TestActionQueue:
     """Test ActionQueue functionality."""
 
@@ -206,6 +211,7 @@ class TestActionQueue:
         assert result is None
 
 
+@pytest.mark.unit
 class TestQueuesIntegration:
     """Integration tests for queue interactions."""
 
