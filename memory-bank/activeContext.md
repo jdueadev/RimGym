@@ -1,46 +1,50 @@
 # Active Context
 
-## Current Focus (2025-12-10 Final)
+## Current Focus (2025-12-10)
 
-### ✅ Phase III: Hybrid Valve - 100% COMPLETE! 🎉
+### 🚀 Phase IV: Python Triple-Threaded Client - STARTING
 
-**All Features Working:**
+**Goal**: Develop autonomous RL agent client that can observe and interact with RimWorld in real-time.
 
-- Dual-mode operation: Training (synchronous) and Inference (asynchronous)
-- Exact tick control in training mode (verified across 5 test runs)
-- Async game flow in inference mode (120-727 ticks/2s based on speed)
-- Velocity tracking for position extrapolation under latency
-- Auto-pause handling for robust operation
-- Mode switching with <10ms latency
+**Status**: Fresh start on main branch after PR #3 merged successfully.
 
 ## Recent Changes
 
-- ✅ **Phase III Complete (100%)**: Hybrid Valve fully operational and tested
-- ✅ **Training Mode**: Synchronous tick control with exact 60-tick advancement
-- ✅ **Inference Mode**: Asynchronous queries while game runs freely
-- ✅ **Velocity Vectors**: Position tracking with velocity calculation (up to 3.98 units/sec detected)
-- ✅ **Frame Timing**: Delta time tracking (~1000ms accuracy)
-- ✅ **Pause Handling**: Auto-unpause when STEP/mode switch requires game to run
-- ✅ **Integration Tests**: 5 test runs at 1x/2x/3x speeds + paused state
-- ✅ **Phase II Complete**: Services → DTOs → Adapters → Protobuf (0.003ms per colonist)
+- ✅ **PR #3 Merged**: Phases I-III complete and merged to main
+- ✅ **Phase I-III**: TCP+Protobuf, RIMAPI Services, Hybrid Valve all operational
+- ✅ **Docker CI/CD**: Automated testing infrastructure complete
+- ✅ **Branch Cleanup**: feature/phase2-rimapi-services-integration deleted
+- ✅ **Working Directory**: Clean, on main branch
+- 🎯 **Ready**: Starting Phase IV implementation
 
 ## Current Work
 
-- ✅ Phase III Complete: All 7 subtasks finished with comprehensive testing
-- 🔄 Ready for Phase IV: Python Triple-Threaded Client implementation
+### Phase IV Architecture Design
 
-## Next Steps (Priority Order)
+Designing triple-threaded client with:
+1. **Listener Thread**: Async state polling, event detection
+2. **Inference Thread**: High-level policy (Executive layer)
+3. **Actor Thread**: Immediate responses (Reflex layer)
 
-1. **Phase III: Hybrid Valve Implementation**
-   - Implement AsyncMode toggle in C#
-   - Add TickManager.DoSingleTick prefix patch for mode switching
-   - Implement delta compression for real-time map updates
-   - Add velocity vectors and timestamp tracking
+### Immediate Next Steps
 
-2. **Phase IV: Python Triple-Threaded Client**
-   - Develop SpectatorClient.py (Listener/Inference/Actor threads)
-   - Implement hierarchical policy (Executive/Reflex layers)
-   - Add interrupt event handling (raids, fires, mental breaks)
+1. **Design Phase IV Architecture**
+   - Define thread communication patterns (queues, locks)
+   - Design Executive/Reflex policy hierarchy
+   - Plan interrupt event system
+   - Create class structure diagram
+
+2. **Implement SpectatorClient Base**
+   - Connection management and reconnection logic
+   - Thread lifecycle management
+   - State queue and event queue
+   - Graceful shutdown handling
+
+3. **Implement Listener Thread**
+   - Async state polling loop
+   - Event detection from state changes
+   - State queue population
+   - Performance monitoring
 
 3. **End-to-End Testing**: Test with real RimWorld game
    - Load a colony, connect client

@@ -2,11 +2,9 @@
 
 ## In Progress
 
-- None
+- [TASK004] Phase IV - Python Triple-Threaded Client - Started 2025-12-10
 
 ## Pending
-
-- [TASK004] Phase IV - Python Triple-Threaded Client
 - [TASK005] Port MapService and IncidentService from RIMAPI
 
 ## Completed

@@ -106,7 +106,7 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
 - ✅ All edge cases handled (pause state, speed changes)
 - ✅ Ready for production use
 
-## Phase IV: Python Client ⏳ PLANNED
+## Phase IV: Python Client 🔄 IN PROGRESS
 
 ### Phase IV Goals
 
@@ -115,9 +115,27 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
 - Add interrupt event handling
 - Create RL environment wrapper (Gymnasium-compatible)
 
+### Status
+
+- ✅ **Phase I-III Complete**: Foundation ready, PR #3 merged
+- 🚀 **Starting Phase IV**: Architecture design phase
+- 📋 **Branch**: Working on main (clean)
+
 ### Phase IV Estimated Effort
 
 ~3-4 weeks
+
+### Phase IV Subtasks
+
+**Planned** (will be added to tasks/_index.md):
+1. Architecture design and specification
+2. SpectatorClient base implementation
+3. Listener thread (async polling)
+4. Inference thread (Executive policy)
+5. Actor thread (Reflex policy)
+6. Event system and interrupts
+7. Gymnasium environment wrapper
+8. Integration testing and benchmarks
 
 ## Known Issues
 
