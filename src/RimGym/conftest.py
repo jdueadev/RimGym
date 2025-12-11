@@ -1,10 +1,12 @@
-import os
 import sys
+from pathlib import Path
 
 import pytest
 
 # Add the monorepo src directory to the Python path for shared module access
-_monorepo_src = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# This resolves to: /path/to/RimGym/src (the parent of RimGym/)
+# Required to import the 'shared' package which contains protobuf definitions
+_monorepo_src = str(Path(__file__).parent.parent)
 if _monorepo_src not in sys.path:
     sys.path.insert(0, _monorepo_src)
 
