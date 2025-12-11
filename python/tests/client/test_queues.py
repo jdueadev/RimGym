@@ -4,9 +4,7 @@ Unit tests for queue implementations.
 
 import threading
 import time
-from queue import Empty
 
-import pytest
 from client.queues import ActionQueue, EventPriority, EventQueue, StateQueue
 
 
@@ -75,8 +73,9 @@ class TestStateQueue:
         """Test get timeout."""
         q = StateQueue()
 
-        with pytest.raises(Empty):
-            q.get(timeout=0.1)
+        # get() returns None on timeout (doesn't raise Empty)
+        result = q.get(timeout=0.1)
+        assert result is None
 
     def test_thread_safety(self):
         """Test thread-safe operations."""
@@ -159,9 +158,9 @@ class TestEventQueue:
         assert EventPriority.MEDIUM.value == 2
         assert EventPriority.LOW.value == 3
 
-        # Lower value = higher priority
-        assert EventPriority.CRITICAL < EventPriority.HIGH
-        assert EventPriority.HIGH < EventPriority.MEDIUM
+        # Lower value = higher priority (compare by value)
+        assert EventPriority.CRITICAL.value < EventPriority.HIGH.value
+        assert EventPriority.HIGH.value < EventPriority.MEDIUM.value
 
 
 class TestActionQueue:
@@ -202,8 +201,9 @@ class TestActionQueue:
         """Test get timeout."""
         q = ActionQueue()
 
-        with pytest.raises(Empty):
-            q.get(timeout=0.1)
+        # get() returns None on timeout (doesn't raise Empty)
+        result = q.get(timeout=0.1)
+        assert result is None
 
 
 class TestQueuesIntegration:
@@ -232,11 +232,10 @@ class TestQueuesIntegration:
         def state_consumer():
             """Simulate Inference thread."""
             while not stop_event.is_set():
-                try:
-                    state = state_q.get(timeout=0.5)
-                    states_consumed.append(state["frame"])
-                except Empty:
-                    break
+                state = state_q.get(timeout=0.5)
+                if state is None:  # Timeout, not Empty exception
+                    continue
+                states_consumed.append(state["frame"])
 
         producer = threading.Thread(target=state_producer)
         consumer = threading.Thread(target=state_consumer)

@@ -93,6 +93,14 @@ class ListenerThread(threading.Thread):
         self._poll_count = 0
         self._event_count = 0
 
+        # TASK-016: Connection state monitoring
+        self._was_connected = False
+        self._consecutive_failures = 0
+        self._max_consecutive_failures = (
+            5  # Trigger connection_lost event after this many failures
+        )
+        self._connection_lost_time: Optional[float] = None
+
         logger.info(
             f"Listener initialized: poll={poll_interval_ms}ms, "
             f"health_check={health_check_interval_ms}ms"
@@ -110,6 +118,13 @@ class ListenerThread(threading.Thread):
                 state = self._poll_state()
 
                 if state:
+                    # TASK-016: Connection recovery detection
+                    if not self._was_connected or self._consecutive_failures > 0:
+                        self._on_connection_restored()
+
+                    self._was_connected = True
+                    self._consecutive_failures = 0
+
                     # Push to state queue
                     self.state_queue.put(state)
                     self._poll_count += 1
@@ -128,6 +143,11 @@ class ListenerThread(threading.Thread):
 
                     # Update previous state
                     self._previous_state = state
+                else:
+                    # TASK-016: Track consecutive failures for connection monitoring
+                    self._consecutive_failures += 1
+                    if self._consecutive_failures >= self._max_consecutive_failures:
+                        self._on_connection_lost()
 
                 # Health check
                 if time.time() - self._last_health_check > self.health_check_interval:
@@ -397,10 +417,64 @@ class ListenerThread(threading.Thread):
             else:
                 logger.error("Reconnection failed")
 
+    def _on_connection_lost(self):
+        """
+        TASK-016/018: Handle connection loss detection.
+        Emits connection_lost event to EventQueue.
+        """
+        if self._connection_lost_time is not None:
+            return  # Already in disconnected state
+
+        self._connection_lost_time = time.time()
+        self._was_connected = False
+
+        logger.warning(
+            f"Connection lost after {self._consecutive_failures} consecutive failures"
+        )
+
+        # TASK-018: Emit connection_lost event
+        event_data = {
+            "type": "connection_lost",
+            "timestamp": self._connection_lost_time,
+            "consecutive_failures": self._consecutive_failures,
+        }
+        self.event_queue.put(event_data, EventPriority.CRITICAL)
+
+        if self.metrics:
+            self.metrics.record_connection_error()
+
+    def _on_connection_restored(self):
+        """
+        TASK-016/018: Handle connection restoration.
+        Emits connection_restored event to EventQueue.
+        """
+        downtime = 0.0
+        if self._connection_lost_time is not None:
+            downtime = time.time() - self._connection_lost_time
+
+        self._connection_lost_time = None
+
+        if downtime > 0:
+            logger.info(f"Connection restored after {downtime:.1f}s downtime")
+
+            # TASK-018: Emit connection_restored event
+            event_data = {
+                "type": "connection_restored",
+                "timestamp": time.time(),
+                "downtime_seconds": downtime,
+            }
+            self.event_queue.put(event_data, EventPriority.HIGH)
+
+            if self.metrics:
+                self.metrics.record_reconnection()
+
     def get_stats(self) -> Dict[str, Any]:
         """Get listener statistics."""
         return {
             "poll_count": self._poll_count,
             "event_count": self._event_count,
             "known_colonists": len(self._known_colonist_ids),
+            "was_connected": self._was_connected,
+            "consecutive_failures": self._consecutive_failures,
+            "connection_lost_time": self._connection_lost_time,
         }

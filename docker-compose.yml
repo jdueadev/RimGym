@@ -1,21 +1,58 @@
 version: '3.8'
 
 services:
-  # Development environment
+  # Development environment - Interactive shell with RimWorld available
   dev:
     build:
       context: .
-      target: builder
+      target: test-runner
     volumes:
       - .:/app
       - rimworld-data:/opt/rimworld
     environment:
       - RIMWORLD_PATH=/opt/rimworld
-    command: interactive
+      - DISPLAY=:99
+    ports:
+      - "50051:50051"
+    command: ["interactive"]
     stdin_open: true
     tty: true
 
-  # Test runner
+  # Integration test runner - Starts RimWorld server for testing
+  # Uses the entrypoint.sh script which handles Xvfb, mod installation, and RimWorld launch
+  integration:
+    build:
+      context: .
+      target: test-runner
+    volumes:
+      # Mount only specific directories, not .venv which causes issues
+      - ./python:/app/python
+      - ./Protos:/app/Protos
+      - rimworld-data:/opt/rimworld
+    environment:
+      - RIMWORLD_PATH=/opt/rimworld
+      - DISPLAY=:99
+      - INTEGRATION_MODE=true
+    ports:
+      - "50051:50051"
+    # Use the entrypoint script that properly sets up mods and config
+    command: ["test"]
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/50051' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    # TASK-012: Increase memory limit to 4GB for RimWorld stability
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+    # No restart policy - let it fail so we can see logs
+
+  # Automated test runner - Runs test suite then exits
   test:
     build:
       context: .

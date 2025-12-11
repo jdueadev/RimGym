@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Optional
 
+from .actor import ActorThread
 from .connection import ConnectionManager
 from .inference import InferenceThread
 from .listener import EventDetectionConfig, ListenerThread
@@ -219,9 +220,20 @@ class SpectatorClient:
         else:
             logger.warning("No executive_policy configured, skipping Inference thread")
 
-        # TODO Phase IV.4: Start Actor thread
-        # self._actor_thread = ActorThread(...)
-        # self._actor_thread.start()
+        # Start Actor thread (Phase IV.4)
+        if self.config.reflex_policy:
+            self._actor_thread = ActorThread(
+                policy=self.config.reflex_policy,
+                event_queue=self.event_queue,
+                action_queue=self.action_queue,
+                stop_event=self._stop_event,
+                timeout_ms=50,  # 50ms timeout for event queue
+                metrics_collector=None,  # TODO: Add metrics collector
+            )
+            self._actor_thread.start()
+            logger.info("Actor thread started")
+        else:
+            logger.warning("No reflex_policy configured, skipping Actor thread")
 
         # Start metrics thread if enabled
         if self.config.metrics_enabled:
@@ -301,9 +313,16 @@ class SpectatorClient:
             timeout: Timeout in seconds
 
         Returns:
-            State object or None
+            RichGameState object with Phase V data, or None
         """
-        return self.state_queue.get_latest()
+        # Import here to avoid circular dependency
+        from .parsers import parse_rich_state_message
+
+        proto_state = self.state_queue.get_latest()
+        if proto_state:
+            # Parse protobuf to RichGameState
+            return parse_rich_state_message(proto_state)
+        return None
 
     def send_action(self, action: Any) -> bool:
         """

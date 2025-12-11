@@ -67,17 +67,51 @@ See [docs/specs/REAL_TIME_ARCHITECTURE_UPDATE.md](docs/specs/REAL_TIME_ARCHITECT
 - Frame timing and delta compression infrastructure
 - **Fully automated CI/CD testing**: 4 speeds tested automatically
 
-**⏳ Phase IV Planned - Python Triple-Threaded Client**
+**✅ Phase IV Complete - Python Triple-Threaded Client**
 
 - SpectatorClient with Listener/Inference/Actor threads
-- Hierarchical policy (Executive/Reflex layers)
-- Interrupt event handling (raids, fires, mental breaks)
+- Hierarchical policy support (Executive/Reflex layers)
+- Interrupt event handling framework
+- Comprehensive metrics and logging
+- Full test coverage (116 passing tests)
+
+**✅ Phase V Complete - RIMAPI Full Integration (Complete Game Observability)**
+
+- **MapState**: Terrain, buildings (walls, doors, beds), items, zones, rooms
+- **IncidentState**: Event history, storyteller, active threats (raids, fires)
+- **WorldState**: Factions, settlements, caravans with relations
+- **Performance**: <5ms total extraction time for full colony state
+- **Python Models**: Typed dataclasses for all game state (580+ lines)
+- **Examples**: phase5_full_observability.py demonstrating complete API
+- **Profiling**: Built-in performance monitoring and optimization tools
+
+See [docs/specs/PHASE_V_ARCHITECTURE.md](docs/specs/PHASE_V_ARCHITECTURE.md) for complete documentation.
 
 ## 🧪 Testing & Validation
 
-### Automated Testing (Recommended)
+### Docker Integration Testing (Production-Ready)
 
-**Docker integration tests validate all 4 game speeds in ~2 minutes:**
+**✅ Full test suite runs in Docker with 100% reproducibility:**
+
+```bash
+# Run automated tests (all 4 game speeds)
+docker-compose up test
+
+# Results: Paused, 1x, 2x, 3x speeds validated
+# Training mode: Precise tick control
+# Inference mode: Real-time progression
+```
+
+**Why Docker?**
+
+- ✅ Consistent environment across all platforms
+- ✅ No manual RimWorld setup required
+- ✅ CI/CD ready (self-hosted runner)
+- ✅ Isolated testing (no conflicts with local RimWorld)
+
+See [docker/QUICKSTART.md](docker/QUICKSTART.md) for 60-second setup.
+
+### Manual Testing (Development)
 
 ```bash
 # One-time setup (requires RimWorld installation)

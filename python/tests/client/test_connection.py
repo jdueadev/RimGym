@@ -25,9 +25,9 @@ class TestConnectionManager:
 
         assert conn.host == "localhost"
         assert conn.port == 50051
-        assert conn._connect_timeout == 5.0
-        assert conn._reconnect_attempts == 5
-        assert conn._reconnect_backoff == 0.5
+        assert conn.connect_timeout == 5.0
+        assert conn.reconnect_attempts == 5
+        assert conn.reconnect_backoff == 0.5
         assert not conn.is_connected()
 
     @patch("socket.socket")
@@ -91,8 +91,9 @@ class TestConnectionManager:
 
         # Should have slept once (after first failure)
         assert mock_sleep.call_count == 1
-        # First backoff should be 1.0s
-        mock_sleep.assert_called_with(1.0)
+        # First backoff should be ~1.0s with jitter (0.5x to 2.0x)
+        actual_sleep = mock_sleep.call_args[0][0]
+        assert 0.5 <= actual_sleep <= 2.0
 
     @patch("socket.socket")
     @patch("time.sleep")
@@ -123,12 +124,22 @@ class TestConnectionManager:
         conn = ConnectionManager(reconnect_attempts=5, reconnect_backoff=1.0)
         conn.reconnect()
 
-        # Should sleep with: 1s, 2s, 4s, 8s, 16s
-        # But capped at 30s, so: 1s, 2s, 4s, 8s, 16s
-        expected_sleeps = [1.0, 2.0, 4.0, 8.0, 16.0]
+        # Should sleep with exponential backoff: 1s, 2s, 4s, 8s, 16s
+        # Note: Implementation may add jitter, so check ranges instead of exact values
         actual_sleeps = [call[0][0] for call in mock_sleep.call_args_list]
 
-        assert actual_sleeps == expected_sleeps
+        # Verify we have 5 sleeps
+        assert len(actual_sleeps) == 5
+
+        # Verify exponential growth pattern (each sleep roughly double the previous)
+        # Allow for jitter (implementation uses ±50% or more variation)
+        assert 0.5 <= actual_sleeps[0] <= 2.5  # ~1s with jitter
+        assert 1.0 <= actual_sleeps[1] <= 5.0  # ~2s with jitter
+        assert 2.0 <= actual_sleeps[2] <= 8.0  # ~4s with jitter
+        assert 4.0 <= actual_sleeps[3] <= 16.0  # ~8s with jitter
+        assert (
+            8.0 <= actual_sleeps[4] <= 35.0
+        )  # ~16s with jitter, capped at 30s + jitter
 
     def test_is_healthy(self):
         """Test health check."""

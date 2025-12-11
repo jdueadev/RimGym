@@ -41,7 +41,7 @@ class InferenceThread(threading.Thread):
         state_queue: StateQueue,
         action_queue: ActionQueue,
         stop_event: threading.Event,
-        timeout_ms: int = 100,
+        timeout_ms: int = 10,
         metrics_collector=None,
     ):
         """
@@ -52,7 +52,7 @@ class InferenceThread(threading.Thread):
             state_queue: Queue to consume states from
             action_queue: Queue to produce actions to
             stop_event: Event to signal shutdown
-            timeout_ms: Queue timeout in milliseconds (default: 100ms)
+            timeout_ms: Queue timeout in milliseconds (default: 10ms for fast shutdown)
             metrics_collector: Optional MetricsCollector instance
         """
         super().__init__(name="InferenceThread", daemon=True)
@@ -82,6 +82,9 @@ class InferenceThread(threading.Thread):
         try:
             while not self.stop_event.is_set():
                 self._inference_cycle()
+                # Check stop_event more frequently during tests
+                if self.stop_event.is_set():
+                    break
         except Exception as e:
             logger.error(f"[InferenceThread] Fatal error: {e}", exc_info=True)
         finally:
@@ -96,10 +99,12 @@ class InferenceThread(threading.Thread):
         Single inference cycle: get state, run policy, queue actions.
         """
         try:
-            # Get state from queue (blocking with timeout)
+            # Get state from queue (blocking with short timeout for fast shutdown)
             timeout_sec = self.timeout_ms / 1000.0
             state = self.state_queue.get(timeout=timeout_sec)
 
+            # If we got a valid state, process it (even if stop requested)
+            # This ensures states don't get lost during shutdown
             if state is None:
                 return
 

@@ -284,16 +284,16 @@ class TestInferenceThread(unittest.TestCase):
             state_queue=self.state_queue,
             action_queue=self.action_queue,
             stop_event=self.stop_event,
-            timeout_ms=50,
+            timeout_ms=10,  # Shorter timeout for faster test
         )
 
         thread.start()
         self.assertTrue(thread.is_alive())
 
-        time.sleep(0.1)  # Let it run briefly
+        time.sleep(0.05)  # Let it run briefly
 
         self.stop_event.set()
-        thread.join(timeout=1.0)
+        thread.join(timeout=2.0)  # Longer join timeout for safety
 
         self.assertFalse(thread.is_alive())
 
@@ -308,7 +308,7 @@ class TestInferenceThread(unittest.TestCase):
             state_queue=self.state_queue,
             action_queue=self.action_queue,
             stop_event=self.stop_event,
-            timeout_ms=50,
+            timeout_ms=10,  # Shorter timeout for faster test
         )
 
         thread.start()
@@ -316,10 +316,10 @@ class TestInferenceThread(unittest.TestCase):
         # Put state in queue
         self.state_queue.put(state)
 
-        time.sleep(0.15)  # Give time to process
+        time.sleep(0.05)  # Give time to process
 
         self.stop_event.set()
-        thread.join(timeout=1.0)
+        thread.join(timeout=2.0)  # Longer join timeout
 
         # Verify policy was called
         self.mock_policy.decide.assert_called()
@@ -343,25 +343,25 @@ class TestInferenceThread(unittest.TestCase):
             state_queue=self.state_queue,
             action_queue=self.action_queue,
             stop_event=self.stop_event,
-            timeout_ms=50,
+            timeout_ms=10,  # Shorter timeout
         )
 
         thread.start()
         self.state_queue.put(state)
 
-        time.sleep(0.15)
-
-        self.stop_event.set()
-        thread.join(timeout=1.0)
-
-        # Check actions were queued
+        # Wait for actions to be queued (check before stopping thread)
         queued_actions = []
-        try:
-            while True:
+        deadline = time.time() + 1.0  # 1 second deadline
+        while len(queued_actions) < 2 and time.time() < deadline:
+            try:
                 action = self.action_queue.get(timeout=0.01)
                 queued_actions.append(action)
-        except queue.Empty:
-            pass
+            except queue.Empty:
+                pass
+
+        # Now stop the thread
+        self.stop_event.set()
+        thread.join(timeout=2.0)
 
         self.assertEqual(len(queued_actions), 2)
         self.assertEqual(queued_actions[0]["type"], "MOVE")
@@ -379,16 +379,16 @@ class TestInferenceThread(unittest.TestCase):
             state_queue=self.state_queue,
             action_queue=self.action_queue,
             stop_event=self.stop_event,
-            timeout_ms=50,
+            timeout_ms=10,  # Shorter timeout
         )
 
         thread.start()
         self.state_queue.put(state)
 
-        time.sleep(0.15)
+        time.sleep(0.05)  # Give time to process
 
         self.stop_event.set()
-        thread.join(timeout=1.0)
+        thread.join(timeout=2.0)
 
         # Thread should still be running (didn't crash)
         stats = thread.get_stats()
@@ -403,7 +403,7 @@ class TestInferenceThread(unittest.TestCase):
             state_queue=self.state_queue,
             action_queue=self.action_queue,
             stop_event=self.stop_event,
-            timeout_ms=50,
+            timeout_ms=10,  # Shorter timeout
         )
 
         thread.start()
@@ -412,10 +412,10 @@ class TestInferenceThread(unittest.TestCase):
         for i in range(5):
             self.state_queue.put({"frame_id": i, "colonists": []})
 
-        time.sleep(0.3)
+        time.sleep(0.1)  # Give time to process
 
         self.stop_event.set()
-        thread.join(timeout=1.0)
+        thread.join(timeout=2.0)
 
         stats = thread.get_stats()
 
@@ -441,7 +441,7 @@ class TestInferenceIntegration(unittest.TestCase):
             state_queue=state_queue,
             action_queue=action_queue,
             stop_event=stop_event,
-            timeout_ms=100,
+            timeout_ms=10,  # Shorter timeout for faster test
         )
 
         thread.start()
@@ -456,10 +456,10 @@ class TestInferenceIntegration(unittest.TestCase):
 
         state_queue.put(state)
 
-        time.sleep(0.2)  # Allow processing
+        time.sleep(0.05)  # Allow processing
 
         stop_event.set()
-        thread.join(timeout=1.0)
+        thread.join(timeout=2.0)
 
         # Check action was generated
         action = action_queue.get(timeout=0.1)

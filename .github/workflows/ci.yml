@@ -1,0 +1,357 @@
+name: CI Pipeline
+
+on:
+    push:
+        branches: [main, develop, "feature/**"]
+    pull_request:
+        branches: [main, develop]
+    workflow_dispatch:
+
+env:
+    DOTNET_VERSION: "4.8"
+    PYTHON_VERSION: "3.11"
+    RIMWORLD_VERSION: "1.6"
+
+jobs:
+    # ============================================================================
+    # C# BUILD AND TEST
+    # ============================================================================
+    csharp-build:
+        name: Build C# Mod
+        runs-on: windows-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # For proper versioning
+
+            - name: Setup MSBuild
+              uses: microsoft/setup-msbuild@v2
+
+            - name: Setup NuGet
+              uses: nuget/setup-nuget@v2
+
+            - name: Restore NuGet Packages
+              run: nuget restore RimworldMLBridge.sln
+
+            - name: Build Solution
+              run: msbuild RimworldMLBridge.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
+
+            - name: Verify No Native DLLs
+              shell: pwsh
+              run: |
+                  $nativeDlls = Get-ChildItem -Path "1.6\Assemblies" -Filter "*csharp_ext*.dll" -ErrorAction SilentlyContinue
+                  if ($nativeDlls) {
+                    Write-Error "ERROR: Native DLLs found in output! $($nativeDlls.Name -join ', ')"
+                    exit 1
+                  }
+                  Write-Host "✓ No native DLLs in output"
+
+            - name: Upload Build Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: csharp-assemblies
+                  path: |
+                      1.6/Assemblies/*.dll
+                      About/About.xml
+                  retention-days: 7
+
+            - name: Run C# Tests
+              run: dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+
+            - name: Publish Test Results
+              uses: dorny/test-reporter@v1
+              if: always()
+              with:
+                  name: C# Test Results
+                  path: "**/test-results.trx"
+                  reporter: dotnet-trx
+
+    # ============================================================================
+    # PYTHON LINTING AND FORMATTING
+    # ============================================================================
+    python-lint:
+        name: Python Linting
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Install UV
+              uses: astral-sh/setup-uv@v4
+              with:
+                  version: "latest"
+
+            - name: Setup Python
+              run: uv python install ${{ env.PYTHON_VERSION }}
+
+            - name: Install Dependencies
+              run: uv sync --all-extras
+
+            - name: Run Ruff Linting
+              run: uv run ruff check python/ --output-format=github
+              continue-on-error: true
+
+            - name: Run Ruff Format Check
+              run: uv run ruff format python/ --check
+
+            - name: Run MyPy Type Checking
+              run: uv run mypy python/client python/policies python/gym_env --strict
+              continue-on-error: true
+
+    # ============================================================================
+    # PYTHON UNIT TESTS
+    # ============================================================================
+    python-tests:
+        name: Python Tests (${{ matrix.os }})
+        runs-on: ${{ matrix.os }}
+
+        strategy:
+            matrix:
+                os: [ubuntu-latest, windows-latest]
+                python-version: ["3.11", "3.12"]
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Install UV
+              uses: astral-sh/setup-uv@v4
+
+            - name: Setup Python ${{ matrix.python-version }}
+              run: uv python install ${{ matrix.python-version }}
+
+            - name: Install Dependencies
+              run: uv sync --all-extras
+
+            - name: Run Unit Tests
+              run: uv run pytest python/tests/ -v --tb=short --cov=client --cov=policies --cov=gym_env --cov-report=xml --cov-report=term --junit-xml=pytest-results.xml
+
+            - name: Upload Coverage to Codecov
+              uses: codecov/codecov-action@v4
+              with:
+                  file: ./coverage.xml
+                  flags: python-${{ matrix.python-version }}-${{ matrix.os }}
+                  name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+                  fail_ci_if_error: false
+
+            - name: Publish Test Results
+              uses: dorny/test-reporter@v1
+              if: always()
+              with:
+                  name: Python Test Results (${{ matrix.os }} - ${{ matrix.python-version }})
+                  path: pytest-results.xml
+                  reporter: java-junit
+
+    # ============================================================================
+    # PROTOBUF VALIDATION
+    # ============================================================================
+    protobuf-validation:
+        name: Validate Protobuf Schema
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Setup Protoc
+              uses: arduino/setup-protoc@v3
+              with:
+                  version: "25.x"
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Validate Protobuf Syntax
+              run: protoc --proto_path=Protos --descriptor_set_out=/dev/null Protos/mlbridge.proto
+
+            - name: Install UV
+              uses: astral-sh/setup-uv@v4
+
+            - name: Setup Python
+              run: uv python install ${{ env.PYTHON_VERSION }}
+
+            - name: Generate Python Protobuf
+              run: |
+                  uv pip install protobuf
+                  uv run python python/generate_proto.py
+
+            - name: Verify Generated Files
+              run: |
+                  if [ ! -f "python/mlbridge_pb2.py" ]; then
+                    echo "ERROR: mlbridge_pb2.py not generated!"
+                    exit 1
+                  fi
+                  echo "✓ Protobuf files generated successfully"
+
+    # ============================================================================
+    # DOCKER BUILD AND TEST
+    # ============================================================================
+    docker-build:
+        name: Docker Build & Integration Tests
+        runs-on: ubuntu-latest
+        needs: [csharp-build, python-tests]
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Download C# Artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  name: csharp-assemblies
+                  path: ./artifacts
+
+            - name: Copy Assemblies to Build Context
+              run: |
+                  mkdir -p 1.6/Assemblies
+                  cp artifacts/1.6/Assemblies/*.dll 1.6/Assemblies/
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Docker Image
+              uses: docker/build-push-action@v5
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  push: false
+                  load: true
+                  tags: rimworld-ml-bridge:test
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - name: Install UV
+              uses: astral-sh/setup-uv@v4
+
+            - name: Setup Python
+              run: uv python install ${{ env.PYTHON_VERSION }}
+
+            - name: Install Python Dependencies
+              run: uv sync
+
+            - name: Start Docker Test Container
+              run: |
+                  docker-compose up -d test
+                  sleep 30  # Allow RimWorld to initialize
+
+            - name: Wait for Server
+              run: |
+                  timeout=120
+                  elapsed=0
+                  while ! nc -z localhost 50051; do
+                    if [ $elapsed -ge $timeout ]; then
+                      echo "ERROR: Server failed to start within ${timeout}s"
+                      docker-compose logs test
+                      exit 1
+                    fi
+                    echo "Waiting for server... ($elapsed/${timeout}s)"
+                    sleep 5
+                    elapsed=$((elapsed + 5))
+                  done
+                  echo "✓ Server is ready!"
+
+            - name: Run Integration Tests
+              run: uv run pytest python/tests/integration/ -v --tb=short
+              timeout-minutes: 10
+
+            - name: Collect Docker Logs
+              if: always()
+              run: |
+                  docker-compose logs test > docker-test-logs.txt
+                  cat docker-test-logs.txt
+
+            - name: Upload Docker Logs
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: docker-logs
+                  path: docker-test-logs.txt
+                  retention-days: 7
+
+            - name: Stop Docker Containers
+              if: always()
+              run: docker-compose down -v
+
+    # ============================================================================
+    # DOCUMENTATION BUILD
+    # ============================================================================
+    docs-build:
+        name: Build Documentation
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Install UV
+              uses: astral-sh/setup-uv@v4
+
+            - name: Setup Python
+              run: uv python install ${{ env.PYTHON_VERSION }}
+
+            - name: Install Docs Dependencies
+              run: uv pip install mkdocs mkdocs-material mkdocstrings[python]
+
+            - name: Build Documentation
+              run: uv run mkdocs build --strict
+
+            - name: Upload Documentation
+              uses: actions/upload-artifact@v4
+              with:
+                  name: documentation
+                  path: site/
+                  retention-days: 7
+
+    # ============================================================================
+    # SECURITY SCANNING
+    # ============================================================================
+    security-scan:
+        name: Security Vulnerability Scan
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            - name: Run Trivy Security Scanner
+              uses: aquasecurity/trivy-action@master
+              with:
+                  scan-type: "fs"
+                  scan-ref: "."
+                  format: "sarif"
+                  output: "trivy-results.sarif"
+
+            - name: Upload Trivy Results to GitHub Security
+              uses: github/codeql-action/upload-sarif@v3
+              with:
+                  sarif_file: "trivy-results.sarif"
+
+    # ============================================================================
+    # FINAL STATUS CHECK
+    # ============================================================================
+    ci-success:
+        name: CI Pipeline Complete
+        runs-on: ubuntu-latest
+        needs:
+            [
+                csharp-build,
+                python-lint,
+                python-tests,
+                protobuf-validation,
+                docker-build,
+                docs-build,
+            ]
+        if: always()
+
+        steps:
+            - name: Check All Jobs Success
+              run: |
+                  if [ "${{ needs.csharp-build.result }}" != "success" ] || \
+                     [ "${{ needs.python-tests.result }}" != "success" ] || \
+                     [ "${{ needs.protobuf-validation.result }}" != "success" ] || \
+                     [ "${{ needs.docker-build.result }}" != "success" ]; then
+                    echo "❌ One or more CI jobs failed"
+                    exit 1
+                  fi
+                  echo "✅ All CI jobs passed successfully!"

@@ -87,22 +87,50 @@ namespace RimworldMLBridge
     /// <summary>
     /// Harmony patch to process TCP commands on the main Unity thread.
     /// Commands are queued from the TCP background thread and processed here to avoid threading issues.
+    /// TASK-013: Error boundary prevents mod exceptions from crashing RimWorld main loop.
     /// </summary>
     [HarmonyPatch(typeof(Root))]
     [HarmonyPatch("Update")]
     public static class Root_Update_Patch
     {
+        private static int _consecutiveErrors = 0;
+        private const int MaxConsecutiveErrors = 10;
+        
         static void Postfix()
         {
             if (MlBridgeMod.ServerRunning && MlBridgeMod.Server != null)
             {
                 try
                 {
+                    // Process queued commands from TCP client
                     MlBridgeMod.Server.ProcessCommands();
+                    
+                    // TASK-008: Heartbeat for server health monitoring
+                    MlBridgeMod.Server.Heartbeat();
+                    
+                    // Reset error counter on successful execution
+                    _consecutiveErrors = 0;
                 }
                 catch (Exception e)
                 {
-                    Log.Error("[MLBridge] Error processing commands: " + e.Message);
+                    _consecutiveErrors++;
+                    
+                    // Log error with context
+                    Log.Error($"[MLBridge] Error in main loop (count={_consecutiveErrors}): {e.Message}");
+                    
+                    // If too many consecutive errors, disable to prevent game instability
+                    if (_consecutiveErrors >= MaxConsecutiveErrors)
+                    {
+                        Log.Error($"[MLBridge] Too many consecutive errors ({MaxConsecutiveErrors}), disabling server to protect game stability");
+                        try
+                        {
+                            MlBridgeMod.StopServer();
+                        }
+                        catch
+                        {
+                            // Swallow any shutdown errors
+                        }
+                    }
                 }
             }
         }

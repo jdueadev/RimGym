@@ -15,7 +15,7 @@ from typing import Optional
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from mlbridge_pb2 import CommandMessage, StateMessage
+from mlbridge_pb2 import CommandMessage, RichStateMessage, StateMessage
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +35,7 @@ class ConnectionManager:
     - Exponential backoff reconnection
     - Thread-safe command execution
     - Connection health monitoring
+    - TASK-014/015: Auto-reconnect on socket errors
     """
 
     def __init__(
@@ -44,6 +45,9 @@ class ConnectionManager:
         connect_timeout: float = 10.0,
         reconnect_attempts: int = 10,
         reconnect_backoff: float = 1.0,
+        auto_reconnect: bool = True,
+        max_reconnect_attempts: int = 3,
+        reconnect_backoff_ms: int = 1000,
     ):
         """
         Initialize connection manager.
@@ -52,8 +56,11 @@ class ConnectionManager:
             host: Server hostname
             port: Server port
             connect_timeout: Connection timeout in seconds
-            reconnect_attempts: Max reconnection attempts (0 = infinite)
-            reconnect_backoff: Initial backoff delay in seconds
+            reconnect_attempts: Max reconnection attempts for initial connect (0 = infinite)
+            reconnect_backoff: Initial backoff delay in seconds for initial connect
+            auto_reconnect: TASK-014 - Enable automatic reconnection on send errors
+            max_reconnect_attempts: TASK-014 - Max reconnect attempts for auto-reconnect
+            reconnect_backoff_ms: TASK-014 - Backoff in milliseconds for auto-reconnect
         """
         self.host = host
         self.port = port
@@ -61,12 +68,23 @@ class ConnectionManager:
         self.reconnect_attempts = reconnect_attempts
         self.reconnect_backoff = reconnect_backoff
 
+        # TASK-014: Auto-reconnect configuration
+        self.auto_reconnect = auto_reconnect
+        self.max_reconnect_attempts = max_reconnect_attempts
+        self.reconnect_backoff_ms = reconnect_backoff_ms
+
         self._socket: Optional[socket.socket] = None
         self._lock = Lock()
         self._connected = False
         self._last_health_check = 0.0
 
-        logger.info(f"ConnectionManager initialized: {host}:{port}")
+        # Connection state tracking for events
+        self._total_reconnects = 0
+        self._last_disconnect_time: Optional[float] = None
+
+        logger.info(
+            f"ConnectionManager initialized: {host}:{port}, auto_reconnect={auto_reconnect}"
+        )
 
     def connect(self) -> bool:
         """
@@ -173,23 +191,72 @@ class ConnectionManager:
 
     def send_command(
         self, command: CommandMessage, timeout: float = 5.0
-    ) -> Optional[StateMessage]:
+    ) -> Optional[RichStateMessage]:
         """
         Send command and receive response with length-prefixed framing.
+        TASK-015: Implements automatic reconnection on socket errors.
 
         Args:
             command: Command message to send
             timeout: Response timeout in seconds
 
         Returns:
-            StateMessage response or None on error
+            RichStateMessage response (Phase V) or None on error
 
         Raises:
-            ConnectionError: If not connected or send fails
+            ConnectionError: If not connected and reconnection fails
         """
-        if not self._connected:
-            raise ConnectionError("Not connected")
+        last_error = None
+        attempts = 0
+        max_attempts = self.max_reconnect_attempts if self.auto_reconnect else 1
 
+        while attempts < max_attempts:
+            attempts += 1
+
+            # Check connection and attempt reconnect if needed
+            if not self._connected:
+                if self.auto_reconnect and attempts > 1:
+                    backoff_seconds = (self.reconnect_backoff_ms / 1000.0) * (
+                        2 ** (attempts - 2)
+                    )
+                    backoff_seconds = min(backoff_seconds, 10.0)  # Cap at 10s
+                    logger.info(
+                        f"Auto-reconnect attempt {attempts}/{max_attempts} after {backoff_seconds:.1f}s"
+                    )
+                    time.sleep(backoff_seconds)
+
+                    if self.connect():
+                        self._total_reconnects += 1
+                        logger.info(
+                            f"Auto-reconnect successful (total: {self._total_reconnects})"
+                        )
+                    else:
+                        continue
+                elif not self._connected:
+                    raise ConnectionError("Not connected")
+
+            try:
+                return self._send_command_internal(command, timeout)
+
+            except ConnectionError as e:
+                last_error = e
+                self._last_disconnect_time = time.time()
+                logger.warning(f"Send failed (attempt {attempts}/{max_attempts}): {e}")
+
+                if not self.auto_reconnect:
+                    raise
+
+                # Mark as disconnected for next iteration
+                self._connected = False
+
+        raise last_error or ConnectionError("Failed after all reconnection attempts")
+
+    def _send_command_internal(
+        self, command: CommandMessage, timeout: float
+    ) -> RichStateMessage:
+        """
+        Internal send implementation without reconnection logic.
+        """
         with self._lock:
             try:
                 # Serialize command
@@ -220,11 +287,18 @@ class ConnectionManager:
                     if not response_data:
                         raise ConnectionError("Connection closed by server")
 
-                    # Deserialize response
-                    response = StateMessage()
-                    response.ParseFromString(response_data)
-
-                    logger.debug(f"Received response ({response_length} bytes)")
+                    # Deserialize response (try RichStateMessage first, fallback to StateMessage)
+                    try:
+                        response = RichStateMessage()
+                        response.ParseFromString(response_data)
+                        logger.debug(
+                            f"Received RichStateMessage ({response_length} bytes)"
+                        )
+                    except Exception:
+                        # Fallback to legacy StateMessage for backward compatibility
+                        logger.debug("Falling back to legacy StateMessage")
+                        response = StateMessage()
+                        response.ParseFromString(response_data)
 
                     self._last_health_check = time.time()
                     return response

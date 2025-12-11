@@ -10,6 +10,12 @@ Run **fully automated tests** in Docker containers instead of self-hosted runner
 - ✅ **No manual setup** after initial configuration
 - ✅ **Cost-effective** (no VM charges)
 
+## 📚 Documentation
+
+- **[QUICKSTART.md](QUICKSTART.md)** - Fast setup guide (60 seconds)
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues and solutions ⚠️
+- **[README.md](README.md)** - This file (comprehensive reference)
+
 ## Quick Start
 
 ### Prerequisites
@@ -45,8 +51,17 @@ See [Custom Image Build](#custom-image-build) section.
 ### Run Tests
 
 ```bash
-# Build and run tests
+# Build and run tests (automated suite, exits when complete)
 docker-compose up test
+
+# Run integration server (stays running for manual testing)
+docker-compose up integration -d
+
+# Check logs
+docker logs rimworldmlbridge-integration-1
+
+# Test connection from Python
+uv run python python/test_tcp_connection.py
 
 # Or with Docker directly
 docker build -t rimworld-ml-bridge .
