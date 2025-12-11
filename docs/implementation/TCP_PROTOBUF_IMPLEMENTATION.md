@@ -42,7 +42,7 @@ RimWorld ML Bridge now uses **TCP sockets with Protocol Buffers** for communicat
 ### 1. Build the C# Mod
 
 ```powershell
-cd RimworldMLBridge
+cdRimGym
 dotnet build
 ```
 

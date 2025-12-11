@@ -19,7 +19,7 @@
 
 ```bash
 git clone https://github.com/jmduea/RimworldMLBridge.git
-cd RimworldMLBridge
+cd RimGym
 ```
 
 ### 2. Set Environment Variables

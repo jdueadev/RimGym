@@ -17,7 +17,7 @@ Phase IV implements a sophisticated autonomous agent client with three concurren
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/RimworldMLBridge.git
-cd RimworldMLBridge
+cd RimGym
 
 # Install core dependencies
 uv sync

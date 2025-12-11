@@ -1,10 +1,10 @@
-site_name: RimWorld ML Bridge
-site_description: Machine Learning Bridge for RimWorld - Connect AI agents to the game via TCP + Protocol Buffers
-site_author: RimWorld ML Bridge Contributors
-site_url: https://jmduea.github.io/RimworldMLBridge/
+site_name: RimGym
+site_description: RimGym - Real-Time Gym Environment for RimWorld
+site_author: Jon Duea
+site_url: https://jmduea.github.io/RimGym/
 
-repo_name: jmduea/RimworldMLBridge
-repo_url: https://github.com/jmduea/RimworldMLBridge
+repo_name: jmduea/RimGym
+repo_url: https://github.com/jmduea/RimGym
 edit_uri: edit/main/docs/
 
 theme:
@@ -88,7 +88,7 @@ plugins:
             show_root_heading: true
             show_root_full_path: false
             merge_init_into_class: true
-            filters: ["!^_"]
+            filters: [ "!^_" ]
 
 markdown_extensions:
   - pymdownx.highlight:
@@ -119,8 +119,8 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jmduea/RimworldMLBridge
+      link: https://github.com/jmduea/RimGym
   version:
     provider: mike
 
-copyright: Copyright &copy; 2025 RimWorld ML Bridge Contributors
+copyright: Copyright &copy; 2025 Jon Duea

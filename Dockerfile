@@ -1,4 +1,4 @@
-# Multi-stage build for RimWorld ML Bridge testing
+# Multi-stage build for RimTCP testing
 # Stage 1: Base image with .NET and Python
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS base
 
@@ -47,14 +47,14 @@ COPY . /app/
 # Restore and build C# project
 # The .csproj will automatically use Krafs.Rimworld.Ref NuGet package
 # when local RimWorld DLLs are not available
-RUN dotnet restore RimworldMLBridge.sln && \
-    dotnet build RimworldMLBridge.sln -c Release
+RUN dotnet restore RimTCP.sln && \
+    dotnet build RimTCP.sln -c Release
 
 # Install Python dependencies
 RUN uv sync
 
 # Generate protobuf bindings
-RUN uv run python python/generate_proto.py
+RUN uv run python src/shared/python/src/generate_proto.py
 
 # Stage 4: Test runtime
 FROM rimworld-base AS test-runner
@@ -67,9 +67,9 @@ COPY --from=builder /app/python /app/python
 COPY --from=builder /app/.venv /app/.venv
 
 # Copy to RimWorld Mods directory
-RUN mkdir -p ${RIMWORLD_PATH}/Mods/RimworldMLBridge && \
-    cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimworldMLBridge/ && \
-    cp -r /app/About ${RIMWORLD_PATH}/Mods/RimworldMLBridge/
+RUN mkdir -p ${RIMWORLD_PATH}/Mods/RimTCP && \
+    cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimTCP/ && \
+    cp -r /app/About ${RIMWORLD_PATH}/Mods/RimTCP/
 
 # Set up virtual X server for headless testing
 ENV DISPLAY=:99

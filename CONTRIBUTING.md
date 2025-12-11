@@ -207,7 +207,7 @@ Follow standard C# conventions:
   - camelCase for local variables, parameters
   - _camelCase for private fields
 - **Threading**: NEVER access Unity/RimWorld objects from background threads
-- **Logging**: Use `[MLBridge]` prefix for all log messages
+- **Logging**: Use `[ RimGym]` prefix for all log messages
 - **Null checks**: Use null-conditional operators (`?.`, `??`)
 - **Error handling**: Wrap Unity API calls in try-catch with graceful degradation
 

@@ -1,0 +1,543 @@
+syntax = "proto3";
+
+option csharp_namespace = "RimTCP.Protos";
+
+package mlbridge;
+
+// Service definition for the ML Bridge
+service MLBridge {
+  // Send tick information to the agent
+  rpc SendTick(TickMessage) returns (AckMessage);
+  
+  // Execute a command from the agent
+  rpc ExecuteCommand(CommandMessage) returns (StateMessage);
+  
+  // Get current game state
+  rpc GetState(EmptyMessage) returns (StateMessage);
+}
+
+// Empty message for requests with no parameters
+message EmptyMessage {}
+
+// Tick notification message
+message TickMessage {
+  int64 tick_count = 1;
+  int64 frame_id = 2;
+}
+
+// Acknowledgment message
+message AckMessage {
+  int64 tick_count = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// Command types
+enum CommandType {
+  NO_OP = 0;
+  STEP = 1;
+  RESET = 2;
+  QUERY_STATE = 3;
+  EXECUTE_ACTION = 4;
+  SET_MODE = 5;          // Phase III: Switch between training and inference modes
+  SET_SPEED = 6;         // Set game speed (for testing automation)
+}
+
+// Execution mode for Hybrid Valve
+enum ExecutionMode {
+  MODE_TRAINING = 0;     // Synchronous: Game pauses between steps
+  MODE_INFERENCE = 1;    // Asynchronous: Game runs freely
+}
+
+// Game speed settings
+enum GameSpeed {
+  SPEED_PAUSED = 0;      // Game paused
+  SPEED_NORMAL = 1;      // 1x speed (60 ticks/sec)
+  SPEED_FAST = 2;        // 2x speed (120 ticks/sec)
+  SPEED_SUPERFAST = 3;   // 3x speed (180 ticks/sec)
+  SPEED_ULTRAFAST = 4;   // 4x speed (240 ticks/sec)
+}
+
+// Command message from agent to game
+message CommandMessage {
+  CommandType type = 1;
+  int32 ticks_to_run = 2;
+  repeated Action actions = 3;
+  ExecutionMode mode = 4;  // For SET_MODE command
+  GameSpeed speed = 5;     // For SET_SPEED command
+}
+
+// Action verb types
+enum ActionVerb {
+  NONE = 0;
+  DRAFT = 1;
+  GOTO = 2;
+  ATTACK = 3;
+  BUILD = 4;
+  JOB_PRIORITY = 5;
+  HAUL = 6;
+  CLEAN = 7;
+}
+
+// Individual action for a pawn
+message Action {
+  int32 agent_id = 1;      // ThingID of the pawn
+  ActionVerb verb = 2;      // Action type
+  int32 target_id = 3;      // ThingID of target entity
+  Vector3 cell = 4;         // Target map coordinates
+  int32 priority = 5;       // Action priority
+}
+
+// 3D vector for positions
+message Vector3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+// Game state message
+message StateMessage {
+  int64 frame_id = 1;
+  GlobalState global = 2;
+  repeated Entity entities = 3;
+  bool is_ready = 4;
+  string status_message = 5;
+}
+
+// Global game state
+message GlobalState {
+  float wealth = 1;
+  string weather = 2;
+  int32 day = 3;
+  int32 year = 4;
+  float temperature = 5;
+}
+
+// Entity in the game world (basic entity, use ColonistState for pawns)
+message Entity {
+  int32 id = 1;
+  string type = 2;          // Pawn, Item, Building
+  string def_name = 3;      // DefName from game
+  Vector3 position = 4;
+  int32 faction_id = 5;
+  reserved 6;               // Removed: EntityState state (use ColonistState for pawns)
+  Vector3 velocity = 7;     // Phase III: Velocity vector for position extrapolation
+}
+
+// ======================================================================
+// Phase II: Rich State Messages for High-Fidelity Data Extraction
+// ======================================================================
+
+// Skill passion level
+enum Passion {
+  PASSION_NONE = 0;
+  PASSION_MINOR = 1;
+  PASSION_MAJOR = 2;
+}
+
+// Pawn work type
+enum WorkType {
+  WORK_NONE = 0;
+  WORK_DOCTOR = 1;
+  WORK_BEDREST = 2;
+  WORK_PATIENT = 3;
+  WORK_BASIC = 4;
+  WORK_WARDEN = 5;
+  WORK_HANDLING = 6;
+  WORK_COOKING = 7;
+  WORK_HUNTING = 8;
+  WORK_CONSTRUCTION = 9;
+  WORK_GROWING = 10;
+  WORK_MINING = 11;
+  WORK_PLANT_CUTTING = 12;
+  WORK_SMITHING = 13;
+  WORK_TAILORING = 14;
+  WORK_ART = 15;
+  WORK_CRAFTING = 16;
+  WORK_HAULING = 17;
+  WORK_CLEANING = 18;
+  WORK_RESEARCH = 19;
+}
+
+// Individual skill data
+message SkillState {
+  string def_name = 1;       // Skill definition name (Shooting, Melee, Social, etc.)
+  string label = 2;           // Display name
+  int32 level = 3;            // 0-20
+  float xp = 4;               // Experience points
+  Passion passion = 5;        // Passion level
+  bool disabled = 6;          // If skill is disabled for this pawn
+}
+
+// Individual need data
+message NeedState {
+  string def_name = 1;        // Need definition name (Food, Rest, Recreation, Mood, etc.)
+  string label = 2;           // Display name
+  float cur_level = 3;        // Current level (0.0 - 1.0)
+  float max_level = 4;        // Maximum level (usually 1.0)
+  string category = 5;        // Need category
+}
+
+// Job state
+message JobState {
+  string def_name = 1;        // Job definition name
+  string label = 2;           // Display label
+  int32 target_thing_id = 3;  // Target entity ThingID (0 if none)
+  Vector3 target_position = 4;// Target location
+  int32 start_tick = 5;       // When job started
+}
+
+// Health capacity
+message HealthCapacity {
+  string label = 1;           // Capacity name (Consciousness, Moving, Manipulation, Sight, etc.)
+  float efficiency = 2;       // 0.0 - 1.0+ (can exceed 1.0 with bionics)
+  bool can_be_awake = 3;      // If pawn can be conscious
+}
+
+// Rich colonist state
+message ColonistState {
+  // Identity
+  int32 thing_id = 1;
+  string name = 2;
+  string def_name = 3;         // Pawn kind def
+  int32 faction_id = 4;
+  
+  // Position
+  Vector3 position = 5;
+  int32 map_id = 6;
+  
+  // Core stats
+  float health_percent = 7;    // Overall health 0.0 - 1.0
+  float mood_percent = 8;      // Current mood 0.0 - 1.0
+  bool is_drafted = 9;
+  bool is_downed = 10;
+  bool is_dead = 11;
+  
+  // Skills (20 fields reserved)
+  repeated SkillState skills = 12;
+  
+  // Needs (10 fields reserved)
+  repeated NeedState needs = 13;
+  
+  // Current job
+  JobState current_job = 14;
+  
+  // Health capacities
+  repeated HealthCapacity capacities = 15;
+  
+  // Work priorities (20 work types)
+  map<string, int32> work_priorities = 16; // work def name -> priority (0-4)
+  
+  // Additional info
+  int32 age_biological_ticks = 17;
+  int32 age_chronological_ticks = 18;
+  string gender = 19;
+  
+  // Performance metrics
+  float move_speed = 20;
+  float work_speed_global = 21;
+  
+  // Phase III: Motion tracking for position extrapolation under latency
+  Vector3 velocity = 22;       // Velocity vector (units per second)
+}
+
+// Extended state message with rich colonist data
+message RichStateMessage {
+  int64 frame_id = 1;
+  GlobalState global = 2;
+  repeated ColonistState colonists = 3;
+  repeated Entity other_entities = 4;  // Buildings, items, animals, etc.
+  bool is_ready = 5;
+  string status_message = 6;
+  int64 timestamp_ms = 7;              // Server timestamp for latency measurement
+  float delta_time_ms = 8;             // Phase III: Time since last frame (for velocity calculation)
+  bool is_delta = 9;                   // Phase III: True if this is a delta update (only changed entities)
+  ExecutionMode current_mode = 10;     // Phase III: Current execution mode
+  
+  // Phase V: RIMAPI Full Integration
+  MapState map = 11;                   // Map data (terrain, buildings, zones)
+  IncidentState incidents = 12;        // Event history and active threats
+  WorldState world = 13;               // Global map, factions, settlements
+}
+
+// ======================================================================
+// Phase V: RIMAPI Full Integration - Map, Incident, and World Data
+// ======================================================================
+
+// Terrain type
+enum TerrainType {
+  TERRAIN_UNKNOWN = 0;
+  TERRAIN_SOIL = 1;
+  TERRAIN_GRAVEL = 2;
+  TERRAIN_SAND = 3;
+  TERRAIN_MARSH = 4;
+  TERRAIN_WATER = 5;
+  TERRAIN_STONE = 6;
+  TERRAIN_WOOD_FLOOR = 7;
+  TERRAIN_CONCRETE = 8;
+  TERRAIN_METAL = 9;
+  TERRAIN_CARPET = 10;
+}
+
+// Building type
+enum BuildingType {
+  BUILDING_UNKNOWN = 0;
+  BUILDING_WALL = 1;
+  BUILDING_DOOR = 2;
+  BUILDING_BED = 3;
+  BUILDING_TABLE = 4;
+  BUILDING_WORKBENCH = 5;
+  BUILDING_STORAGE = 6;
+  BUILDING_POWER = 7;
+  BUILDING_PRODUCTION = 8;
+  BUILDING_DEFENSE = 9;
+  BUILDING_DECORATION = 10;
+}
+
+// Zone type
+enum ZoneType {
+  ZONE_STOCKPILE = 0;
+  ZONE_GROWING = 1;
+  ZONE_DUMPING = 2;
+  ZONE_ANIMAL = 3;
+}
+
+// Terrain cell data (for delta compression)
+message TerrainCell {
+  int32 x = 1;
+  int32 y = 2;
+  TerrainType type = 3;
+  string def_name = 4;
+  bool walkable = 5;
+  float fertility = 6;      // For growing zones
+  float beauty = 7;         // Aesthetic value
+}
+
+// Building data
+message BuildingState {
+  int32 thing_id = 1;
+  string def_name = 2;
+  string label = 3;
+  BuildingType type = 4;
+  Vector3 position = 5;
+  int32 rotation = 6;       // 0-3 (North, East, South, West)
+  Vector3 size = 7;         // Width x Height x Depth
+  float health_percent = 8;
+  int32 faction_id = 9;
+  bool is_powered = 10;     // If requires and has power
+  bool is_constructed = 11; // True if fully built
+  map<string, float> stats = 12; // Custom stats (temperature, fuel, etc.)
+}
+
+// Item/Thing data
+message ItemState {
+  int32 thing_id = 1;
+  string def_name = 2;
+  string label = 3;
+  Vector3 position = 4;
+  int32 stack_count = 5;
+  float hit_points = 6;
+  int32 faction_id = 7;
+  string category = 8;      // Resource, Weapon, Apparel, Food, etc.
+  bool forbidden = 9;       // If marked as forbidden
+}
+
+// Zone definition
+message ZoneState {
+  int32 id = 1;
+  string label = 2;
+  ZoneType type = 3;
+  repeated Vector3 cells = 4;  // Cell positions in zone
+  map<string, string> settings = 5; // Zone-specific settings
+}
+
+// Room statistics
+message RoomState {
+  int32 id = 1;
+  int32 cell_count = 2;
+  float temperature = 3;
+  float cleanliness = 4;
+  float beauty = 5;
+  float wealth = 6;
+  float space = 7;
+  bool is_outdoors = 8;
+  repeated int32 building_ids = 9; // Buildings in this room
+}
+
+// Complete map state
+message MapState {
+  int32 map_id = 1;
+  int32 size_x = 2;
+  int32 size_y = 3;
+  int32 size_z = 4;
+  
+  // Terrain data (delta compressed in inference mode)
+  repeated TerrainCell terrain_cells = 5;  // Only changed cells if is_delta=true
+  bool terrain_is_delta = 6;
+  
+  // Buildings
+  repeated BuildingState buildings = 7;
+  
+  // Items (limited to important items, not all chunks)
+  repeated ItemState items = 8;
+  int32 total_item_count = 9;  // Total items on map
+  
+  // Zones
+  repeated ZoneState zones = 10;
+  
+  // Rooms
+  repeated RoomState rooms = 11;
+  
+  // Map-level stats
+  float average_temperature = 12;
+  float average_cleanliness = 13;
+  string biome = 14;
+  int32 wildlife_count = 15;
+  int32 hostile_count = 16;
+}
+
+// Incident/Event type
+enum IncidentType {
+  INCIDENT_UNKNOWN = 0;
+  INCIDENT_RAID = 1;
+  INCIDENT_TRADE_CARAVAN = 2;
+  INCIDENT_MANHUNTER = 3;
+  INCIDENT_SOLAR_FLARE = 4;
+  INCIDENT_ECLIPSE = 5;
+  INCIDENT_TOXIC_FALLOUT = 6;
+  INCIDENT_VOLCANIC_WINTER = 7;
+  INCIDENT_HEAT_WAVE = 8;
+  INCIDENT_COLD_SNAP = 9;
+  INCIDENT_FIRE = 10;
+  INCIDENT_DISEASE = 11;
+  INCIDENT_MENTAL_BREAK = 12;
+  INCIDENT_QUEST = 13;
+}
+
+// Incident severity
+enum IncidentSeverity {
+  SEVERITY_MINOR = 0;
+  SEVERITY_MODERATE = 1;
+  SEVERITY_MAJOR = 2;
+  SEVERITY_EXTREME = 3;
+}
+
+// Individual incident record
+message IncidentRecord {
+  int32 id = 1;
+  IncidentType type = 2;
+  string def_name = 3;
+  string label = 4;
+  IncidentSeverity severity = 5;
+  int32 start_tick = 6;
+  int32 end_tick = 7;       // 0 if still active
+  bool is_active = 8;
+  int32 faction_id = 9;     // Faction involved (for raids, caravans)
+  map<string, float> params = 10; // Incident-specific parameters
+}
+
+// Storyteller state
+message StorytellerState {
+  string def_name = 1;
+  string label = 2;
+  float difficulty = 3;
+  float threat_scale = 4;
+  int32 ticks_since_last_threat = 5;
+  int32 ticks_until_next_threat = 6; // Estimated (if predictable)
+  float adaptation_days = 7;
+}
+
+// Complete incident state
+message IncidentState {
+  // Active incidents
+  repeated IncidentRecord active_incidents = 1;
+  
+  // Recent history (last 100 incidents)
+  repeated IncidentRecord incident_history = 2;
+  
+  // Storyteller
+  StorytellerState storyteller = 3;
+  
+  // Threat tracking
+  int32 current_raid_count = 4;
+  int32 current_manhunter_count = 5;
+  bool has_active_quest = 6;
+  
+  // World conditions
+  repeated string active_conditions = 7; // Weather effects, diseases, etc.
+}
+
+// Faction relation status
+enum FactionRelation {
+  RELATION_HOSTILE = 0;
+  RELATION_NEUTRAL = 1;
+  RELATION_ALLY = 2;
+}
+
+// Faction data
+message FactionState {
+  int32 faction_id = 1;
+  string def_name = 2;
+  string name = 3;
+  FactionRelation relation = 4;
+  float goodwill = 5;       // -100 to 100
+  bool is_player = 6;
+  bool defeated = 7;
+  int32 settlement_count = 8;
+}
+
+// Settlement/Base data
+message SettlementState {
+  int32 id = 1;
+  string name = 2;
+  int32 faction_id = 3;
+  Vector3 tile_position = 4; // World tile coordinates
+  string type = 5;          // City, Town, Base, Outpost, etc.
+  bool is_player_home = 6;
+}
+
+// Caravan data
+message CaravanState {
+  int32 thing_id = 1;
+  string name = 2;
+  int32 faction_id = 3;
+  Vector3 tile_position = 4;
+  Vector3 tile_destination = 5;
+  int32 pawn_count = 6;
+  bool is_player_caravan = 7;
+}
+
+// World event (quests, etc.)
+message WorldEvent {
+  int32 id = 1;
+  string def_name = 2;
+  string label = 3;
+  string description = 4;
+  int32 start_tick = 5;
+  int32 expiry_tick = 6;
+  bool is_active = 7;
+  Vector3 tile_position = 8; // Location on world map
+}
+
+// Complete world state
+message WorldState {
+  // Factions
+  repeated FactionState factions = 1;
+  
+  // Settlements
+  repeated SettlementState settlements = 2;
+  
+  // Caravans (moving pawns/traders)
+  repeated CaravanState caravans = 3;
+  
+  // World events/quests
+  repeated WorldEvent events = 4;
+  
+  // World info
+  int32 tile_count = 5;
+  float coverage_percent = 6; // % of world discovered
+  string seed_string = 7;
+  
+  // Planet name
+  string planet_name = 8;
+}
