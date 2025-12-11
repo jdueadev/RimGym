@@ -1,0 +1,153 @@
+name: 🐛 Bug Report
+description: Report a bug or unexpected behavior
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the information below to help us investigate.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug
+      placeholder: Describe what went wrong...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Step-by-step instructions to reproduce the issue
+      placeholder: |
+        1. Start RimWorld with mod enabled
+        2. Run Python client with...
+        3. Execute command...
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe the expected behavior...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component is affected?
+      options:
+        - C# Mod (RimWorld)
+        - Python Client
+        - Docker Container
+        - Protobuf Schema
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version of RimWorld ML Bridge are you using?
+      placeholder: e.g., v1.0.0 or commit hash
+    validations:
+      required: true
+
+  - type: input
+    id: rimworld-version
+    attributes:
+      label: RimWorld Version
+      description: What version of RimWorld are you running?
+      placeholder: e.g., 1.6.1234
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python Version (if applicable)
+      description: What version of Python are you using?
+      placeholder: e.g., 3.11.5
+    validations:
+      required: false
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: Which OS are you using?
+      options:
+        - Windows 10/11
+        - Linux (Ubuntu/Debian)
+        - Linux (Other)
+        - macOS
+        - Docker
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log Output
+      description: Paste relevant log output (RimWorld log, Python traceback, Docker logs)
+      placeholder: |
+        Paste logs here...
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Configuration
+      description: Any relevant configuration files or settings
+      placeholder: |
+        Paste configuration here...
+      render: yaml
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submission Checklist
+      description: Please verify you've completed these steps
+      options:
+        - label: I've searched existing issues and this isn't a duplicate
+          required: true
+        - label: I've included the RimWorld Player.log file (if C# mod issue)
+          required: false
+        - label: I've included the full Python traceback (if Python client issue)
+          required: false
+        - label: I've tested with the latest version
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context about the problem (mod list, screenshots, etc.)
+      placeholder: Add any other context here...
+    validations:
+      required: false

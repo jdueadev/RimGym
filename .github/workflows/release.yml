@@ -1,4 +1,4 @@
-name: Release
+name: Release Build
 
 on:
   push:
@@ -7,31 +7,50 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version (e.g., 1.0.0)"
+        description: "Version to release (e.g., 1.0.0)"
         required: true
+
+env:
+  DOTNET_VERSION: "4.8"
+  PYTHON_VERSION: "3.11"
 
 jobs:
   build-release:
-    name: Build Release
+    name: Build Release Package
     runs-on: windows-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          fetch-depth: 0
 
-      - name: Restore dependencies
-        run: dotnet restore RimworldMLBridge.sln
+      - name: Get Version
+        id: version
+        shell: pwsh
+        run: |
+          if ("${{ github.event.inputs.version }}" -ne "") {
+            $version = "${{ github.event.inputs.version }}"
+          } else {
+            $version = "${{ github.ref_name }}".TrimStart('v')
+          }
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+          echo "Version: $version"
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Restore Dependencies
+        run: nuget restore RimworldMLBridge.sln
 
       - name: Build Release
-        run: dotnet build RimworldMLBridge.sln -c Release --no-restore
+        run: msbuild RimworldMLBridge.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
 
-      - name: Run tests
-        run: dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj --no-build -c Release
+      - name: Run C# Tests
+        run: dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj --configuration Release --no-build
 
       - name: Package mod
         shell: pwsh

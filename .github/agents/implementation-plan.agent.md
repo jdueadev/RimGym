@@ -1,7 +1,7 @@
 ---
 description: "Generate an implementation plan for new features or refactoring existing code."
 name: "Implementation Plan Generation Mode"
-tools: ['edit', 'runNotebooks', 'search', 'new', 'runCommands', 'runTasks', 'GitKraken/git_status', 'GitKraken/repository_get_file_content', 'Azure MCP/search', 'github/list_branches', 'github/list_commits', 'github/list_issue_types', 'github/list_issues', 'github/list_pull_requests', 'github/list_releases', 'github/list_tags', 'github/search_code', 'github/search_issues', 'github/search_pull_requests', 'github/search_repositories', 'github/search_users', 'memory/*', 'pylance mcp server/*', 'usages', 'vscodeAPI', 'problems', 'changes', 'testFailure', 'openSimpleBrowser', 'fetch', 'githubRepo', 'memory', 'ms-vscode.vscode-websearchforcopilot/websearch', 'extensions', 'todos', 'runSubagent', 'runTests']
+tools: ['vscode', 'execute', 'read', 'edit', 'search', 'web', 'gitkraken/*', 'github/*', 'azure-mcp/search', 'copilot-container-tools/*', 'agent', 'memory', 'github.vscode-pull-request-github/copilotCodingAgent', 'github.vscode-pull-request-github/issue_fetch', 'github.vscode-pull-request-github/suggest-fix', 'github.vscode-pull-request-github/searchSyntax', 'github.vscode-pull-request-github/doSearch', 'github.vscode-pull-request-github/renderIssues', 'github.vscode-pull-request-github/activePullRequest', 'github.vscode-pull-request-github/openPullRequest', 'ms-vscode.vscode-websearchforcopilot/websearch', 'todo']
 ---
 
 # Implementation Plan Generation Mode

@@ -11,6 +11,22 @@
 
 **Perfect for**: Contributors, code reviewers, or anyone validating changes before merge.
 
+## ⚠️ Critical Configuration Requirements
+
+Before starting, be aware of these common issues (see [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for details):
+
+1. **Line Endings**: `entrypoint.sh` MUST use Unix (LF) line endings, not Windows (CRLF)
+   - VS Code on Windows may convert to CRLF automatically
+   - Check bottom-right status bar, should show "LF"
+
+2. **Volume Mounts**: Never mount the entire project directory (`.:/app`)
+   - Causes conflicts between host's `.venv` (Windows) and container's `.venv` (Linux)
+   - Use selective mounts as shown in docker-compose.yml
+
+3. **RimWorld Flags**: The `-quicktest` flag is essential for headless mode
+   - DO NOT remove or modify the command flags in entrypoint.sh
+   - Bypass problematic UI initialization in batch mode
+
 ## ⚡ 60-Second Setup
 
 ### 1. Install Docker

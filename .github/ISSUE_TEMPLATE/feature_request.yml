@@ -1,0 +1,140 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement
+title: "[FEATURE] "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please provide as much detail as possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? Is your feature request related to a problem?
+      placeholder: I'm always frustrated when...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: I'd like to see...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which component would this feature affect?
+      options:
+        - C# Mod (RimWorld)
+        - Python Client
+        - Docker Infrastructure
+        - Protobuf Schema
+        - Documentation
+        - Testing
+        - CI/CD
+        - Multiple Components
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this feature to you?
+      options:
+        - Critical (Blocking my work)
+        - High (Significantly improves workflow)
+        - Medium (Nice to have)
+        - Low (Minor improvement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: Describe a specific use case or scenario where this feature would be useful
+      placeholder: |
+        When training an agent that needs to...
+        I want to be able to...
+        So that...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: I've tried... but it doesn't work because...
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: Implementation Ideas
+      description: If you have technical ideas about how to implement this, share them here
+      placeholder: |
+        This could be implemented by...
+        Potential approach:
+        1. ...
+        2. ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: api-example
+    attributes:
+      label: API Example (if applicable)
+      description: If this is a new API feature, show how you'd like to use it
+      placeholder: |
+        ```python
+        # Example usage:
+        client.new_feature(...)
+        ```
+      render: python
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: research-area
+    attributes:
+      label: Research Area (for ML features)
+      description: Which research areas would benefit from this feature?
+      options:
+        - label: Reinforcement Learning
+        - label: Imitation Learning
+        - label: Multi-Agent Systems
+        - label: Hierarchical Planning
+        - label: Curriculum Learning
+        - label: Transfer Learning
+        - label: Other
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution
+      description: Are you interested in contributing?
+      options:
+        - label: I'd be willing to implement this feature
+        - label: I'd be willing to test this feature
+        - label: I'd be willing to write documentation
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, screenshots, or examples
+      placeholder: Add any other context here...
+    validations:
+      required: false

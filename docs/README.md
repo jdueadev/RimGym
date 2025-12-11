@@ -3,6 +3,8 @@
 ## Getting Started
 
 - [README.md](../README.md) - Quick start guide
+- [Docker Quick Start](../docker/QUICKSTART.md) - 60-second Docker testing setup ⚡
+- [Docker Troubleshooting](../docker/TROUBLESHOOTING.md) - Common Docker issues and solutions
 - [Installation Guide](guides/installation.md) - Detailed setup instructions
 - [Python Client Guide](guides/python-client.md) - Using the client API (Coming Soon)
 
@@ -14,9 +16,12 @@
 ## Implementation Details
 
 - [TCP + Protobuf Implementation](implementation/TCP_PROTOBUF_IMPLEMENTATION.md) - Current protocol details
+- [Phase IV.7: Docker Integration](implementation/PHASE_IV_7_DOCKER_INTEGRATION.md) - Docker testing environment ✅
+- [Docker Lessons Learned](implementation/DOCKER_LESSONS_LEARNED.md) - Debugging journey and insights
 - [Native DLL Fix](implementation/NATIVE_DLL_FIX.md) - Why we can't use gRPC
 - [gRPC Migration History](implementation/GRPC_MIGRATION.md) - Historical reference
 - [Implementation Summary](implementation/IMPLEMENTATION_SUMMARY.md) - Phase I recap
+- [Phase IV.3 Summary](implementation/PHASE_IV_3_COMPLETION_SUMMARY.md) - Hybrid Valve implementation
 
 ## Development
 

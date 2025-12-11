@@ -117,22 +117,22 @@ await stream.ReadAsync(data);
 
 ## Component Relationships
 
-```
+```text
 TcpProtobufServer (Background Thread)
     ↓ enqueues
 CommandQueue (Thread-Safe)
     ↓ consumed by
 Root_Update_Patch (Main Thread)
     ↓ calls
-GrpcService.ExecuteCommand()
+TcpProtobufServer.ProcessCommand()
     ↓ uses
-Services/ (ColonistService, MapService)
+Services/ (ColonistService, MapService, IncidentService, ResourceService)
     ↓ returns
-DTOs/ (ColonistDTO, MapDTO)
+DTOs/ (ColonistDTO, MapDTO, WorldDTO)
     ↓ mapped by
-Adapters/ (ProtobufAdapter)
+Adapters/ (ColonistAdapter, MapAdapter, IncidentAdapter, WorldAdapter)
     ↓ serializes to
-StateMessage (Protobuf)
+RichStateMessage (Protobuf)
     ↓ sent by
 TcpProtobufServer.SendResponse()
 ```

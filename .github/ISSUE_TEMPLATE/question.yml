@@ -1,0 +1,114 @@
+name: ❓ Question or Support
+description: Ask a question or request help
+title: "[QUESTION] "
+labels: ["question", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question? We're here to help! Please provide as much context as possible.
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: What would you like to know?
+      placeholder: Ask your question here...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Question Category
+      description: What area is your question about?
+      options:
+        - Installation & Setup
+        - Usage & Configuration
+        - Python Client API
+        - C# Mod Development
+        - Docker & Deployment
+        - Training RL Agents
+        - Performance Optimization
+        - Protobuf Schema
+        - Troubleshooting
+        - Architecture & Design
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What are you trying to accomplish?
+      placeholder: I'm trying to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What Have You Tried?
+      description: What steps have you already taken to solve this?
+      placeholder: |
+        I've tried:
+        1. ...
+        2. ...
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: What version are you using?
+      placeholder: e.g., v1.0.0
+    validations:
+      required: false
+
+  - type: textarea
+    id: code
+    attributes:
+      label: Relevant Code
+      description: If applicable, paste relevant code snippets
+      placeholder: |
+        ```python
+        # Your code here
+        ```
+      render: python
+    validations:
+      required: false
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error Messages
+      description: If you're seeing errors, paste them here
+      placeholder: Paste error messages here...
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: docs-checked
+    attributes:
+      label: Documentation Check
+      description: Have you checked the documentation?
+      options:
+        - label: I've checked the README
+        - label: I've checked the Quick Start Guide
+        - label: I've checked the API documentation
+        - label: I've checked existing issues
+        - label: I've checked the troubleshooting guide
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Information
+      description: Any other details that might help?
+      placeholder: Add any other context here...
+    validations:
+      required: false

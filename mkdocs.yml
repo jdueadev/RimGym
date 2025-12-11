@@ -1,0 +1,126 @@
+site_name: RimWorld ML Bridge
+site_description: Machine Learning Bridge for RimWorld - Connect AI agents to the game via TCP + Protocol Buffers
+site_author: RimWorld ML Bridge Contributors
+site_url: https://jmduea.github.io/RimworldMLBridge/
+
+repo_name: jmduea/RimworldMLBridge
+repo_url: https://github.com/jmduea/RimworldMLBridge
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: deep purple
+      accent: purple
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - Changelog: CHANGELOG.md
+  - Getting Started:
+      - Installation: guides/installation.md
+      - Quick Start: guides/quickstart.md
+      - Phase IV Usage: guides/phase4_usage.md
+      - Docker Setup: guides/docker-setup.md
+  - Architecture:
+      - Overview: architecture/README.md
+      - Real-Time Design: specs/REAL_TIME_ARCHITECTURE_UPDATE.md
+      - TCP Protocol: implementation/TCP_PROTOBUF_IMPLEMENTATION.md
+  - API Reference:
+      - Python Client:
+          - Overview: api/python/overview.md
+          - Connection: api/python/connection.md
+          - Spectator Client: api/python/spectator.md
+          - Policies: api/python/policies.md
+          - Gym Environment: api/python/gym-env.md
+      - C# Mod:
+          - Overview: api/csharp/overview.md
+          - Services: api/csharp/services.md
+          - Adapters: api/csharp/adapters.md
+          - Server: api/csharp/server.md
+      - Protobuf Schema: api/protobuf.md
+  - Guides:
+      - Training an Agent: guides/training.md
+      - Running Inference: guides/inference.md
+      - Custom Policies: guides/custom-policies.md
+      - Docker Integration: guides/docker-integration.md
+      - Performance Tuning: guides/performance.md
+  - Development:
+      - Contributing: contributing.md
+      - Code of Conduct: code-of-conduct.md
+      - Testing: development/testing.md
+      - Building: development/building.md
+      - Debugging: development/debugging.md
+  - Troubleshooting:
+      - Common Issues: troubleshooting/common-issues.md
+      - Docker Issues: troubleshooting/docker.md
+      - Connection Problems: troubleshooting/connection.md
+      - Performance Issues: troubleshooting/performance.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            merge_init_into_class: true
+            filters: ["!^_"]
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jmduea/RimworldMLBridge
+  version:
+    provider: mike
+
+copyright: Copyright &copy; 2025 RimWorld ML Bridge Contributors

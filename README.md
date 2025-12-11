@@ -24,7 +24,7 @@ Enable autonomous AI agents to master RimWorld through deep reinforcement learni
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌─────────────┐      TCP + Protobuf       ┌──────────────┐
 │   RimWorld  │ ◄──────────────────────► │ Python Agent │
 │  (C# Mod)   │      Port 50051           │  (ML Client) │
@@ -67,17 +67,51 @@ See [docs/specs/REAL_TIME_ARCHITECTURE_UPDATE.md](docs/specs/REAL_TIME_ARCHITECT
 - Frame timing and delta compression infrastructure
 - **Fully automated CI/CD testing**: 4 speeds tested automatically
 
-**⏳ Phase IV Planned - Python Triple-Threaded Client**
+**✅ Phase IV Complete - Python Triple-Threaded Client**
 
 - SpectatorClient with Listener/Inference/Actor threads
-- Hierarchical policy (Executive/Reflex layers)
-- Interrupt event handling (raids, fires, mental breaks)
+- Hierarchical policy support (Executive/Reflex layers)
+- Interrupt event handling framework
+- Comprehensive metrics and logging
+- Full test coverage (116 passing tests)
+
+**✅ Phase V Complete - RIMAPI Full Integration (Complete Game Observability)**
+
+- **MapState**: Terrain, buildings (walls, doors, beds), items, zones, rooms
+- **IncidentState**: Event history, storyteller, active threats (raids, fires)
+- **WorldState**: Factions, settlements, caravans with relations
+- **Performance**: <5ms total extraction time for full colony state
+- **Python Models**: Typed dataclasses for all game state (580+ lines)
+- **Examples**: phase5_full_observability.py demonstrating complete API
+- **Profiling**: Built-in performance monitoring and optimization tools
+
+See [docs/specs/PHASE_V_ARCHITECTURE.md](docs/specs/PHASE_V_ARCHITECTURE.md) for complete documentation.
 
 ## 🧪 Testing & Validation
 
-### Automated Testing (Recommended)
+### Docker Integration Testing (Production-Ready)
 
-**Docker integration tests validate all 4 game speeds in ~2 minutes:**
+**✅ Full test suite runs in Docker with 100% reproducibility:**
+
+```bash
+# Run automated tests (all 4 game speeds)
+docker-compose up test
+
+# Results: Paused, 1x, 2x, 3x speeds validated
+# Training mode: Precise tick control
+# Inference mode: Real-time progression
+```
+
+**Why Docker?**
+
+- ✅ Consistent environment across all platforms
+- ✅ No manual RimWorld setup required
+- ✅ CI/CD ready (self-hosted runner)
+- ✅ Isolated testing (no conflicts with local RimWorld)
+
+See [docker/QUICKSTART.md](docker/QUICKSTART.md) for 60-second setup.
+
+### Manual Testing (Development)
 
 ```bash
 # One-time setup (requires RimWorld installation)
@@ -132,16 +166,15 @@ export RIMWORLD_DIR=/path/to/RimWorld
 2. **Load a game** (not just the main menu)
 3. **Check the log** for:
 
-   ```
-   [MLBridge] gRPC server started successfully!
+   ```text
+   [MLBridge] TCP+Protobuf server started successfully!
    [MLBridge] Listening on localhost:50051
    ```
 
 4. **Run the Python test client:**
 
    ```bash
-   cd python
-   python test_connection.py
+   uv run python python/test_tcp_connection.py
    ```
 
 ## 📡 API Usage
@@ -149,83 +182,95 @@ export RIMWORLD_DIR=/path/to/RimWorld
 ### Python Client Example
 
 ```python
-import grpc
+from client import SpectatorClient
 import mlbridge_pb2
-import mlbridge_pb2_grpc
 
-# Connect to the game
-channel = grpc.insecure_channel('localhost:50051')
-stub = mlbridge_pb2_grpc.MLBridgeStub(channel)
+# Connect to the game using the triple-threaded client
+client = SpectatorClient(host="localhost", port=50051)
+client.connect()
 
-# Get game state
-state = stub.GetState(mlbridge_pb2.EmptyMessage())
+# Query current game state (async-safe)
+state = client.get_state()
 print(f"Frame: {state.frame_id}")
 print(f"Colonists: {len(state.entities)}")
 
 for entity in state.entities:
-    print(f"  {entity.def_name}: Health={entity.state.health:.1%}")
+    print(f"  {entity.def_name}: Health={entity.health:.1%}")
 
-# Send a command
-response = stub.ExecuteCommand(mlbridge_pb2.CommandMessage(
-    type=mlbridge_pb2.STEP,
-    ticks_to_run=60  # Advance 1 second
-))
+# Step the simulation (training mode)
+response = client.step(ticks=60)  # Advance 1 second (60 ticks)
 
-# Send tick acknowledgment
-ack = stub.SendTick(mlbridge_pb2.TickMessage(
-    tick_count=1,
-    frame_id=state.frame_id
-))
+# Execute an action
+from mlbridge_pb2 import Action, ActionType
+action = Action(type=ActionType.MOVE, pawn_id=1, target_x=50.0, target_z=50.0)
+client.execute_action(action)
+
+# Clean up
+client.disconnect()
 ```
 
-### Available RPC Methods
+### Protocol Buffer Commands
 
-#### `GetState(EmptyMessage) → StateMessage`
+The API uses length-prefixed Protobuf messages over raw TCP:
 
-Returns current game state including:
+#### `STEP` - Advance Simulation
+
+Advances the game by specified number of ticks. Returns updated state.
+
+- `ticks_to_run`: Number of game ticks to advance (60 ticks = 1 second)
+
+#### `QUERY_STATE` - Get Current State
+
+Returns current game state without advancing simulation:
 
 - Frame ID (tick count)
 - Global state (day, year, temperature)
 - All colonist pawns with position, health, needs, current job
 
-#### `ExecuteCommand(CommandMessage) → StateMessage`
+#### `EXECUTE_ACTION` - Execute Pawn Action
 
-Execute a command and get resulting state:
+Execute a command on a specific pawn:
 
-- `NO_OP`: No operation
-- `STEP`: Advance simulation
-- `RESET`: Reset game state
-- `QUERY_STATE`: Same as GetState
-- `EXECUTE_ACTION`: Execute pawn actions (future)
+- `MOVE`: Move pawn to position
+- `DRAFT`: Draft pawn for combat
+- `UNDRAFT`: Undraft pawn
+- `ATTACK`: Attack target (future)
 
-#### `SendTick(TickMessage) → AckMessage`
+#### `RESET` - Reset Game State
 
-Send tick notification, returns acknowledgment.
+Reset the game to initial state (implementation pending).
 
 ## 🔧 Development
 
 ### Project Structure
 
-```
+```text
 RimworldMLBridge/
 ├── About/                      # RimWorld mod metadata
 │   └── About.xml
-├── Assemblies/                 # Compiled C# DLLs (output)
+├── 1.6/Assemblies/             # Compiled C# DLLs (output)
 │   └── RimworldMLBridge.dll
 ├── Protos/                     # Protocol Buffer definitions
 │   └── mlbridge.proto
-├── Source/                     # C# source code
-│   ├── RimworldMLBridge.cs    # Main mod entry, gRPC server
-│   ├── GrpcService.cs         # gRPC service implementation
-│   ├── TickPatch.cs           # Harmony patches
-│   └── RimworldMLBridge.csproj
+├── RimworldMLBridge/           # C# source code
+│   ├── RimworldMLBridge.cs     # Main mod entry, TCP server init
+│   ├── TcpProtobufServer.cs    # TCP server implementation
+│   ├── TickPatch.cs            # Harmony patches
+│   ├── Constants.cs            # Configuration constants
+│   ├── Adapters/               # Protobuf message adapters
+│   ├── Services/               # Data extraction services
+│   └── DTOs/                   # Data transfer objects
 ├── python/                     # Python client
-│   ├── test_connection.py     # Example client
-│   ├── generate_proto.py      # Proto file generator
-│   ├── mlbridge_pb2.py        # Generated (excluded from git)
-│   └── mlbridge_pb2_grpc.py   # Generated (excluded from git)
-├── build.sh                    # Build script
-├── pyproject.toml             # Python package configuration
+│   ├── client/                 # SpectatorClient package
+│   │   ├── spectator_client.py # Triple-threaded TCP client
+│   │   └── config.py           # Client configuration
+│   ├── test_tcp_connection.py  # Connection test
+│   ├── test_hybrid_valve.py    # Dual-mode tests
+│   ├── generate_proto.py       # Proto file generator
+│   └── mlbridge_pb2.py         # Generated protobuf (gitignored)
+├── docs/                       # Documentation
+├── memory-bank/                # Project tracking
+├── pyproject.toml              # Python package configuration
 └── README.md                   # This file
 ```
 
@@ -233,14 +278,17 @@ RimworldMLBridge/
 
 **C# Dependencies (auto-installed via NuGet):**
 
-- `Grpc.Core` 2.46.6
 - `Google.Protobuf` 3.21.12
-- `Grpc.Tools` 2.46.6
+- `Grpc.Tools` 2.46.6 (for proto compilation only - no runtime dependency)
 
 **Python Dependencies:**
 
 ```bash
-pip install grpcio grpcio-tools protobuf
+# Using UV (recommended)
+uv sync
+
+# Or manually
+pip install protobuf
 ```
 
 ### Modifying the Protocol
@@ -335,14 +383,13 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ## 🤝 Contributing
 
-Contributions welcome! Current priorities (Phase IV):
+Contributions welcome! Current priorities (Phase VI):
 
-- [ ] Triple-threaded Python client (Listener/Inference/Actor)
-- [ ] Hierarchical policy implementation
-- [ ] Interrupt event handling
-- [ ] Action execution validation
+- [ ] Full action execution with validation
 - [ ] Real-world RL training examples
+- [ ] Gymnasium environment integration
 - [ ] Performance profiling and optimization
+- [ ] Enhanced error recovery mechanisms
 
 See [memory-bank/progress.md](memory-bank/progress.md) for current status.
 
@@ -367,7 +414,7 @@ uv run python python/test_automated_suite.py
 
 ---
 
-**Status:** ✅ Phases I-III Complete | ⏳ Phase IV Next (Triple-Threaded Client)
+**Status:** ✅ Phases I-V Complete | ⏳ Phase VI Next (Full Action Execution)
 
 **Test Status:** ![Build](https://github.com/jmduea/RimworldMLBridge/actions/workflows/build-and-test.yml/badge.svg)
 

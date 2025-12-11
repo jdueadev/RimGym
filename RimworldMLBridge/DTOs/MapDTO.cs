@@ -5,6 +5,7 @@ namespace RimworldMLBridge.DTOs
     /// <summary>
     /// Map data transfer object.
     /// Ported from RIMAPI - stripped of HTTP/JSON dependencies.
+    /// Phase V: Extended with terrain, buildings, items, zones, rooms
     /// </summary>
     public class MapDTO
     {
@@ -16,6 +17,53 @@ namespace RimworldMLBridge.DTOs
         public bool IsPocketMap { get; set; }
         public bool IsTempIncidentMap { get; set; }
         public string Size { get; set; }
+
+        // Phase V additions
+        public int SizeX { get; set; }
+        public int SizeY { get; set; }
+        public int SizeZ { get; set; }
+        public string Biome { get; set; }
+        public float AverageTemperature { get; set; }
+        public float AverageCleanliness { get; set; }
+        public int WildlifeCount { get; set; }
+        public int HostileCount { get; set; }
+        public int TotalItemCount { get; set; }
+
+        public List<TerrainCellDTO> TerrainCells { get; set; } = new List<TerrainCellDTO>();
+        public List<BuildingDTO> Buildings { get; set; } = new List<BuildingDTO>();
+        public List<ItemDTO> Items { get; set; } = new List<ItemDTO>();
+        public List<ZoneDTO> Zones { get; set; } = new List<ZoneDTO>();
+        public List<RoomDTO> Rooms { get; set; } = new List<RoomDTO>();
+    }
+
+    /// <summary>
+    /// Terrain cell data for map visualization.
+    /// </summary>
+    public class TerrainCellDTO
+    {
+        public int X { get; set; }
+        public int Y { get; set; }
+        public string Type { get; set; } // Enum as string: TERRAIN_SOIL, TERRAIN_WATER, etc.
+        public string DefName { get; set; }
+        public bool Walkable { get; set; }
+        public float Fertility { get; set; }
+        public float Beauty { get; set; }
+    }
+
+    /// <summary>
+    /// Item/Thing data for map.
+    /// </summary>
+    public class ItemDTO
+    {
+        public int ThingId { get; set; }
+        public string DefName { get; set; }
+        public string Label { get; set; }
+        public PositionDTO Position { get; set; }
+        public int StackCount { get; set; }
+        public float HitPoints { get; set; }
+        public int FactionId { get; set; }
+        public string Category { get; set; }
+        public bool Forbidden { get; set; }
     }
 
     /// <summary>
@@ -65,7 +113,11 @@ namespace RimworldMLBridge.DTOs
         public int CellsCount { get; set; }
         public string Label { get; set; }
         public string BaseLabel { get; set; }
-        public string Type { get; set; }
+        public string Type { get; set; } // ZONE_STOCKPILE, ZONE_GROWING, etc.
+        
+        // Phase V additions
+        public List<Vector3DTO> Cells { get; set; } = new List<Vector3DTO>();
+        public Dictionary<string, string> Settings { get; set; } = new Dictionary<string, string>();
     }
 
     /// <summary>
@@ -82,6 +134,15 @@ namespace RimworldMLBridge.DTOs
         public bool IsDoorway { get; set; }
         public int OpenRoofCount { get; set; }
         public List<int> ContainedBedsIds { get; set; } = new List<int>();
+
+        // Phase V additions
+        public int CellCount { get; set; }
+        public float Cleanliness { get; set; }
+        public float Beauty { get; set; }
+        public float Wealth { get; set; }
+        public float Space { get; set; }
+        public bool IsOutdoors { get; set; }
+        public List<int> BuildingIds { get; set; } = new List<int>();
     }
 
     /// <summary>
