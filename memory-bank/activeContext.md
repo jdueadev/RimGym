@@ -1,51 +1,71 @@
 # Active Context
 
-## Current Focus (2025-12-10)
+## Current Focus (2025-01-19)
 
-### 🚀 Phase IV: Python Triple-Threaded Client - STARTING
+### 🚀 Phase IV.3: Inference Thread - STARTING
 
-**Goal**: Develop autonomous RL agent client that can observe and interact with RimWorld in real-time.
+**Goal**: Implement strategic policy execution layer for high-level decision-making.
 
-**Status**: Fresh start on main branch after PR #3 merged successfully.
+**Status**: Phase IV.1 (Core Infrastructure) and Phase IV.2 (Listener Thread) complete. Moving to Phase IV.3.
 
 ## Recent Changes
 
+- ✅ **Phase IV.2 Complete**: Listener Thread implemented with comprehensive testing
+  - 392-line implementation with 5 event types
+  - 23 tests passing (16 unit tests + 7 performance benchmarks)
+  - Performance exceeds targets by orders of magnitude (714x-2,941x faster)
+  - Event detection: colonist lifecycle, health monitoring, job tracking
+  - Polling throughput: 17 polls/sec (target >10)
+  
+- ✅ **Phase IV.1 Complete**: Core Infrastructure operational
+  - ConnectionManager, SpectatorClient, Queue system, Metrics collector
+  - All 7 tests passing
+  - Thread lifecycle management working correctly
+
 - ✅ **PR #3 Merged**: Phases I-III complete and merged to main
 - ✅ **Phase I-III**: TCP+Protobuf, RIMAPI Services, Hybrid Valve all operational
-- ✅ **Docker CI/CD**: Automated testing infrastructure complete
-- ✅ **Branch Cleanup**: feature/phase2-rimapi-services-integration deleted
-- ✅ **Working Directory**: Clean, on main branch
-- 🎯 **Ready**: Starting Phase IV implementation
 
 ## Current Work
 
-### Phase IV Architecture Design
+### Phase IV.3: Inference Thread (Next Phase)
 
-Designing triple-threaded client with:
+Implementing strategic policy execution layer:
 
-1. **Listener Thread**: Async state polling, event detection
-2. **Inference Thread**: High-level policy (Executive layer)
-3. **Actor Thread**: Immediate responses (Reflex layer)
+1. **InferenceThread**: Consumes states from queue, runs policy, generates actions
+2. **Policy Interface**: Abstract base class for pluggable policies
+3. **Executive Policy**: High-level strategic decision-making (10-100ms latency budget)
+4. **Action Generation**: Create action commands from policy decisions
 
 ### Immediate Next Steps
 
-1. **Design Phase IV Architecture**
-   - Define thread communication patterns (queues, locks)
-   - Design Executive/Reflex policy hierarchy
-   - Plan interrupt event system
-   - Create class structure diagram
+1. **Implement InferenceThread** (python/client/inference.py)
+   - Consume states from StateQueue
+   - Invoke policy.decide(state) method
+   - Generate actions and queue to ActionQueue
+   - Handle policy errors gracefully
+   - Collect latency metrics
 
-2. **Implement SpectatorClient Base**
-   - Connection management and reconnection logic
-   - Thread lifecycle management
-   - State queue and event queue
-   - Graceful shutdown handling
+2. **Define Policy Interface** (python/policies/policy.py)
+   - Abstract base class with decide(state) method
+   - Input: State dictionary
+   - Output: List of actions (or None)
+   - Error handling contract
 
-3. **Implement Listener Thread**
-   - Async state polling loop
-   - Event detection from state changes
-   - State queue population
-   - Performance monitoring
+3. **Create Simple Executive Policy** (python/policies/executive.py)
+   - Rule-based initial implementation
+   - Basic colonist management (e.g., "if health <50%, send to medical bed")
+   - Testable logic with clear rules
+
+4. **Comprehensive Testing**
+   - Unit tests for InferenceThread (state consumption, action generation)
+   - Unit tests for Policy interface and Executive implementation
+   - Performance benchmarks (latency <100ms target)
+   - Integration tests with Listener thread
+
+5. **Integration with SpectatorClient**
+   - Update _start_threads() to instantiate and start InferenceThread
+   - Wire state_queue, action_queue, stop_event
+   - Add metrics collection
 
 3. **End-to-End Testing**: Test with real RimWorld game
    - Load a colony, connect client

@@ -106,7 +106,7 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
 - ✅ All edge cases handled (pause state, speed changes)
 - ✅ Ready for production use
 
-## Phase IV: Python Client 🔄 IN PROGRESS (16% Complete)
+## Phase IV: Python Client 🔄 IN PROGRESS (33% Complete)
 
 ### Phase IV Goals
 
@@ -143,18 +143,64 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
    - Tracks: throughput, latencies, queue health, connection status
 
 **Testing & Validation** ✅
+
 - Unit tests: test_connection.py (180 lines), test_queues.py (250 lines)
 - Component test: test_phase_iv1.py (155 lines)
 - **All 7 tests passing**: imports, queues, connection, metrics, config, client
 - Dependencies synced: protobuf==6.33.2, gymnasium==1.2.2, pytest==9.0.2
 
-### Phase IV Subtasks (1 of 6 Complete)
+### Phase IV.2: Listener Thread ✅ COMPLETE
+
+**Components Implemented**:
+
+1. **ListenerThread** (python/client/listener.py - 392 lines)
+   - Background polling thread extending `threading.Thread`
+   - Configurable poll interval (100ms default) for async mode
+   - State deserialization from protobuf StateMessage
+   - Event detection via state diffing between frames
+   - Health monitoring with configurable check interval (5s)
+   - Statistics tracking (poll_count, event_count, known_colonists)
+
+2. **EventDetectionConfig** (dataclass)
+   - Configurable thresholds: health_critical (0.2), health_warning (0.5), movement (0.5)
+   - Event type toggles (health_events, job_events)
+
+3. **Event Detection System** (5 event types):
+   - `colonist_joined` (MEDIUM): New colonist appears
+   - `colonist_missing` (HIGH): Known colonist disappears/dies
+   - `health_critical` (CRITICAL): Health <20%
+   - `health_warning` (HIGH): Health <50%
+   - `job_changed` (LOW): Current job changes
+
+**Testing & Validation** ✅
+
+- Unit tests (test_listener.py - 400+ lines): **16 passed, 1 skipped**
+  - EventDetectionConfig: 2 tests
+  - ListenerThread: 12 tests (parsing, event detection, stats)
+  - Integration: 3 tests (lifecycle, polling, real connection)
+
+- Performance benchmarks (test_listener_performance.py - 300+ lines): **7/7 passed**
+  - State parsing: 0.0017ms (target <5ms) - **2,941x faster**
+  - Event detection (small/3 colonists): 0.0014ms (target <1ms) - **714x faster**
+  - Event detection (medium/10): 0.0027ms (target <5ms) - **1,852x faster**
+  - Event detection (large/50): 0.0106ms (target <25ms) - **2,358x faster**
+  - Queue operations: 0.0007ms (target <0.1ms) - **143x faster**
+  - Memory efficiency: 6 GC collections/1000 (target <50) - **8.3x better**
+  - Polling throughput: 17 polls/sec (target >10) - **170% of target**
+
+**Performance Achievements**:
+- Event detection orders of magnitude faster than targets
+- Minimal GC pressure (6 collections in 1000 iterations)
+- Sub-millisecond queue operations
+- Polling throughput exceeds real-time requirements
+
+### Phase IV Subtasks (2 of 6 Complete)
 
 | Phase | Component | Status | Progress |
 |-------|-----------|--------|----------|
 | IV.1 | Core Infrastructure | ✅ Complete | 100% |
-| IV.2 | Listener Thread | ⏳ Next | 0% |
-| IV.3 | Inference Thread | Pending | 0% |
+| IV.2 | Listener Thread | ✅ Complete | 100% |
+| IV.3 | Inference Thread | ⏳ Next | 0% |
 | IV.4 | Actor Thread | Pending | 0% |
 | IV.5 | Gymnasium Wrapper | Pending | 0% |
 | IV.6 | Integration & Testing | Pending | 0% |
@@ -163,12 +209,13 @@ Implement dual-mode operation for training and inference. **ACHIEVED!**
 
 - ✅ **Phase I-III Complete**: Foundation ready, PR #3 merged
 - ✅ **Phase IV.1 Complete**: Core infrastructure implemented and tested
-- 🚀 **Next**: Phase IV.2 Listener Thread (state polling, event detection)
+- ✅ **Phase IV.2 Complete**: Listener thread with event detection (23 tests passing)
+- 🚀 **Next**: Phase IV.3 Inference Thread (strategic policy execution)
 - 📋 **Branch**: feature/phase4-python-client
 
 ### Phase IV Estimated Effort
 
-~3-4 weeks total (1 week complete)
+~3-4 weeks total (2 weeks complete)
 
 ## Known Issues
 

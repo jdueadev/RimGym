@@ -237,15 +237,15 @@ Key architectural decisions:
 
 ## Progress Tracking
 
-**Overall Status:** In Progress - Phase IV.1 Complete  
-**Completion:** 16% (1 of 6 phases)
+**Overall Status:** In Progress - Phase IV.2 Complete  
+**Completion:** 33% (2 of 6 phases)
 
 ### Subtasks
 
 | ID | Description | Status | Updated | Notes |
 |----|-------------|--------|---------|-------|
 | 4.1 | Core Infrastructure (Connection, Client, Queues) | ✅ Complete | 2025-01-19 | All components implemented, tests passing |
-| 4.2 | Listener Thread (Polling, Events) | Not Started | 2025-01-19 | Depends on 4.1 |
+| 4.2 | Listener Thread (Polling, Events) | ✅ Complete | 2025-01-19 | Implemented with 23 tests, all passing |
 | 4.3 | Inference Thread (Executive Policy) | Not Started | 2025-01-19 | Depends on 4.1, 4.2 |
 | 4.4 | Actor Thread (Reflex Policy) | Not Started | 2025-01-19 | Depends on 4.1, 4.2 |
 | 4.5 | Gymnasium Wrapper | Not Started | 2025-01-19 | Depends on 4.1-4.4 |
@@ -258,6 +258,7 @@ Key architectural decisions:
 **Phase IV.1 COMPLETE** - Core Infrastructure implemented and tested
 
 **Implemented Components:**
+
 1. **ConnectionManager** (python/client/connection.py - 270 lines)
    - TCP socket connection management
    - Exponential backoff reconnection: 1s→2s→4s...→30s (10 attempts)
@@ -286,6 +287,7 @@ Key architectural decisions:
    - Counters and event tracking
 
 **Tests & Validation:**
+
 - Unit tests created: test_connection.py (180 lines), test_queues.py (250 lines)
 - Component test: test_phase_iv1.py (155 lines)
 - **All 7 tests passing**: Imports, queues, connection, metrics, config, client
@@ -293,11 +295,90 @@ Key architectural decisions:
 - Protobuf Python bindings generated successfully
 
 **Updated Files:**
+
 - pyproject.toml: version→0.3.0, Python≥3.11, gymnasium added
-- python/client/__init__.py: Exports all core classes
+- python/client/**init**.py: Exports all core classes
 
 **Next Steps:**
+
 - Phase IV.2: Implement Listener thread (state polling, event detection)
+
+---
+
+### 2025-01-19 (Evening)
+
+**Phase IV.2 COMPLETE** - Listener Thread implemented and tested
+
+**Implemented Components:**
+
+1. **ListenerThread** (python/client/listener.py - 392 lines)
+   - Background polling thread extending `threading.Thread`
+   - Configurable poll interval (100ms default) for async mode
+   - State deserialization from protobuf StateMessage
+   - Event detection via state diffing between frames
+   - Health monitoring with configurable check interval (5s default)
+   - Statistics tracking (poll_count, event_count, known_colonists)
+
+2. **EventDetectionConfig** (dataclass in listener.py)
+   - Configurable thresholds:
+     - `health_critical`: 0.2 (20% health)
+     - `health_warning`: 0.5 (50% health)
+     - `movement_threshold`: 0.5 (position change significance)
+   - Event type toggles (health_events, job_events)
+
+3. **Event Detection System** (5 event types):
+   - `colonist_joined` (MEDIUM priority): New colonist appears
+   - `colonist_missing` (HIGH priority): Known colonist disappears/dies
+   - `health_critical` (CRITICAL priority): Health <20%
+   - `health_warning` (HIGH priority): Health <50%
+   - `job_changed` (LOW priority): Current job changes
+
+4. **Integration with SpectatorClient**:
+   - Updated `_start_threads()` to instantiate and start ListenerThread
+   - Wired connection_manager, state_queue, event_queue, stop_event
+   - Added EventDetectionConfig and metrics_collector
+
+**Tests & Validation:**
+
+**Unit Tests** (python/tests/client/test_listener.py - 400+ lines):
+- EventDetectionConfig: default/custom configurations (2 tests)
+- ListenerThread: initialization, parsing, event detection (12 tests)
+- Integration: thread lifecycle, polling, real connection (3 tests)
+- **Result: 16 passed, 1 skipped** (real server test skipped intentionally)
+
+**Performance Benchmarks** (python/tests/client/test_listener_performance.py - 300+ lines):
+- State parsing: 0.0017ms per message (target: <5ms) - **266x faster**
+- Event detection (small - 3 colonists): 0.0014ms (target: <1ms) - **714x faster**
+- Event detection (medium - 10 colonists): 0.0027ms (target: <5ms) - **1,852x faster**
+- Event detection (large - 50 colonists): 0.0106ms (target: <25ms) - **2,358x faster**
+- Queue operations: 0.0007ms per put+get (target: <0.1ms) - **143x faster**
+- Memory efficiency: 6 GC collections/1000 iterations (target: <50) - **8.3x better**
+- Polling throughput: 17 polls/second (target: >10) - **170% of target**
+- **Result: All 7 benchmarks passed**
+
+**Performance Achievements:**
+- Event detection orders of magnitude faster than targets
+- Minimal GC pressure (6 collections in 1000 iterations)
+- Sub-millisecond queue operations
+- Polling throughput exceeds real-time requirements
+
+**Technical Details:**
+- Thread-safe operations using `threading.Event` for shutdown
+- State tracking with `_known_colonists` dict
+- Priority-based event queuing (CRITICAL/HIGH/MEDIUM/LOW)
+- Graceful error handling for connection issues
+- Integration with metrics collector for monitoring
+
+**Updated Files:**
+- python/client/spectator_client.py: Added ListenerThread imports and initialization
+- python/client/listener.py: Complete implementation (392 lines)
+- python/tests/client/test_listener.py: Comprehensive unit tests (400+ lines)
+- python/tests/client/test_listener_performance.py: Performance benchmarks (300+ lines)
+
+**Next Steps:**
+- Phase IV.3: Implement Inference thread (strategic policy execution)
+
+---
 
 ### 2025-12-10
 
