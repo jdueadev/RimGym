@@ -16,7 +16,7 @@ def rimworld_server():
     try:
         with socket.create_connection(("localhost", 50051), timeout=2):
             return True
-    except (socket.timeout, ConnectionRefusedError):
+    except OSError:
         return False
 
 
