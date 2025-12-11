@@ -1,5 +1,5 @@
 site_name: RimGym
-site_description: RimGym - Experimental Distributed Reinforcement Learning Gymnasium Environment Wrapper for Ludeon Studio's RimWorld
+site_description: RimGym - RL Agent Client & Gymnasium Environment for RimWorld
 site_author: Jon Duea
 site_url: https://jmduea.github.io/RimGym/
 
@@ -68,6 +68,24 @@ nav:
 
 plugins:
   - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["src/RimGym/src"]
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            merge_init_into_class: true
+            filters: ["!^_"]
+
+not_in_nav: |
+  memory-bank/**
+  api/**
+
+exclude_docs: |
+  memory-bank/**
 
 markdown_extensions:
   - pymdownx.highlight:

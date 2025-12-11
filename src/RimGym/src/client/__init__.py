@@ -45,7 +45,6 @@ __all__ = [
     "EventDetectionConfig",
     "InferenceThread",
     "ActorThread",
-    # Phase V state models
     "RichGameState",
     "ColonistBasic",
     "MapState",
