@@ -1,6 +1,7 @@
 using HarmonyLib;
 using Verse;
 using System;
+using RimworldMLBridge.Services;
 
 namespace RimworldMLBridge
 {
@@ -11,10 +12,26 @@ namespace RimworldMLBridge
         public static bool ServerRunning = false;
         public static int Port = 50051;
 
+        // Phase III: Hybrid Valve - Execution mode control
+        public static bool TrainingMode = true;  // Default to training mode (synchronous)
+        public static bool StepPermitted = false; // In training mode, only advance when true
+        public static int TicksToRun = 0;        // Number of ticks to run in current step
+
         static MlBridgeMod()
         {
             Log.Message("[MLBridge] =================================");
             Log.Message("[MLBridge] Initializing ML Bridge with TCP+Protobuf...");
+
+            try
+            {
+                // Initialize ServiceRegistry for data extraction services
+                ServiceRegistry.Initialize();
+                Log.Message("[MLBridge] Service registry initialized");
+            }
+            catch (Exception e)
+            {
+                Log.Error("[MLBridge] ServiceRegistry initialization failed: " + e.Message);
+            }
 
             try
             {

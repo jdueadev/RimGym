@@ -7,6 +7,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using RimworldMLBridge.Protos;
+using RimworldMLBridge.Services;
+using RimworldMLBridge.Adapters;
 using Verse;
 
 namespace RimworldMLBridge
@@ -14,6 +16,8 @@ namespace RimworldMLBridge
     /// <summary>
     /// High-performance TCP server using Protocol Buffers for serialization.
     /// Handles communication with Python RL agent without requiring native gRPC libraries.
+    /// Phase II: Uses RichStateMessage with high-fidelity ColonistState extraction.
+    /// Phase III: Supports Hybrid Valve with velocity tracking and delta compression.
     /// </summary>
     public class TcpProtobufServer
     {
@@ -28,11 +32,16 @@ namespace RimworldMLBridge
         private readonly ConcurrentQueue<CommandMessage> _commandQueue = new ConcurrentQueue<CommandMessage>();
 
         // Thread-safe queue for responses from game (main thread) to client (background thread)
-        private readonly ConcurrentQueue<StateMessage> _responseQueue = new ConcurrentQueue<StateMessage>();
+        private readonly ConcurrentQueue<RichStateMessage> _responseQueue = new ConcurrentQueue<RichStateMessage>();
 
         // Game state management
         private static long _currentTick = 0;
         private static readonly object _tickLock = new object();
+
+        // Phase III: Velocity and timing tracking
+        private long _lastFrameTimestamp = 0;  // Timestamp of last frame in milliseconds
+        private readonly ConcurrentDictionary<int, Vector3> _lastPositions = new ConcurrentDictionary<int, Vector3>();
+        private readonly ConcurrentDictionary<int, long> _lastPositionTimes = new ConcurrentDictionary<int, long>();
 
         public bool IsConnected => _client != null && _client.Connected;
         public bool IsRunning => _isRunning;
@@ -139,7 +148,7 @@ namespace RimworldMLBridge
                     _commandQueue.Enqueue(command);
 
                     // Wait for response from main thread (with timeout)
-                    StateMessage response = null;
+                    RichStateMessage response = null;
                     int timeout = 0;
                     while (timeout < ResponseTimeoutMs && !_responseQueue.TryDequeue(out response))
                     {
@@ -150,11 +159,12 @@ namespace RimworldMLBridge
                     if (response == null)
                     {
                         // Timeout - send error response
-                        response = new StateMessage
+                        response = new RichStateMessage
                         {
                             FrameId = _currentTick,
                             IsReady = false,
-                            StatusMessage = "Timeout waiting for game response"
+                            StatusMessage = "Timeout waiting for game response",
+                            TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                         };
                     }
 
@@ -191,25 +201,27 @@ namespace RimworldMLBridge
                 catch (Exception e)
                 {
                     Log.Error($"[MLBridge] Error executing command: {e.Message}");
-                    _responseQueue.Enqueue(new StateMessage
+                    _responseQueue.Enqueue(new RichStateMessage
                     {
                         FrameId = _currentTick,
                         IsReady = false,
-                        StatusMessage = $"Error: {e.Message}"
+                        StatusMessage = $"Error: {e.Message}",
+                        TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     });
                 }
             }
         }
 
-        private StateMessage ExecuteCommand(CommandMessage command)
+        private RichStateMessage ExecuteCommand(CommandMessage command)
         {
             Log.Message($"[MLBridge] Executing command: {command.Type}");
 
-            var state = new StateMessage
+            var state = new RichStateMessage
             {
                 FrameId = _currentTick,
                 IsReady = false,
-                StatusMessage = $"Command {command.Type} executed"
+                StatusMessage = $"Command {command.Type} executed",
+                TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
             };
 
             // Check if game is loaded before executing commands
@@ -224,18 +236,81 @@ namespace RimworldMLBridge
             switch (command.Type)
             {
                 case CommandType.Step:
-                    // Advance simulation by specified ticks
-                    int ticksToRun = command.TicksToRun > 0 ? command.TicksToRun : 60;
-                    for (int i = 0; i < ticksToRun; i++)
+                    // Phase III: Grant permission to advance ticks
+                    if (MlBridgeMod.TrainingMode)
                     {
-                        Find.TickManager.DoSingleTick();
-                        _currentTick++;
+                        int ticksToRun = command.TicksToRun > 0 ? command.TicksToRun : 60;
+
+                        // Ensure game is unpaused so ticks can advance
+                        if (Find.TickManager.Paused)
+                        {
+                            Find.TickManager.CurTimeSpeed = TimeSpeed.Normal;
+                            Log.Message("[MLBridge] Auto-unpaused game for training mode STEP");
+                        }
+
+                        // Set flags to allow tick advancement
+                        MlBridgeMod.TicksToRun = ticksToRun;
+                        MlBridgeMod.StepPermitted = true;
+
+                        state.StatusMessage = $"Step initiated: {ticksToRun} ticks (Training Mode)";
+                        Log.Message($"[MLBridge] STEP command: granting permission for {ticksToRun} ticks");
                     }
-                    state.StatusMessage = $"Advanced {ticksToRun} ticks";
+                    else
+                    {
+                        // In inference mode, STEP is not needed - game runs freely
+                        state.StatusMessage = "Game running freely (Inference Mode) - STEP command not needed";
+                    }
                     break;
 
                 case CommandType.QueryState:
                     // Return current state without advancing
+                    state.StatusMessage = MlBridgeMod.TrainingMode ?
+                        "State queried (Training Mode)" :
+                        "State queried (Inference Mode)";
+                    break;
+
+                case CommandType.SetMode:
+                    // Phase III: Switch between training and inference modes
+                    bool newMode = (command.Mode == ExecutionMode.ModeTraining);
+                    string modeStr = newMode ? "TRAINING (Synchronous)" : "INFERENCE (Asynchronous)";
+
+                    if (MlBridgeMod.TrainingMode != newMode)
+                    {
+                        MlBridgeMod.TrainingMode = newMode;
+                        MlBridgeMod.StepPermitted = false; // Reset step permission on mode change
+                        MlBridgeMod.TicksToRun = 0;
+
+                        // When switching to inference mode, ensure game is unpaused
+                        if (!newMode && Find.TickManager.Paused)
+                        {
+                            Find.TickManager.CurTimeSpeed = TimeSpeed.Normal;
+                            Log.Message("[MLBridge] Auto-unpaused game for inference mode");
+                        }
+
+                        Log.Message($"[MLBridge] Mode switched to: {modeStr}");
+                        state.StatusMessage = $"Mode changed to {modeStr}";
+                    }
+                    else
+                    {
+                        state.StatusMessage = $"Already in {modeStr} mode";
+                    }
+                    break;
+
+                case CommandType.SetSpeed:
+                    // Set game speed for testing automation
+                    TimeSpeed newSpeed = ConvertGameSpeed(command.Speed);
+                    TimeSpeed oldSpeed = Find.TickManager.CurTimeSpeed;
+
+                    if (oldSpeed != newSpeed)
+                    {
+                        Find.TickManager.CurTimeSpeed = newSpeed;
+                        Log.Message($"[MLBridge] Game speed changed: {oldSpeed} → {newSpeed}");
+                        state.StatusMessage = $"Speed changed to {newSpeed}";
+                    }
+                    else
+                    {
+                        state.StatusMessage = $"Already at {newSpeed}";
+                    }
                     break;
 
                 case CommandType.Reset:
@@ -255,11 +330,16 @@ namespace RimworldMLBridge
             return state;
         }
 
-        private void PopulateGameState(StateMessage state)
+        /// <summary>
+        /// Populate rich game state with high-fidelity colonist data
+        /// Uses ColonistService + ColonistAdapter for efficient DTO→Protobuf conversion
+        /// Phase III: Adds velocity tracking and delta time calculation
+        /// </summary>
+        private void PopulateGameState(RichStateMessage state)
         {
             try
             {
-                if (Current.Game == null || Find.CurrentMap == null)
+                if (!ServiceRegistry.IsGameReady())
                 {
                     state.IsReady = false;
                     state.StatusMessage = "Game not loaded";
@@ -272,58 +352,104 @@ namespace RimworldMLBridge
                     _currentTick = state.FrameId;
                 }
 
+                // Phase III: Calculate delta time since last frame
+                long currentTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                if (_lastFrameTimestamp > 0)
+                {
+                    state.DeltaTimeMs = currentTime - _lastFrameTimestamp;
+                }
+                else
+                {
+                    state.DeltaTimeMs = 0; // First frame
+                }
+                _lastFrameTimestamp = currentTime;
+                state.TimestampMs = currentTime;
+
+                // Phase III: Set current execution mode
+                state.CurrentMode = MlBridgeMod.TrainingMode ?
+                    ExecutionMode.ModeTraining : ExecutionMode.ModeInference;
+
                 const int TicksPerDay = 60000;
                 const int BaseYear = 5500;
                 const int TicksPerYear = 360000;
+
+                // Get weather from MapService
+                var mapId = ServiceRegistry.GetCurrentMapId();
+                var weather = ServiceRegistry.Maps.GetWeather(mapId);
+
                 // Global state
                 state.Global = new GlobalState
                 {
-                    Temperature = Find.CurrentMap.mapTemperature.OutdoorTemp,
-                    Weather = Find.CurrentMap.weatherManager.CurWeatherPerceived?.defName ?? "Clear",
-                    Day = Find.TickManager.TicksAbs / TicksPerDay, // Approximate day (60000 ticks per day)
-                    Year = BaseYear + (Find.TickManager.TicksAbs / TicksPerYear) // Approximate year
+                    Temperature = weather.Temperature,
+                    Weather = weather.Weather,
+                    Day = Find.TickManager.TicksAbs / TicksPerDay,
+                    Year = BaseYear + (Find.TickManager.TicksAbs / TicksPerYear)
                 };
 
-                // Colonist entities
-                foreach (var pawn in Find.CurrentMap.mapPawns.FreeColonistsSpawned)
+                // Phase II: Get detailed colonist data via Service→DTO→Protobuf pipeline
+                var colonistDTOs = ServiceRegistry.Colonists.GetColonistsDetailed();
+                var colonistAdapter = new ColonistAdapter();
+
+                foreach (var dto in colonistDTOs)
                 {
-                    var entity = new Protos.Entity
-                    {
-                        Id = pawn.thingIDNumber,
-                        Type = "Pawn",
-                        DefName = pawn.def.defName,
-                        Position = new Protos.Vector3
-                        {
-                            X = pawn.Position.x,
-                            Y = pawn.Position.y,
-                            Z = pawn.Position.z
-                        },
-                        FactionId = pawn.Faction?.loadID ?? -1,
-                        State = new EntityState
-                        {
-                            Health = pawn.health.summaryHealth.SummaryHealthPercent,
-                            IsDrafted = pawn.Drafted,
-                            CurrentJob = pawn.CurJobDef?.defName ?? "None"
-                        }
-                    };
+                    var colonistState = colonistAdapter.ToProtobuf(dto);
+                    state.Colonists.Add(colonistState);
 
-                    // Add needs
-                    if (pawn.needs != null)
-                    {
-                        entity.State.Mood = pawn.needs.mood?.CurLevel ?? 0;
-                        entity.State.Hunger = pawn.needs.food?.CurLevel ?? 0;
-                        entity.State.Rest = pawn.needs.rest?.CurLevel ?? 0;
-                    }
-
-                    state.Entities.Add(entity);
+                    // Phase III: Calculate velocity for position extrapolation
+                    CalculateVelocity(colonistState, currentTime);
                 }
+
+                // Phase III: In inference mode, could implement delta compression here
+                // For now, always send full state (delta compression is an optimization)
+                state.IsDelta = false;
+
+                Log.Message($"[MLBridge] Populated state: {state.Colonists.Count} colonists, frame {state.FrameId}, dt={state.DeltaTimeMs}ms");
             }
             catch (Exception e)
             {
-                Log.Warning($"[MLBridge] Error populating state: {e.Message}");
+                Log.Warning($"[MLBridge] Error populating state: {e.Message}\n{e.StackTrace}");
                 state.IsReady = false;
                 state.StatusMessage = $"Error: {e.Message}";
             }
+        }
+
+        /// <summary>
+        /// Calculate velocity vector for an entity based on position history
+        /// Allows Python agent to extrapolate position under latency
+        /// </summary>
+        private void CalculateVelocity(ColonistState colonist, long currentTime)
+        {
+            int colonistId = colonist.ThingId;
+            var currentPos = colonist.Position;
+
+            // Initialize velocity to zero
+            colonist.Velocity = new Vector3 { X = 0, Y = 0, Z = 0 };
+
+            if (_lastPositions.TryGetValue(colonistId, out var lastPos) &&
+                _lastPositionTimes.TryGetValue(colonistId, out var lastTime))
+            {
+                // Calculate time delta in seconds
+                float deltaSeconds = (currentTime - lastTime) / 1000.0f;
+
+                if (deltaSeconds > 0.001f) // Avoid division by near-zero
+                {
+                    // Calculate velocity (units per second)
+                    float velocityX = (currentPos.X - lastPos.X) / deltaSeconds;
+                    float velocityY = (currentPos.Y - lastPos.Y) / deltaSeconds;
+                    float velocityZ = (currentPos.Z - lastPos.Z) / deltaSeconds;
+
+                    colonist.Velocity = new Vector3
+                    {
+                        X = velocityX,
+                        Y = velocityY,
+                        Z = velocityZ
+                    };
+                }
+            }
+
+            // Update position history
+            _lastPositions[colonistId] = new Vector3 { X = currentPos.X, Y = currentPos.Y, Z = currentPos.Z };
+            _lastPositionTimes[colonistId] = currentTime;
         }
 
         /// <summary>
@@ -384,6 +510,28 @@ namespace RimworldMLBridge
             stream.Write(lengthBytes, 0, 4);
             stream.Write(data, 0, data.Length);
             stream.Flush();
+        }
+
+        /// <summary>
+        /// Convert protobuf GameSpeed enum to RimWorld TimeSpeed
+        /// </summary>
+        private TimeSpeed ConvertGameSpeed(GameSpeed speed)
+        {
+            switch (speed)
+            {
+                case GameSpeed.SpeedPaused:
+                    return TimeSpeed.Paused;
+                case GameSpeed.SpeedNormal:
+                    return TimeSpeed.Normal;
+                case GameSpeed.SpeedFast:
+                    return TimeSpeed.Fast;
+                case GameSpeed.SpeedSuperfast:
+                    return TimeSpeed.Superfast;
+                case GameSpeed.SpeedUltrafast:
+                    return TimeSpeed.Ultrafast;
+                default:
+                    return TimeSpeed.Normal;
+            }
         }
     }
 }

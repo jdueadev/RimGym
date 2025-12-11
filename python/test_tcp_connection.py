@@ -63,21 +63,21 @@ class MLBridgeClient:
         return data
 
     def query_state(self):
-        """Query the current game state"""
+        """Query the current game state (Phase II: returns RichStateMessage)"""
         command = mlbridge_pb2.CommandMessage()
         command.type = mlbridge_pb2.CommandType.QUERY_STATE
 
         self._send_message(command)
-        return self._receive_message(mlbridge_pb2.StateMessage)
+        return self._receive_message(mlbridge_pb2.RichStateMessage)
 
     def step(self, ticks=60):
-        """Advance the game by a number of ticks and get the new state"""
+        """Advance the game by a number of ticks and get the new state (Phase II: returns RichStateMessage)"""
         command = mlbridge_pb2.CommandMessage()
         command.type = mlbridge_pb2.CommandType.STEP
         command.ticks_to_run = ticks
 
         self._send_message(command)
-        return self._receive_message(mlbridge_pb2.StateMessage)
+        return self._receive_message(mlbridge_pb2.RichStateMessage)
 
     def reset(self):
         """Reset the game (not yet implemented in C#)"""
@@ -85,7 +85,7 @@ class MLBridgeClient:
         command.type = mlbridge_pb2.CommandType.RESET
 
         self._send_message(command)
-        return self._receive_message(mlbridge_pb2.StateMessage)
+        return self._receive_message(mlbridge_pb2.RichStateMessage)
 
 
 def main():
@@ -99,6 +99,7 @@ def main():
         print("\n1. Querying initial state...")
         state = client.query_state()
         print(f"   Frame ID: {state.frame_id}")
+        print(f"   Timestamp: {state.timestamp_ms}ms")
         print(f"   Is Ready: {state.is_ready}")
         print(f"   Status: {state.status_message}")
 
@@ -110,15 +111,57 @@ def main():
                 print(f"   Weather: {global_state.weather}")
                 print(f"   Day: {global_state.day}, Year: {global_state.year}")
 
-            print(f"   Colonists: {len(state.entities)}")
+            print(f"\n   Colonists: {len(state.colonists)}")
 
-            for entity in state.entities:
-                print(f"     - {entity.def_name} (ID: {entity.id})")
+            # Display rich colonist data (Phase II)
+            for colonist in state.colonists:
+                print(f"\n     === {colonist.name} (ID: {colonist.thing_id}) ===")
                 print(
-                    f"       Position: ({entity.position.x}, {entity.position.y}, {entity.position.z})"
+                    f"       Position: ({colonist.position.x:.1f}, {colonist.position.y:.1f}, {colonist.position.z:.1f})"
                 )
-                print(f"       Health: {entity.state.health:.1%}")
-                print(f"       Job: {entity.state.current_job}")
+                print(
+                    f"       Health: {colonist.health_percent:.1%}, Mood: {colonist.mood_percent:.1%}"
+                )
+                print(
+                    f"       Drafted: {colonist.is_drafted}, Downed: {colonist.is_downed}"
+                )
+
+                # Display current job
+                if colonist.HasField("current_job"):
+                    print(f"       Job: {colonist.current_job.def_name}")
+
+                # Display skills (top 3 by level)
+                if colonist.skills:
+                    top_skills = sorted(
+                        colonist.skills, key=lambda s: s.level, reverse=True
+                    )[:3]
+                    print("       Top Skills:")
+                    for skill in top_skills:
+                        passion_str = ""
+                        if skill.passion == mlbridge_pb2.Passion.PASSION_MINOR:
+                            passion_str = " +"
+                        elif skill.passion == mlbridge_pb2.Passion.PASSION_MAJOR:
+                            passion_str = " ++"
+                        print(
+                            f"         • {skill.def_name}: {skill.level}{passion_str}"
+                        )
+
+                # Display needs
+                if colonist.needs:
+                    print("       Needs:")
+                    for need in colonist.needs:
+                        if need.cur_level > 0:  # Only show needs with values
+                            print(f"         • {need.def_name}: {need.cur_level:.1%}")
+
+                # Display health capacities
+                if colonist.capacities:
+                    critical_caps = [
+                        c for c in colonist.capacities if c.efficiency < 1.0
+                    ]
+                    if critical_caps:
+                        print("       Health Issues:")
+                        for cap in critical_caps:
+                            print(f"         • {cap.label}: {cap.efficiency:.1%}")
 
         print("\n2. Stepping simulation forward 60 ticks...")
         state = client.step(60)
