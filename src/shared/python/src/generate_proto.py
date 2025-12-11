@@ -1,8 +1,7 @@
 # /// script
 # dependencies = [
-#   "subprocess",
-#   "sys",
-#   "pathlib",
+#   "grpcio-tools",
+#   "protobuf",
 # ]
 # ///
 
@@ -18,7 +17,8 @@ from pathlib import Path
 def main():
     # Get the project root directory
     script_dir = Path(__file__).parent
-    proto_dir = script_dir.parent / "Protos"
+    # Navigate up from src/shared/python/src to src/shared/Protos
+    proto_dir = script_dir.parent.parent / "Protos"
     proto_file = proto_dir / "rimgym.proto"
 
     if not proto_file.exists():
@@ -35,7 +35,6 @@ def main():
         "grpc_tools.protoc",
         f"-I{proto_dir}",
         f"--python_out={script_dir}",
-        f"--grpc_python_out={script_dir}",
         str(proto_file),
     ]
 
@@ -48,8 +47,7 @@ def main():
         sys.exit(1)
 
     print("Successfully generated:")
-    print(f"  - {script_dir / 'mlbridge_pb2.py'}")
-    print(f"  - {script_dir / 'mlbridge_pb2_grpc.py'}")
+    print(f"  - {script_dir / 'rimgym_pb2.py'}")
 
 
 if __name__ == "__main__":

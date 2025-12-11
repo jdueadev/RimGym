@@ -6,7 +6,7 @@ Replaces gRPC with a simple TCP socket using Protocol Buffers for serialization.
 import socket
 import struct
 
-import shared.python.src.mlbridge_pb2 as mlbridge_pb2
+import shared.python.src.rimgym_pb2 as rimgym_pb2
 
 
 class MLBridgeClient:
@@ -64,28 +64,28 @@ class MLBridgeClient:
 
     def query_state(self):
         """Query the current game state (Phase II: returns RichStateMessage)"""
-        command = mlbridge_pb2.CommandMessage()
-        command.type = mlbridge_pb2.CommandType.QUERY_STATE
+        command = rimgym_pb2.CommandMessage()
+        command.type = rimgym_pb2.CommandType.QUERY_STATE
 
         self._send_message(command)
-        return self._receive_message(mlbridge_pb2.RichStateMessage)
+        return self._receive_message(rimgym_pb2.RichStateMessage)
 
     def step(self, ticks=60):
         """Advance the game by a number of ticks and get the new state (Phase II: returns RichStateMessage)"""
-        command = mlbridge_pb2.CommandMessage()
-        command.type = mlbridge_pb2.CommandType.STEP
+        command = rimgym_pb2.CommandMessage()
+        command.type = rimgym_pb2.CommandType.STEP
         command.ticks_to_run = ticks
 
         self._send_message(command)
-        return self._receive_message(mlbridge_pb2.RichStateMessage)
+        return self._receive_message(rimgym_pb2.RichStateMessage)
 
     def reset(self):
         """Reset the game (not yet implemented in C#)"""
-        command = mlbridge_pb2.CommandMessage()
-        command.type = mlbridge_pb2.CommandType.RESET
+        command = rimgym_pb2.CommandMessage()
+        command.type = rimgym_pb2.CommandType.RESET
 
         self._send_message(command)
-        return self._receive_message(mlbridge_pb2.RichStateMessage)
+        return self._receive_message(rimgym_pb2.RichStateMessage)
 
 
 def main():
@@ -138,9 +138,9 @@ def main():
                     print("       Top Skills:")
                     for skill in top_skills:
                         passion_str = ""
-                        if skill.passion == mlbridge_pb2.Passion.PASSION_MINOR:
-                            passion_str = " +"
-                        elif skill.passion == mlbridge_pb2.Passion.PASSION_MAJOR:
+                        if skill.passion == rimgym_pb2.Passion.PASSION_MINOR:
+                            passion_str = "*"
+                        elif skill.passion == rimgym_pb2.Passion.PASSION_MAJOR:
                             passion_str = " ++"
                         print(
                             f"         • {skill.def_name}: {skill.level}{passion_str}"

@@ -26,7 +26,7 @@ The architecture described herein does not aim to mimic human mouse movements (w
 
 ### **1.3 Technical Constraints and Opportunities**
 
-The primary constraint is the technical architecture of *RimWorld* itself. Built on the Unity Engine (version 2019/2020 era), it relies heavily on a main-thread loop for all logic and data manipulation. Accessing game state from external processes (like a Python training loop) requires a custom IPC (Inter-Process Communication) bridge. While projects like RIMAPI 7 provide REST endpoints, their HTTP-based nature is insufficient for the high-frequency (\~1000 TPS) throughput required for RL. Project Aether mandates a custom, high-performance TCP socket layer injected directly into the game assembly via Harmony patching.
+The primary constraint is the technical architecture of *RimWorld* itself. Built on the Unity Engine (version 2019/2020 era), it relies heavily on a main-thread loop for all logic and data manipulation. Accessing game state from external processes (like a Python training loop) requires a custom IPC (Inter-Process Communication) bridge. While projects like RIMAPI 7 provide REST endpoints, their HTTP-based nature is insufficient for the high-frequency (\~1000 TPS) throughput required for RL. Project Aether mandates a custom, high-performance TCP socket layer injected directly into the game assembly via Harmony patching (RimTCP).
 
 ## ---
 

@@ -27,7 +27,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import shared.python.src.mlbridge_pb2 as mlbridge_pb2
+import shared.python.src.rimgym_pb2 as rimgym_pb2
 
 
 class AutomatedTestClient:
@@ -78,7 +78,7 @@ class AutomatedTestClient:
 
         # Receive message
         response_data = self._recv_exactly(length)
-        response = mlbridge_pb2.RichStateMessage()
+        response = rimgym_pb2.RichStateMessage()
         response.ParseFromString(response_data)
 
         return response
@@ -95,7 +95,7 @@ class AutomatedTestClient:
 
     def set_mode(self, mode):
         """Set execution mode"""
-        cmd = mlbridge_pb2.CommandMessage(type=mlbridge_pb2.SET_MODE, mode=mode)
+        cmd = rimgym_pb2.CommandMessage(type=rimgym_pb2.SET_MODE, mode=mode)
         response = self.send_command(cmd)
         return response
 

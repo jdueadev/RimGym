@@ -1,7 +1,7 @@
 [project]
-name = "rimworldmlbridge"
+name = "rimgym"
 version = "0.5.0"
-description = "RimWorld ML Bridge - Autonomous RL Agent Client (TCP + Protobuf)"
+description = "RimGym - Autonomous RL Agent Client & Environment for RimWorld"
 requires-python = ">=3.11"
 dependencies = [
     "protobuf>=4.24.0",

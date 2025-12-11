@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 try:
-    import shared.python.src.mlbridge_pb2 as pb
+    import shared.python.src.rimgym_pb2 as pb
 except ImportError:
     print("Error: mlbridge_pb2.py not found. Run generate_proto.py first:")
     print("  uv run python generate_proto.py")
