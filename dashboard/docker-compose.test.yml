@@ -1,0 +1,159 @@
+version: '3.8'
+
+# Test compose file for dashboard with mock RimWorld instance
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: dashboard-redis-test
+    ports:
+      - "6380:6379"
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    networks:
+      - test-network
+
+  dashboard-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dashboard-backend-test
+    ports:
+      - "8001:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - SQLITE_PATH=/data/test_dashboard.db
+      - POLL_INTERVAL_MS=100
+      - WEBSOCKET_UPDATE_HZ=2
+      - MAX_CONCURRENT_RUNS=3
+      - ENABLE_AUTO_DISCOVERY=false
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - test-data:/data
+      - ../python:/python:ro
+    networks:
+      - test-network
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  dashboard-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dashboard-frontend-test
+    ports:
+      - "3001:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8001
+    depends_on:
+      - dashboard-backend
+    networks:
+      - test-network
+
+  # Mock RimWorld instance for testing
+  mock-rimworld:
+    image: python:3.11-slim
+    container_name: mock-rimworld-test
+    ports:
+      - "50051:50051"
+    volumes:
+      - ../python:/app:ro
+    working_dir: /app
+    command: |
+      sh -c "
+        pip install --quiet protobuf &&
+        python -c '
+import socket
+import time
+import struct
+from mlbridge_pb2 import StateMessage, Entity
+
+def serve():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    sock.bind((\"0.0.0.0\", 50051))
+    sock.listen(1)
+    print(\"Mock RimWorld listening on port 50051\")
+    
+    while True:
+        conn, addr = sock.accept()
+        print(f\"Connection from {addr}\")
+        
+        try:
+            while True:
+                # Read request
+                data = conn.recv(1024)
+                if not data:
+                    break
+                
+                # Create mock state
+                state = StateMessage()
+                state.frame_id = int(time.time() * 60) % 10000
+                
+                # Add mock colonist
+                colonist = state.entities.add()
+                colonist.thing_id = 101
+                colonist.name = \"TestColonist\"
+                colonist.health = 0.95
+                colonist.mood = 0.72
+                colonist.current_job = \"Testing\"
+                colonist.x = 125.0
+                colonist.y = 0.0
+                colonist.z = 88.0
+                
+                # Serialize
+                msg_bytes = state.SerializeToString()
+                length = struct.pack(\">I\", len(msg_bytes))
+                
+                # Send response
+                conn.sendall(length + msg_bytes)
+                time.sleep(0.1)  # 10Hz
+        except Exception as e:
+            print(f\"Error: {e}\")
+        finally:
+            conn.close()
+
+serve()
+        '
+      "
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import socket; s=socket.socket(); s.connect((\"localhost\", 50051)); s.close()'"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  test-data:
+    driver: local
+
+networks:
+  test-network:
+    driver: bridge
+
+# Usage:
+# docker-compose -f docker-compose.test.yml up
+# Access dashboard at http://localhost:3001
+# API at http://localhost:8001
+# 
+# Register mock run:
+# curl -X POST http://localhost:8001/api/v1/runs \
+#   -H "Content-Type: application/json" \
+#   -d '{
+#     "run_id": "test_run_001",
+#     "name": "Mock Test Run",
+#     "algorithm": "PPO",
+#     "scenario": "test",
+#     "status": "pending",
+#     "host": "mock-rimworld",
+#     "port": 50051,
+#     "started_at": '$(date +%s)',
+#     "config": {}
+#   }'
