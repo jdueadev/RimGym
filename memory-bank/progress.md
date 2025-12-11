@@ -724,14 +724,35 @@ Created `plan/infrastructure-rimworld-stability-1.md` with 41 tasks across 6 pha
 
 ## Recent Milestones
 
-- **2025-01-XX**: Phase IV.7 stability implementation started - 17/41 tasks complete
+- **2025-12-11**: Codebase Refactoring Phase 4/9 complete - Documentation consolidated
+- **2025-12-11**: Phase V Production Hardening complete - CI/CD, docs, packaging
+- **2025-12-10**: Phase V Option C RIMAPI Full Integration complete
 - **2025-12-10**: Workspace organization improvements implemented
-- **2025-12-XX**: Phase I completed - TCP server operational
-- **2025-XX-XX**: Native DLL issue resolved
-- **2025-XX-XX**: Project initiated
+- **2025-XX-XX**: Phase IV Python Client complete
+- **2025-XX-XX**: Phase III Hybrid Valve complete
+- **2025-XX-XX**: Phase II RIMAPI Services complete
+- **2025-XX-XX**: Phase I TCP+Protobuf Foundation complete
+
+## Codebase Refactoring (2025-12-11)
+
+**Plan**: `plan/refactor-codebase-cleanup-1.md` (60 tasks, 9 phases)
+
+**Progress**: 28/60 tasks complete (47%)
+
+| Phase | Description | Status | Tasks |
+|-------|-------------|--------|-------|
+| 1 | Legacy Removal | ✅ Complete | 6/6 |
+| 2 | Placeholder Updates | ✅ Complete | 6/6 |
+| 3 | TODO Resolution | ✅ Complete | 8/8 |
+| 4 | Documentation Consolidation | ✅ Complete | 8/8 |
+| 5 | Memory Bank Sync | 🔄 In Progress | 0/4 |
+| 6 | Code Style & Type Hints | ⏳ Pending | 0/8 |
+| 7 | Test Cleanup | ⏳ Pending | 0/6 |
+| 8 | CI/CD Improvements | ⏳ Pending | 0/6 |
+| 9 | Final Validation | ⏳ Pending | 0/6 |
 
 ## Next Milestones
 
-- **2025-01-XX** (Target): Complete Phase IV.7 (24 remaining tasks)
-- **2025-01-XX** (Target): All 16 integration tests passing
-- **2025-01-XX** (Target): GitHub Actions CI/CD pipeline
+- **2025-12-11** (Target): Complete Codebase Refactoring (32 remaining tasks)
+- **2025-12-XX** (Target): Create PR for main branch merge
+- **2025-XX-XX** (Target): Public release v1.0.0

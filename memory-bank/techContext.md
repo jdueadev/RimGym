@@ -7,17 +7,17 @@
 - **Framework**: .NET Framework 4.8 (RimWorld compatibility)
 - **Language Version**: C# 7.3
 - **IDE**: Visual Studio 2019+ or Rider
+- **Version**: 0.5.0
+- **Harmony ID**: `com.jmduea.rimworldmlbridge`
 
 ### Key Dependencies
 
 ```xml
 <PackageReference Include="Google.Protobuf" Version="3.21.12" />
-<PackageReference Include="Grpc.Core" Version="2.46.6" ExcludeAssets="native" />
-<PackageReference Include="Grpc.Core.Api" Version="2.46.6" />
 <PackageReference Include="Grpc.Tools" Version="2.46.6" PrivateAssets="All" />
 ```
 
-**Critical**: `ExcludeAssets="native"` on Grpc.Core prevents native DLL inclusion!
+**Note**: Grpc.Core is NOT used at runtime - only Grpc.Tools for proto compilation.
 
 ### RimWorld References
 
@@ -35,14 +35,16 @@
 
 ### Python
 
-- **Version**: 3.8+
-- **Dependencies**: `protobuf` (NOT grpcio anymore!)
+- **Version**: 3.11+ recommended (3.8+ minimum)
+- **Package Manager**: UV (recommended) or pip
+- **Version**: 0.5.0
+- **Dependencies**: `protobuf` (NOT grpcio - we use raw TCP)
 
 ### Protocol Buffers
 
 - **Schema**: `Protos/mlbridge.proto`
 - **C# Generation**: Auto via Grpc.Tools during build
-- **Python Generation**: Manual via `python/generate_proto.py`
+- **Python Generation**: `uv run python python/generate_proto.py`
 
 ## Development Setup
 
@@ -66,8 +68,15 @@ $env:HARMONY_PATH="$env:WORKSHOP_PATH\2009463077\Current\Assemblies"
 # Full build
 dotnet build RimworldMLBridge.sln -c Release
 
+# Python environment setup
+uv sync
+
 # Python protobuf generation
-cd python && python generate_proto.py
+uv run python python/generate_proto.py
+
+# Run tests
+dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj
+uv run pytest python/tests/
 
 # Verification
 ./verify_build.sh  # Checks for native DLLs
@@ -75,7 +84,7 @@ cd python && python generate_proto.py
 
 ### Output Structure
 
-```
+```text
 1.6/Assemblies/
 ├── RimworldMLBridge.dll       # ✅ Main mod
 ├── Google.Protobuf.dll        # ✅ Managed
