@@ -1669,7 +1669,7 @@ wheels = [
 ]
 
 [[package]]
-name = "rimworldmlbridge"
+name = "rimgym"
 version = "0.5.0"
 source = { editable = "." }
 dependencies = [
