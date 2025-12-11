@@ -36,7 +36,7 @@ namespace RimworldMLBridge
             try
             {
                 // Apply Harmony patches
-                var harmony = new Harmony("com.yourname.rimworldmlbridge");
+                var harmony = new Harmony("com.jmduea.rimworldmlbridge");
                 harmony.PatchAll();
                 Log.Message("[MLBridge] Harmony patches applied successfully");
             }

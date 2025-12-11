@@ -65,4 +65,4 @@ __all__ = [
     "parse_rich_state_message",
 ]
 
-__version__ = "0.3.0"
+__version__ = "0.5.0"

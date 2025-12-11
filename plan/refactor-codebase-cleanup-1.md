@@ -111,12 +111,12 @@ This implementation plan provides a comprehensive roadmap for refactoring the Ri
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-007 | Update Harmony ID in `RimworldMLBridge.cs` from `"com.yourname.rimworldmlbridge"` to `"com.jmduea.rimworldmlbridge"` | | |
-| TASK-008 | Update `docs/guides/steam-workshop-upload.md` author placeholder from `YourName` to actual author | | |
-| TASK-009 | Update `.github/copilot-instructions.md` Harmony ID reference to match actual value | | |
-| TASK-010 | Create `Constants.cs` file with port number (50051), heartbeat interval (30s), max errors (10) | | |
-| TASK-011 | Create Python `config.py` with default host/port/timeout constants | | |
-| TASK-012 | Standardize version number across `pyproject.toml`, `About.xml`, `client/__init__.py` to 0.5.0 | | |
+| TASK-007 | Update Harmony ID in `RimworldMLBridge.cs` from `"com.yourname.rimworldmlbridge"` to `"com.jmduea.rimworldmlbridge"` | ✅ | 2025-12-11 |
+| TASK-008 | Update `docs/guides/steam-workshop-upload.md` author placeholder from `YourName` to actual author | ✅ | 2025-12-11 |
+| TASK-009 | Update `.github/copilot-instructions.md` Harmony ID reference to match actual value | ✅ | 2025-12-11 |
+| TASK-010 | Create `Constants.cs` file with port number (50051), heartbeat interval (30s), max errors (10) | ✅ | 2025-12-11 |
+| TASK-011 | Create Python `config.py` with default host/port/timeout constants | ✅ | 2025-12-11 |
+| TASK-012 | Standardize version number across `pyproject.toml`, `About.xml`, `client/__init__.py` to 0.5.0 | ✅ | 2025-12-11 |
 
 ### Implementation Phase 3: TODO Resolution
 

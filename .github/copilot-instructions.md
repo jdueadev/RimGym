@@ -100,14 +100,14 @@ Get-ChildItem 1.6\Assemblies\*.dll | Where-Object { $_.Name -like "*csharp_ext*"
 
 ### Harmony Best Practices for This Mod
 - Use `[StaticConstructorOnStartup]` for mod initialization (see `MlBridgeMod`)
-- Harmony ID: `"com.yourname.rimworldmlbridge"` (update if forking)
+- Harmony ID: `"com.jmduea.rimworldmlbridge"`
 - Always catch exceptions in patch bodies to avoid crashing RimWorld
 - Log all important events with `[MLBridge]` prefix for easy filtering
 
 ## State Extraction Pattern
 
 ### Getting Game State (Evolving toward RIMAPI Integration)
-Current implementation in `GrpcService.cs:GetState()` provides basic state. **Next Phase**: Integrate robust Services from RIMAPI project:
+Current implementation in `TcpProtobufServer.cs` provides rich state via adapters. Uses ColonistAdapter, MapAdapter, IncidentAdapter, and WorldAdapter:
 
 ```csharp
 // Current basic extraction

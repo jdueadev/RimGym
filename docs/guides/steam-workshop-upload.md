@@ -49,12 +49,12 @@ Ensure `About/About.xml` contains all required metadata:
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
   <name>RimWorld ML Bridge</name>
-  <author>YourName</author>
-  <packageId>your.username.rimworldmlbridge</packageId>
+  <author>jmduea</author>
+  <packageId>jmduea.rimworldmlbridge</packageId>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
-  <modVersion>1.0.0</modVersion>
+  <modVersion>0.5.0</modVersion>
   <description>Machine Learning Bridge for RimWorld - Connect AI agents via TCP + Protocol Buffers.
 
 Features:
