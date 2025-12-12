@@ -3,21 +3,24 @@
 ## Problem
 
 RimWorld was failing to load the mod with this error:
+
 ```
 Exception loading grpc_csharp_ext.x64.dll: System.BadImageFormatException: Invalid Image: 
-C:\gaming\steamapps\common\RimWorld\Mods\unknwn-rimworldmlbridge\Assemblies\grpc_csharp_ext.x64.dll
+C:\gaming\steamapps\common\RimWorld\Mods\RimTCP\1.6\Assemblies\grpc_csharp_ext.x64.dll
 ```
 
-**Root Cause**: 
+**Root Cause**:
+
 - `Grpc.Core` 2.46.6 includes native C++ libraries (`grpc_csharp_ext.x64.dll`, `grpc_csharp_ext.x86.dll`)
 - RimWorld's mod loader attempts to load ALL DLLs in the `Assemblies/` folder as managed .NET assemblies
 - Native DLLs cannot be loaded as managed assemblies, causing `BadImageFormatException`
 
 ## Solution
 
-Modified `Source/RimworldMLBridge.csproj` with two-layer protection:
+Modified `src/RimTCP/RimTCP/RimTCP.csproj` with two-layer protection:
 
 ### 1. ExcludeAssets="native"
+
 ```xml
 <PackageReference Include="Grpc.Core" Version="2.46.6" ExcludeAssets="native" />
 ```
@@ -25,6 +28,7 @@ Modified `Source/RimworldMLBridge.csproj` with two-layer protection:
 This tells MSBuild not to copy native runtime assets from the Grpc.Core package to the output directory.
 
 ### 2. Post-Build Safety Target
+
 ```xml
 <Target Name="RemoveNativeDlls" AfterTargets="Build">
   <ItemGroup>
@@ -40,7 +44,8 @@ This removes any native DLLs that might have been copied despite the `ExcludeAss
 ## Verification
 
 After building, verify that the `Assemblies/` folder contains:
-- ✅ `RimworldMLBridge.dll` (our mod)
+
+- ✅ `RimTCP.dll` (our mod)
 - ✅ `Grpc.Core.dll` (managed gRPC library)
 - ✅ `Grpc.Core.Api.dll` (managed gRPC API)
 - ✅ `Google.Protobuf.dll` (managed protobuf library)
@@ -50,12 +55,13 @@ After building, verify that the `Assemblies/` folder contains:
 - ❌ NO `runtimes/` folder (contains native libraries - should be excluded)
 
 ### Build Command
+
 ```bash
-cd Source
-dotnet build RimworldMLBridge.csproj -c Release
+dotnet build src/RimTCP/RimTCP/RimTCP.csproj -c Release
 ```
 
 Then check:
+
 ```bash
 ls -la ../Assemblies/
 ```
@@ -72,8 +78,9 @@ Expected output should show ONLY managed DLLs.
 ### Runtime Behavior
 
 If Grpc.Core requires native libraries and they're missing:
+
 - The mod will load successfully
-- The gRPC server initialization in `RimworldMLBridge.cs:StartGrpcServer()` may throw an exception
+- If a legacy gRPC initialization path exists, it may throw an exception
 - This exception will be caught and logged, but won't crash RimWorld
 
 ### Alternative Solutions (if gRPC is essential)
@@ -99,12 +106,12 @@ If testing reveals that gRPC doesn't work without native libraries, consider:
 
 ## Testing Checklist
 
-- [ ] Build the project: `dotnet build RimworldMLBridge.csproj -c Release`
+- [ ] Build the project: `dotnet build src/RimTCP/RimTCP/RimTCP.csproj -c Release`
 - [ ] Verify no native DLLs in `Assemblies/` folder
 - [ ] Install mod in RimWorld's `Mods/` directory
 - [ ] Launch RimWorld and enable the mod
 - [ ] Check that mod loads without `BadImageFormatException`
-- [ ] Load a game and check logs for `[MLBridge]` messages
+- [ ] Load a game and check logs for `[RimTCP]` messages
 - [ ] Test gRPC connectivity with Python client: `python python/test_connection.py`
 - [ ] Verify whether gRPC server starts successfully or fails gracefully
 

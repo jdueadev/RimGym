@@ -1,5 +1,4 @@
-"""
-RimWorld ML Bridge - Policy Package
+"""RimGym policy package.
 
 Provides pluggable policy interfaces for agent decision-making.
 """

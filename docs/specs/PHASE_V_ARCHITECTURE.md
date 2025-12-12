@@ -2,7 +2,7 @@
 
 ## Overview
 
-Phase V extends the RimWorld ML Bridge with complete game observability by integrating data extraction logic from the RIMAPI project. This provides machine learning agents with high-fidelity access to all game state, enabling advanced strategic reasoning and long-term planning.
+Phase V extends RimTCP with complete game observability by integrating data extraction logic from the RIMAPI project. This provides machine learning agents with high-fidelity access to all game state, enabling advanced strategic reasoning and long-term planning.
 
 ## Architecture
 
@@ -32,7 +32,7 @@ ML Agent
 
 #### 1. Services Layer (C#)
 
-Located in `RimworldMLBridge/Services/`:
+Located in `src/RimTCP/RimTCP/Services/`:
 
 - **ColonistService**: Extracts colonist data (health, needs, skills, relationships)
 - **MapService**: Extracts map data (terrain, buildings, items, zones, rooms)
@@ -40,7 +40,7 @@ Located in `RimworldMLBridge/Services/`:
 
 #### 2. DTOs (Data Transfer Objects)
 
-Located in `RimworldMLBridge/DTOs/`:
+Located in `src/RimTCP/RimTCP/DTOs/`:
 
 - **ColonistDTO**: Colonist state (ported from RIMAPI)
 - **MapDTO**: Map state with terrain, buildings, items
@@ -49,7 +49,7 @@ Located in `RimworldMLBridge/DTOs/`:
 
 #### 3. Protobuf Adapters
 
-Located in `RimworldMLBridge/Adapters/`:
+Located in `src/RimTCP/RimTCP/Adapters/`:
 
 - **ColonistAdapter**: Converts ColonistDTO → ColonistState protobuf
 - **MapAdapter**: Converts MapDTO → MapState protobuf
@@ -60,7 +60,7 @@ Each adapter performs efficient DTO→Protobuf conversion with <1ms target laten
 
 #### 4. Protobuf Schema
 
-Located in `Protos/mlbridge.proto`:
+Located in `src/shared/Protos/rimgym.proto`:
 
 Key message types:
 
@@ -73,7 +73,7 @@ Complete with 10+ enums (TerrainType, BuildingType, IncidentType, FactionRelatio
 
 #### 5. Python Client
 
-Located in `python/client/`:
+Located in `src/RimGym/src/client/`:
 
 - **state_models.py**: Typed Python dataclasses for game state
 - **parsers.py**: Converts protobuf messages to Python models
@@ -169,7 +169,7 @@ The C# server includes built-in performance profiling:
 ```csharp
 // Automatic profiling enabled in TcpProtobufServer
 // Logs stats every 100 frames:
-// [MLBridge:Performance] Map Extraction: 2ms (150 buildings, 300 items)
+// [RimTCP:Performance] Map Extraction: 2ms (150 buildings, 300 items)
 //                        Incident Extraction: 1ms (50 incidents)
 //                        World Extraction: 1ms (15 factions, 40 settlements)
 //                        Total Extraction: 4ms
@@ -408,7 +408,7 @@ if state.map_state:
 1. Rebuild C# mod with Phase V code
 2. Ensure DLL is copied to `1.6/Assemblies/`
 3. Restart RimWorld
-4. Check RimWorld log for "[MLBridge] Phase V state: X buildings..."
+4. Check RimWorld log for "[RimTCP] Phase V state: X buildings..."
 
 ### "Extraction time exceeds 10ms"
 

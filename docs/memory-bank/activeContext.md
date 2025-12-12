@@ -35,6 +35,30 @@ Full-stack RimStats dashboard with:
 
 ---
 
+## Recent Completions (2025-12-12)
+
+### Multi-Instance Headless Training (Docker) ✅
+
+- Added `docker-compose.training.yml` for running multiple headless RimWorld instances (no host-published ports)
+- Added `trainer` service and a lightweight worker (`src/RimGym/src/examples/vector_worker.py`) that connects to multiple instances via `RIMTCP_TARGETS`
+- Uses external `rimworld_network`; keeps Xvfb for Unity stability
+
+### Dockerfile Split (Twelve-Factor Alignment) ✅
+
+- Split the root `Dockerfile` into service-specific targets to keep runtime images focused:
+  - `rimworld-worker`: lean RimWorld worker runtime (no RimGym source tree, no UV/venv)
+  - `trainer`: RimGym runtime (includes `.venv` + `src/RimGym` + `src/shared`)
+  - `test-runner`: retained for dev/integration workflows
+- Training compose updated to use these targets with protocol-level healthchecks.
+
+### Legacy Naming Cleanup (RimworldMLBridge → RimTCP) ✅
+
+- Updated non-archive docs/CI/templates to reference RimTCP/RimGym
+- Aligned C# mod runtime branding (log prefix + Harmony ID)
+- Updated Python client config and tests to prefer `RIMTCP_*` env vars and `rimgym_pb2` (legacy fallbacks preserved)
+
+---
+
 ## Next Steps
 
 1. **Public Release**

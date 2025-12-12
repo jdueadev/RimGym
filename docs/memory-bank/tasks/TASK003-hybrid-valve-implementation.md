@@ -18,7 +18,7 @@ Phase III builds on the validated Phase II serialization pipeline by adding flex
 
 Key design decisions:
 
-1. **Mode Flag**: Add `TrainingMode` boolean to `MlBridgeMod` class
+1. **Mode Flag**: Add `TrainingMode` boolean to `RimTcpMod` class
 2. **SET_MODE Command**: New protobuf command type for runtime mode switching
 3. **Tick Hijacking**: Prefix patch on `TickManager.DoSingleTick` checks mode flag
 4. **State Deltas**: Track changed entities for efficient async updates
@@ -29,7 +29,7 @@ Key design decisions:
 
 ### Subtask 3.1: Add Mode Control Infrastructure
 
-- Add `TrainingMode` flag to `MlBridgeMod` (default: true)
+- Add `TrainingMode` flag to `RimTcpMod` (default: true)
 - Add `SET_MODE` to `CommandType` enum in protobuf
 - Add `mode` field to `CommandMessage`
 - Implement mode switching in `TcpProtobufServer`
@@ -98,7 +98,7 @@ Key design decisions:
 #### Core Implementation Complete (Subtasks 3.1-3.5)
 
 - ✅ **Subtask 3.1: Mode Control Infrastructure**
-  - Added `TrainingMode`, `StepPermitted`, `TicksToRun` flags to `MlBridgeMod`
+  - Added `TrainingMode`, `StepPermitted`, `TicksToRun` flags to `RimTcpMod`
   - Extended protobuf with `SET_MODE` command type
   - Added `ExecutionMode` enum (MODE_TRAINING, MODE_INFERENCE)
   - Added `mode` field to `CommandMessage`
@@ -137,10 +137,10 @@ Key design decisions:
 
 **Files Modified:**
 
-- `Protos/mlbridge.proto` - Extended schema with Phase III messages
-- `RimworldMLBridge/RimworldMLBridge.cs` - Added mode flags
-- `RimworldMLBridge/TickPatch.cs` - Implemented hybrid valve prefix/postfix
-- `RimworldMLBridge/TcpProtobufServer.cs` - SET_MODE command, velocity tracking, timing
+- `src/shared/Protos/rimgym.proto` - Extended schema with Phase III messages
+- `src/RimTCP/RimTCP/RimTCP.cs` - Added mode flags
+- `src/RimTCP/RimTCP/TickPatch.cs` - Implemented hybrid valve prefix/postfix
+- `src/RimTCP/RimTCP/TcpProtobufServer.cs` - SET_MODE command, velocity tracking, timing
 - `python/test_hybrid_valve.py` - Integration test suite (new file)
 
 **Next Steps:**

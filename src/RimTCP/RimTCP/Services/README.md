@@ -162,7 +162,7 @@ Always check for null before accessing RimWorld objects:
 
 ```csharp
 if (pawn?.health?.summaryHealth == null) {
-    Log.Warning("[MLBridge] Pawn health data unavailable");
+    Log.Warning("[RimTCP] Pawn health data unavailable");
     return defaultValue;
 }
 ```
@@ -180,19 +180,19 @@ if (pawn?.health?.summaryHealth == null) {
 try {
     // Extraction logic
 } catch (Exception e) {
-    Log.Error($"[MLBridge] Service error: {e.Message}");
+    Log.Error($"[RimTCP] Service error: {e.Message}");
     return null; // or default DTO
 }
 ```
 
 ### Logging
 
-Use consistent `[MLBridge]` prefix:
+Use consistent `[RimTCP]` prefix:
 
 ```csharp
-Log.Message("[MLBridge] ColonistService extracted 5 colonists");
-Log.Warning("[MLBridge] Pawn has no needs subsystem");
-Log.Error("[MLBridge] Failed to extract map data: " + e.Message);
+Log.Message("[RimTCP] ColonistService extracted 5 colonists");
+Log.Warning("[RimTCP] Pawn has no needs subsystem");
+Log.Error("[RimTCP] Failed to extract map data: " + e.Message);
 ```
 
 ## Testing Strategy
@@ -211,7 +211,7 @@ When porting services from RIMAPI:
 2. Remove HTTP/Controller dependencies
 3. Remove JSON serialization attributes
 4. Keep DTO classes and extraction logic
-5. Update namespace to `RimworldMLBridge.Services`
+5. Update namespace to `RimTCP.Services`
 6. Add to ServiceRegistry
 7. Add tests
 
@@ -219,5 +219,5 @@ When porting services from RIMAPI:
 
 1. Create DTO classes in `DTOs/` directory
 2. Port ColonistService as first implementation
-3. Create unit tests in `RimworldMLBridge.Tests/Services/`
+3. Create unit tests in `tests/RimTCP.Tests/Services/`
 4. Integrate with TcpProtobufServer via Adapters

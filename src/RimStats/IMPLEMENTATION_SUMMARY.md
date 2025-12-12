@@ -6,7 +6,7 @@
 
 ## What Was Built
 
-A complete, production-ready real-time monitoring dashboard for RimWorld ML Bridge training sessions with hybrid Redis + SQLite storage.
+A complete, production-ready real-time monitoring dashboard for RimGym/RimTCP training sessions with hybrid Redis + SQLite storage.
 
 ## Architecture
 

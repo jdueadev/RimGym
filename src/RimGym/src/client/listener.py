@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Set
 
-from shared.python.src.mlbridge_pb2 import CommandMessage, CommandType, StateMessage
+from shared.python.src.rimgym_pb2 import CommandMessage, CommandType, StateMessage
 
 from .queues import EventPriority, EventQueue, StateQueue
 

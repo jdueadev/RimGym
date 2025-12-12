@@ -1,10 +1,10 @@
-# RimWorld ML Bridge Architecture
+# RimTCP Architecture
 
-This document provides a comprehensive overview of the RimWorld ML Bridge architecture, consolidating information from the original design documents and implementation evolution.
+This document provides a comprehensive overview of the RimTCP architecture, consolidating information from the original design documents and implementation evolution.
 
 ## Overview
 
-RimWorld ML Bridge is a high-performance TCP + Protocol Buffers communication layer that enables machine learning agents to observe and control RimWorld game state. The architecture supports both synchronous (training) and asynchronous (inference) operation modes.
+RimTCP is a high-performance TCP + Protocol Buffers communication layer that enables machine learning agents to observe and control RimWorld game state. The architecture supports both synchronous (training) and asynchronous (inference) operation modes.
 
 ## System Architecture
 
@@ -170,18 +170,18 @@ RimWorld runs on Unity's single-threaded main loop. **All game API calls must ex
 
 ### Server Configuration (C#)
 
-See `RimworldMLBridge/Constants.cs`:
+See `src/RimTCP/RimTCP/Constants.cs`:
 
 ```csharp
 public const int DefaultPort = 50051;
 public const int HeartbeatIntervalSeconds = 30;
 public const int MaxConnectionErrors = 10;
-public const string HarmonyId = "com.jmduea.rimworldmlbridge";
+public const string HarmonyId = "unknwnentity.rimtcp";
 ```
 
 ### Client Configuration (Python)
 
-See `python/client/config.py`:
+See `src/RimGym/src/client/config.py`:
 
 ```python
 DEFAULT_HOST = "localhost"

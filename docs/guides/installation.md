@@ -26,8 +26,8 @@ You can either install the mod from a pre-built release or build it from source.
 1. **Clone the Repository**
 
     ```bash
-    git clone https://github.com/jmduea/RimworldMLBridge.git
-    cd RimworldMLBridge
+    git clone https://github.com/jmduea/RimGym.git
+    cd RimGym
     ```
 
 2. **Set Environment Variables**
@@ -48,7 +48,7 @@ You can either install the mod from a pre-built release or build it from source.
 3. **Build the Mod**
 
     ```bash
-    dotnet build src/RimTCP/RimTCP.sln -c Release
+    dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release
     ```
 
     This will compile the mod and place the assemblies in `src/RimTCP/1.6/Assemblies/`.
@@ -98,7 +98,7 @@ You can either install the mod from a pre-built release or build it from source.
     Run the connection test (ensure RimWorld is running with the mod enabled and a save loaded):
 
     ```bash
-    uv run examples/test_connection.py
+    uv run pytest tests/client/test_connection.py
     ```
 
 ---

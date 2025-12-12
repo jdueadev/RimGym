@@ -129,7 +129,7 @@ jobs:
           key: rimworld-linux-${{ hashFiles('**/About.xml') }}
       
       - name: Build Docker image
-        run: docker build -t rimworld-ml-bridge .
+        run: docker build --target test-runner -t rimgym:test .
       
       - name: Create RimWorld volume
         run: |
@@ -144,7 +144,7 @@ jobs:
           docker run --rm \
             -v rimworld-data:/opt/rimworld \
             -v $(pwd)/test_results.txt:/app/test_results.txt \
-            rimworld-ml-bridge test
+            rimgym:test
       
       - name: Upload test results
         if: always()
@@ -169,7 +169,7 @@ jobs:
 
 ```dockerfile
 # Dockerfile.with-rimworld
-FROM rimworld-ml-bridge:base
+FROM rimgym:test
 
 # Copy RimWorld from build context
 COPY rimworld-linux/ ${RIMWORLD_PATH}/
@@ -181,7 +181,7 @@ RUN chmod +x ${RIMWORLD_PATH}/RimWorldLinux
 Build:
 
 ```bash
-docker build -f Dockerfile.with-rimworld -t rimworld-ml-bridge:with-game .
+docker build -f Dockerfile.with-rimworld -t rimgym:with-game .
 ```
 
 ### Pre-configured Steam Volume
@@ -190,7 +190,7 @@ Use Docker volume with RimWorld pre-installed:
 
 ```bash
 # One-time setup
-./docker/setup-rimworld-volume.sh /path/to/rimworld
+./scripts/setup-rimworld-volume.sh /path/to/rimworld
 
 # Use in tests
 docker-compose up test
@@ -261,7 +261,7 @@ ERROR: Cannot write to /app/test_results.txt
 **Solution**: Ensure volume mount has correct permissions:
 
 ```bash
-docker run --rm -v $(pwd):/app rimworld-ml-bridge ls -la /app
+docker run --rm -v $(pwd):/app alpine ls -la /app
 ```
 
 ### Slow Startup

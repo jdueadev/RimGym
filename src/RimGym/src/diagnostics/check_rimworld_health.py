@@ -24,7 +24,7 @@ from typing import Optional
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from shared.python.src.mlbridge_pb2 import CommandMessage, RichStateMessage
+from shared.python.src.rimgym_pb2 import CommandMessage, RichStateMessage
 
 # Minimum success rate threshold for health check to pass
 MIN_SUCCESS_RATE_PERCENT = 95.0

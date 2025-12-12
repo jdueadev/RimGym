@@ -1,6 +1,6 @@
 # Steam Workshop Upload Guide
 
-This guide covers uploading RimWorld ML Bridge to the Steam Workshop.
+This guide covers uploading RimTCP to the Steam Workshop.
 
 ## Prerequisites
 
@@ -22,9 +22,11 @@ This guide covers uploading RimWorld ML Bridge to the Steam Workshop.
 2. Copy packaged mod to RimWorld Mods folder:
 
    ```powershell
-   Copy-Item -Path "release\RimworldMLBridge-v1.0.0\*" `
-             -Destination "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\RimworldMLBridge" `
+
+  Copy-Item -Path "release\RimTCP-v1.0.0\*" `
+-Destination "C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\RimTCP" `
              -Recurse -Force
+
    ```
 
 ### Step 2: Create Preview Image
@@ -48,9 +50,9 @@ Ensure `About/About.xml` contains all required metadata:
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>RimWorld ML Bridge</name>
+  <name>RimTCP</name>
   <author>jmduea</author>
-  <packageId>jmduea.rimworldmlbridge</packageId>
+  <packageId>unknwnentity.rimtcp</packageId>
   <supportedVersions>
     <li>1.6</li>
   </supportedVersions>
@@ -66,7 +68,7 @@ Features:
 
 Requires Harmony 2.x (loads automatically from Steam Workshop).
 
-Documentation: https://github.com/jmduea/RimworldMLBridge
+Documentation: https://github.com/jmduea/RimGym
   </description>
   <modDependencies>
     <li>
@@ -82,13 +84,15 @@ Documentation: https://github.com/jmduea/RimworldMLBridge
 
 1. Launch RimWorld
 2. Go to **Mods** menu
-3. Select **"RimWorld ML Bridge"** from your mod list
+3. Select **"RimTCP"** from your mod list
 4. Click **"Upload to Workshop"** button
 5. Fill in Steam Workshop details:
-   - **Title**: RimWorld ML Bridge
-   - **Description**: (Copy from About.xml, add formatting)
-   - **Tags**: Select relevant tags (Gameplay, Tools, etc.)
-   - **Visibility**: Public
+
+- **Title**: RimTCP
+- **Description**: (Copy from About.xml, add formatting)
+- **Tags**: Select relevant tags (Gameplay, Tools, etc.)
+- **Visibility**: Public
+
 6. Click **"Upload"**
 
 ### Step 5: Update Workshop Page
@@ -133,10 +137,10 @@ Create `workshop_config.vdf`:
 {
   "appid" "294100"  // RimWorld App ID
   "publishedfileid" "YOUR_WORKSHOP_ID"  // Leave blank for first upload
-  "contentfolder" "C:\\path\\to\\RimworldMLBridge"
+  "contentfolder" "C:\\path\\to\\RimTCP"
   "previewfile" "C:\\path\\to\\About\\Preview.png"
   "visibility" "0"  // 0 = public, 1 = friends only, 2 = private
-  "title" "RimWorld ML Bridge"
+  "title" "RimTCP"
   "description" "Your description here"
   "changenote" "Initial release v1.0.0"
   
@@ -216,7 +220,7 @@ jobs:
           password: ${{ secrets.STEAM_PASSWORD }}
           configVdf: ${{ secrets.STEAM_CONFIG_VDF }}
           appId: 294100
-          depot1Path: ./release/RimworldMLBridge-${{ github.ref_name }}
+          depot1Path: ./release/RimTCP-${{ github.ref_name }}
 ```
 
 ## Post-Upload Checklist

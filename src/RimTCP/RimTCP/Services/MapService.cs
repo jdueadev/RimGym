@@ -73,7 +73,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting maps: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting maps: {ex.Message}");
             }
 
             return maps;
@@ -98,7 +98,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting weather: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting weather: {ex.Message}");
                 return new MapWeatherDTO();
             }
         }
@@ -134,7 +134,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting creatures summary: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting creatures summary: {ex.Message}");
                 return new MapCreaturesSummaryDTO();
             }
         }
@@ -175,7 +175,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting map animals: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting map animals: {ex.Message}");
             }
 
             return animals;
@@ -201,7 +201,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting map things: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting map things: {ex.Message}");
             }
 
             return things;
@@ -241,7 +241,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting map buildings: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting map buildings: {ex.Message}");
             }
 
             return buildings;
@@ -276,7 +276,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting map zones: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting map zones: {ex.Message}");
             }
 
             return zones;
@@ -311,7 +311,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting map areas: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting map areas: {ex.Message}");
             }
 
             return areas;
@@ -360,7 +360,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting map rooms: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting map rooms: {ex.Message}");
             }
 
             return mapRooms;
@@ -435,7 +435,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting power info: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting power info: {ex.Message}");
             }
 
             return powerInfo;

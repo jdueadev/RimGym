@@ -2,10 +2,10 @@ syntax = "proto3";
 
 option csharp_namespace = "RimTCP.Protos";
 
-package mlbridge;
+package rimtcp;
 
-// Service definition for the ML Bridge
-service MLBridge {
+// Service definition
+service RimTCP {
   // Send tick information to the agent
   rpc SendTick(TickMessage) returns (AckMessage);
   

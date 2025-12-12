@@ -1,0 +1,91 @@
+x-rimworld-common: &rimworld_common
+  build:
+    context: .
+    target: rimworld-worker
+  command: ["server"]
+  environment:
+    - RIMWORLD_PATH=/opt/rimworld
+    - DISPLAY=:99
+    - RIMTCP_BIND_ALL=1
+  expose:
+    - "50051"
+  healthcheck:
+    test:
+      [
+        "CMD",
+        "/opt/rimgym/.hcvenv/bin/python",
+        "/opt/rimgym/healthcheck/rimtcp_healthcheck_probe.py",
+      ]
+    interval: 5s
+    timeout: 2s
+    retries: 12
+    start_period: 180s
+  volumes:
+    - rimworld-data:/opt/rimworld
+  networks:
+    - rimworld_network
+  restart: unless-stopped
+
+services:
+  # Example instances. Duplicate blocks to add more (rimworld_3, rimworld_4, ...).
+  rimworld_1:
+    <<: *rimworld_common
+    environment:
+      - RIMWORLD_PATH=/opt/rimworld
+      - DISPLAY=:99
+      - RIMTCP_BIND_ALL=1
+      - INSTANCE_ID=rimworld_1
+    volumes:
+      - rimworld-data:/opt/rimworld
+      - rimworld_1_rimtcp_mod:/opt/rimworld/Mods/RimTCP
+      - rimworld_1_harmony_mod:/opt/rimworld/Mods/HarmonyMod
+
+  rimworld_2:
+    <<: *rimworld_common
+    environment:
+      - RIMWORLD_PATH=/opt/rimworld
+      - DISPLAY=:99
+      - RIMTCP_BIND_ALL=1
+      - INSTANCE_ID=rimworld_2
+    volumes:
+      - rimworld-data:/opt/rimworld
+      - rimworld_2_rimtcp_mod:/opt/rimworld/Mods/RimTCP
+      - rimworld_2_harmony_mod:/opt/rimworld/Mods/HarmonyMod
+
+  # Single worker process that connects to multiple RimWorld instances.
+  # Configure targets via RIMTCP_TARGETS (DNS names on rimworld_network).
+  trainer:
+    build:
+      context: .
+      target: trainer
+    entrypoint: ["bash", "-lc"]
+    command:
+      - >-
+        uv run --project /app/src/RimGym python -u /app/src/RimGym/src/examples/vector_worker.py
+    environment:
+      - RIMTCP_TARGETS=rimworld_1:50051,rimworld_2:50051
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app/src:/app/src/RimGym/src
+    depends_on:
+      rimworld_1:
+        condition: service_healthy
+      rimworld_2:
+        condition: service_healthy
+    networks:
+      - rimworld_network
+    restart: "no"
+
+volumes:
+  rimworld-data:
+    external: true
+    name: rimworld-data
+
+  rimworld_1_rimtcp_mod:
+  rimworld_1_harmony_mod:
+  rimworld_2_rimtcp_mod:
+  rimworld_2_harmony_mod:
+
+networks:
+  rimworld_network:
+    external: true
+    name: rimworld_network

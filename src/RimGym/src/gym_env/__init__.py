@@ -1,7 +1,6 @@
-"""
-RimWorld ML Bridge - Gymnasium Environment Package
+"""RimGym Gymnasium environment package.
 
-Provides standard RL environment interface compatible with Stable-Baselines3.
+Provides a standard RL environment interface compatible with Stable-Baselines3.
 """
 
 from .rewards import RewardCalculator

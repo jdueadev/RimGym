@@ -19,7 +19,7 @@ from unittest.mock import Mock
 from client.listener import ListenerThread
 from client.queues import EventQueue, StateQueue
 
-from shared.python.src.mlbridge_pb2 import StateMessage
+from shared.python.src.rimgym_pb2 import StateMessage
 
 
 class TestListenerPerformance:

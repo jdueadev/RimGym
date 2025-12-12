@@ -6,7 +6,7 @@ using Verse;
 namespace RimTCP
 {
     [StaticConstructorOnStartup]
-    public static class MlBridgeMod
+    public static class RimTcpMod
     {
         public static TcpProtobufServer Server;
         public static bool ServerRunning = false;
@@ -17,33 +17,35 @@ namespace RimTCP
         public static bool StepPermitted = false; // In training mode, only advance when true
         public static int TicksToRun = 0; // Number of ticks to run in current step
 
-        static MlBridgeMod()
+        static RimTcpMod()
         {
-            Log.Message("[MLBridge] =================================");
-            Log.Message("[MLBridge] Initializing ML Bridge with TCP+Protobuf...");
+            Log.Message($"{Constants.LogPrefix} =================================");
+            Log.Message($"{Constants.LogPrefix} Initializing RimTCP with TCP+Protobuf...");
 
             try
             {
                 // Initialize ServiceRegistry for data extraction services
                 ServiceRegistry.Initialize();
-                Log.Message("[MLBridge] Service registry initialized");
+                Log.Message($"{Constants.LogPrefix} Service registry initialized");
             }
             catch (Exception e)
             {
-                Log.Error("[MLBridge] ServiceRegistry initialization failed: " + e.Message);
+                Log.Error(
+                    $"{Constants.LogPrefix} ServiceRegistry initialization failed: {e.Message}"
+                );
             }
 
             try
             {
                 // Apply Harmony patches
-                var harmony = new Harmony("com.jmduea.rimworldmlbridge");
+                var harmony = new Harmony(Constants.HarmonyId);
                 harmony.PatchAll();
-                Log.Message("[MLBridge] Harmony patches applied successfully");
+                Log.Message($"{Constants.LogPrefix} Harmony patches applied successfully");
             }
             catch (Exception e)
             {
-                Log.Error("[MLBridge] Harmony patch failed: " + e.Message);
-                Log.Error("[MLBridge] Stack trace: " + e.StackTrace);
+                Log.Error($"{Constants.LogPrefix} Harmony patch failed: {e.Message}");
+                Log.Error($"{Constants.LogPrefix} Stack trace: {e.StackTrace}");
             }
 
             // Start TCP server
@@ -52,17 +54,17 @@ namespace RimTCP
                 Server = new TcpProtobufServer(Port);
                 Server.Start();
                 ServerRunning = true;
-                Log.Message("[MLBridge] TCP+Protobuf server started successfully!");
-                Log.Message("[MLBridge] Listening on localhost:" + Port);
-                Log.Message("[MLBridge] Ready for Python client connections");
+                Log.Message($"{Constants.LogPrefix} TCP+Protobuf server started successfully!");
+                Log.Message($"{Constants.LogPrefix} Listening on port {Port}");
+                Log.Message($"{Constants.LogPrefix} Ready for Python client connections");
             }
             catch (Exception e)
             {
-                Log.Error("[MLBridge] Failed to start TCP server: " + e.Message);
-                Log.Error("[MLBridge] Stack trace: " + e.StackTrace);
+                Log.Error($"{Constants.LogPrefix} Failed to start TCP server: {e.Message}");
+                Log.Error($"{Constants.LogPrefix} Stack trace: {e.StackTrace}");
             }
 
-            Log.Message("[MLBridge] =================================");
+            Log.Message($"{Constants.LogPrefix} =================================");
         }
 
         public static void StopServer()
@@ -71,14 +73,14 @@ namespace RimTCP
             {
                 try
                 {
-                    Log.Message("[MLBridge] Shutting down TCP server...");
+                    Log.Message($"{Constants.LogPrefix} Shutting down TCP server...");
                     Server.Stop();
                     ServerRunning = false;
-                    Log.Message("[MLBridge] TCP server stopped");
+                    Log.Message($"{Constants.LogPrefix} TCP server stopped");
                 }
                 catch (Exception e)
                 {
-                    Log.Error("[MLBridge] Error stopping server: " + e.Message);
+                    Log.Error($"{Constants.LogPrefix} Error stopping server: {e.Message}");
                 }
             }
         }
@@ -98,15 +100,15 @@ namespace RimTCP
 
         static void Postfix()
         {
-            if (MlBridgeMod.ServerRunning && MlBridgeMod.Server != null)
+            if (RimTcpMod.ServerRunning && RimTcpMod.Server != null)
             {
                 try
                 {
                     // Process queued commands from TCP client
-                    MlBridgeMod.Server.ProcessCommands();
+                    RimTcpMod.Server.ProcessCommands();
 
                     // TASK-008: Heartbeat for server health monitoring
-                    MlBridgeMod.Server.Heartbeat();
+                    RimTcpMod.Server.Heartbeat();
 
                     // Reset error counter on successful execution
                     _consecutiveErrors = 0;
@@ -117,18 +119,18 @@ namespace RimTCP
 
                     // Log error with context
                     Log.Error(
-                        $"[MLBridge] Error in main loop (count={_consecutiveErrors}): {e.Message}"
+                        $"{Constants.LogPrefix} Error in main loop (count={_consecutiveErrors}): {e.Message}"
                     );
 
                     // If too many consecutive errors, disable to prevent game instability
                     if (_consecutiveErrors >= MaxConsecutiveErrors)
                     {
                         Log.Error(
-                            $"[MLBridge] Too many consecutive errors ({MaxConsecutiveErrors}), disabling server to protect game stability"
+                            $"{Constants.LogPrefix} Too many consecutive errors ({MaxConsecutiveErrors}), disabling server to protect game stability"
                         );
                         try
                         {
-                            MlBridgeMod.StopServer();
+                            RimTcpMod.StopServer();
                         }
                         catch
                         {

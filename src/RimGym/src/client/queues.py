@@ -1,5 +1,4 @@
-"""
-Thread-safe queue implementations for RimWorld ML Bridge client.
+"""Thread-safe queue implementations for the RimGym client.
 
 Provides specialized queues for state, events, and actions with appropriate sizing
 and overflow handling.

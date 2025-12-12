@@ -102,30 +102,4 @@ TAR_FILE="${OUTPUT_DIR}.tar.gz"
 tar -czf "${TAR_FILE}" -C "$(dirname "${OUTPUT_DIR}")" "$(basename "${OUTPUT_DIR}")"
 echo "Compressed archive: ${TAR_FILE}"
 exit 0
-    python python/diagnostics/check_rimworld_health.py --single --host localhost --port 50051 \
-        > "${OUTPUT_DIR}/health_check.txt" 2>&1 || true
-    echo "  ✓ Health check completed"
-else
-    echo "  ✗ Health check script not found"
-fi
-    PYTHONPATH=/app/src uv run --project /app/src/RimGym python /app/src/RimGym/src/diagnostics/check_rimworld_health.py --single --host localhost --port 50051 \
-# Collect Docker inspect output
-echo "Collecting Docker container metadata..."
-docker inspect "${CONTAINER_NAME}" > "${OUTPUT_DIR}/docker_inspect.json" 2>/dev/null || \
-    echo "  ✗ Docker inspect failed"
-echo "  ✓ Docker metadata collected"
 
-# Summary
-echo ""
-docker inspect "${INTEGRATION_CONTAINER}" > "${OUTPUT_DIR}/docker_inspect.json" 2>/dev/null || \
-echo "Collection Complete"
-echo "======================================"
-echo "Files collected:"
-ls -la "${OUTPUT_DIR}"
-echo ""
-echo "Archive created at: ${OUTPUT_DIR}"
-
-# Create tarball for easy sharing
-TAR_FILE="${OUTPUT_DIR}.tar.gz"
-tar -czf "${TAR_FILE}" -C "$(dirname ${OUTPUT_DIR})" "$(basename ${OUTPUT_DIR})"
-echo "Compressed archive: ${TAR_FILE}"

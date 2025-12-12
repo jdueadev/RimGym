@@ -16,8 +16,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 try:
     import shared.python.src.rimgym_pb2 as pb
 except ImportError:
-    print("Error: mlbridge_pb2.py not found. Run generate_proto.py first:")
-    print("  uv run python generate_proto.py")
+    print("Error: rimgym_pb2.py not found. Run generate_proto.py first:")
+    print("  uv run python src/shared/python/src/generate_proto.py")
     sys.exit(1)
 
 
@@ -30,7 +30,7 @@ class HybridValveClient:
         self.sock = None
 
     def connect(self):
-        """Connect to RimWorld ML Bridge server"""
+        """Connect to RimTCP server"""
         print(f"Connecting to {self.host}:{self.port}...")
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.connect((self.host, self.port))

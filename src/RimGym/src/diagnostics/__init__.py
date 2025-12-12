@@ -1,1 +1,1 @@
-"""Diagnostics module for RimWorld ML Bridge health checks and monitoring."""
+"""Diagnostics module for RimGym/RimTCP health checks and monitoring."""

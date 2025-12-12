@@ -33,9 +33,11 @@ Your CI/CD pipeline is **ready to use** with these workflows:
 
 ```powershell
 # Full local CI simulation
-dotnet build RimworldMLBridge.sln -c Release
-dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj
-uv run python python/test_automated_suite.py
+dotnet build src\RimTCP\RimTCP\RimTCP.sln -c Release
+dotnet test tests\RimTCP.Tests\RimTCP.Tests.csproj -c Release
+uv sync
+uv run python src/shared/python/src/generate_proto.py
+uv run pytest src/RimGym/tests/
 ```
 
 ### Create a Release
@@ -82,8 +84,8 @@ git commit -m "Update docs [skip ci]"
 
 ## 🔗 Links
 
-- **Actions**: <https://github.com/jmduea/RimworldMLBridge/actions>
-- **Releases**: <https://github.com/jmduea/RimworldMLBridge/releases>
+- **Actions**: <https://github.com/jmduea/RimGym/actions>
+- **Releases**: <https://github.com/jmduea/RimGym/releases>
 - **Workflows**: [.github/workflows/](./)
 - **Setup Guide**: [CI_SETUP_GUIDE.md](CI_SETUP_GUIDE.md)
 - **Self-Hosted Runner**: [self-hosted-runner-setup.md](self-hosted-runner-setup.md)

@@ -1,23 +1,44 @@
-"""
-Configuration constants for RimWorld ML Bridge Python client.
+"""RimTCP Python client configuration.
 
 This module provides centralized configuration values for the client library.
-All values can be overridden via environment variables with the MLBRIDGE_ prefix.
+
+All values can be overridden via environment variables with the `RIMTCP_` prefix.
+For backward compatibility, legacy `MLBRIDGE_` env vars are also accepted.
 """
 
 import os
 from dataclasses import dataclass
 
 # Network Configuration
-DEFAULT_HOST = os.environ.get("MLBRIDGE_HOST", "localhost")
-DEFAULT_PORT = int(os.environ.get("MLBRIDGE_PORT", "50051"))
+DEFAULT_HOST = os.environ.get(
+    "RIMTCP_HOST", os.environ.get("MLBRIDGE_HOST", "localhost")
+)
+DEFAULT_PORT = int(
+    os.environ.get("RIMTCP_PORT", os.environ.get("MLBRIDGE_PORT", "50051"))
+)
 
 # Connection Settings
-DEFAULT_TIMEOUT_SECONDS = float(os.environ.get("MLBRIDGE_TIMEOUT", "5.0"))
-HEARTBEAT_INTERVAL_SECONDS = int(os.environ.get("MLBRIDGE_HEARTBEAT_INTERVAL", "30"))
-MAX_CONNECTION_ERRORS = int(os.environ.get("MLBRIDGE_MAX_ERRORS", "10"))
-RECONNECT_DELAY_SECONDS = float(os.environ.get("MLBRIDGE_RECONNECT_DELAY", "1.0"))
-MAX_RECONNECT_ATTEMPTS = int(os.environ.get("MLBRIDGE_MAX_RECONNECT", "5"))
+DEFAULT_TIMEOUT_SECONDS = float(
+    os.environ.get("RIMTCP_TIMEOUT", os.environ.get("MLBRIDGE_TIMEOUT", "5.0"))
+)
+HEARTBEAT_INTERVAL_SECONDS = int(
+    os.environ.get(
+        "RIMTCP_HEARTBEAT_INTERVAL", os.environ.get("MLBRIDGE_HEARTBEAT_INTERVAL", "30")
+    )
+)
+MAX_CONNECTION_ERRORS = int(
+    os.environ.get("RIMTCP_MAX_ERRORS", os.environ.get("MLBRIDGE_MAX_ERRORS", "10"))
+)
+RECONNECT_DELAY_SECONDS = float(
+    os.environ.get(
+        "RIMTCP_RECONNECT_DELAY", os.environ.get("MLBRIDGE_RECONNECT_DELAY", "1.0")
+    )
+)
+MAX_RECONNECT_ATTEMPTS = int(
+    os.environ.get(
+        "RIMTCP_MAX_RECONNECT", os.environ.get("MLBRIDGE_MAX_RECONNECT", "5")
+    )
+)
 
 # Protocol Settings
 LENGTH_PREFIX_SIZE = 4  # bytes (big-endian int32)
@@ -29,16 +50,28 @@ DEFAULT_TICKS_PER_STEP = 60  # Default step duration (1 second game time)
 
 # Queue Settings
 DEFAULT_QUEUE_SIZE = 100
-STATE_QUEUE_SIZE = int(os.environ.get("MLBRIDGE_STATE_QUEUE_SIZE", "10"))
-EVENT_QUEUE_SIZE = int(os.environ.get("MLBRIDGE_EVENT_QUEUE_SIZE", "100"))
-ACTION_QUEUE_SIZE = int(os.environ.get("MLBRIDGE_ACTION_QUEUE_SIZE", "50"))
+STATE_QUEUE_SIZE = int(
+    os.environ.get(
+        "RIMTCP_STATE_QUEUE_SIZE", os.environ.get("MLBRIDGE_STATE_QUEUE_SIZE", "10")
+    )
+)
+EVENT_QUEUE_SIZE = int(
+    os.environ.get(
+        "RIMTCP_EVENT_QUEUE_SIZE", os.environ.get("MLBRIDGE_EVENT_QUEUE_SIZE", "100")
+    )
+)
+ACTION_QUEUE_SIZE = int(
+    os.environ.get(
+        "RIMTCP_ACTION_QUEUE_SIZE", os.environ.get("MLBRIDGE_ACTION_QUEUE_SIZE", "50")
+    )
+)
 
 # Thread Settings
 THREAD_POLL_INTERVAL_SECONDS = 0.1
 SHUTDOWN_TIMEOUT_SECONDS = 5.0
 
 # Logging
-LOG_PREFIX = "[MLBridge]"
+LOG_PREFIX = "[RimTCP]"
 
 
 @dataclass

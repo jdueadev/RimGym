@@ -353,7 +353,7 @@ def generate_report(results, output_file=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Automated test suite for RimWorld ML Bridge"
+        description="Automated test suite for RimGym/RimTCP"
     )
     parser.add_argument(
         "--rimworld-path", type=str, help="Path to RimWorld installation"

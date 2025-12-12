@@ -73,7 +73,7 @@ winget install --exact --id SteamRE.DepotDownloader
 
 ```powershell
 # Point to the Linux version you just downloaded
-.\docker\setup-rimworld-volume.ps1 "C:\RimWorldLinux"
+.\scripts\setup-rimworld-volume.ps1 "C:\RimWorldLinux"
 
 # Verify
 docker run --rm -v rimworld-data:/opt/rimworld alpine ls -la /opt/rimworld
@@ -117,6 +117,44 @@ cat test_results.txt
 docker-compose down
 docker volume rm rimworld-data
 ```
+
+## 🧩 Multi-Instance Training (Headless, No Host Ports)
+
+Use this when you want to run **multiple headless RimWorld instances in parallel** (vectorized training) and have other containers (RimGym workers, RimStats backend) connect to them over Docker networking.
+
+### 1. Create the shared network (one-time)
+
+RimStats expects an external network named `rimworld_network`.
+
+```bash
+docker network create rimworld_network
+```
+
+### 2. Start N RimWorld instances
+
+The training compose file runs instances **without publishing ports to the host**. Instances are reachable by DNS name on the `rimworld_network`:
+
+- `rimworld_1:50051`
+- `rimworld_2:50051`
+
+```bash
+docker compose -f docker-compose.training.yml up -d --build
+```
+
+If you copied the filename from a clickable link in VS Code and ended up with something like `-f [docker-compose.training.yml](http://...)`, re-run with the raw filename.
+
+**Windows PowerShell (recommended):**
+
+```powershell
+docker compose -f .\docker-compose.training.yml up -d --build
+```
+
+To add more instances, duplicate the `rimworld_1`/`rimworld_2` blocks in `docker-compose.training.yml` (e.g., `rimworld_3`, `rimworld_4`, ...).
+
+### 3. Connect from other containers
+
+- RimGym workers running in Docker should target `rimworld_1:50051`, `rimworld_2:50051`, etc.
+- RimStats backend can auto-discover instances on `rimworld_network` (see `src/RimStats/docker-compose.yml`).
 
 ## 🚀 GitHub Actions Integration
 
@@ -171,7 +209,7 @@ docker volume inspect rimworld-data
 docker run --rm -v rimworld-data:/data alpine ls -la /data
 
 # Re-create volume
-./docker/setup-rimworld-volume.sh /path/to/RimWorld
+./scripts/setup-rimworld-volume.sh /path/to/RimWorld
 ```
 
 ### Tests timeout

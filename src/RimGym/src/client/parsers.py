@@ -8,7 +8,7 @@ import logging
 import sys
 from pathlib import Path
 
-# Add parent directory to path for mlbridge_pb2 import
+# Add parent directory to path for protobuf imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from .state_models import (

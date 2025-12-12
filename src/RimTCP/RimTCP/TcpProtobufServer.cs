@@ -77,7 +77,7 @@ namespace RimTCP
         {
             if (_isRunning)
             {
-                Log.Warning("[MLBridge] Server is already running");
+                Log.Warning($"{Constants.LogPrefix} Server is already running");
                 return;
             }
 
@@ -86,12 +86,12 @@ namespace RimTCP
             _serverThread = new Thread(ServerLoop)
             {
                 IsBackground = true,
-                Name = "MLBridge-TCP-Server",
+                Name = "RimTCP-TCP-Server",
             };
             _serverThread.Start();
 
             Log.Message(
-                $"[MLBridge] TCP Protobuf server started on port {_port} at {_serverStartTime:yyyy-MM-dd HH:mm:ss} UTC"
+                $"{Constants.LogPrefix} TCP Protobuf server started on port {_port} at {_serverStartTime:yyyy-MM-dd HH:mm:ss} UTC"
             );
         }
 
@@ -108,11 +108,11 @@ namespace RimTCP
             }
             catch (Exception e)
             {
-                Log.Warning($"[MLBridge] Error during shutdown: {e.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error during shutdown: {e.Message}");
             }
 
             Log.Message(
-                $"[MLBridge] TCP server stopped. Stats: uptime={uptime.TotalSeconds:F1}s, connections={_totalConnectionsAccepted}, msgs_rx={_totalMessagesReceived}, msgs_tx={_totalMessagesSent}, errors={_totalErrors}"
+                $"{Constants.LogPrefix} TCP server stopped. Stats: uptime={uptime.TotalSeconds:F1}s, connections={_totalConnectionsAccepted}, msgs_rx={_totalMessagesReceived}, msgs_tx={_totalMessagesSent}, errors={_totalErrors}"
             );
         }
 
@@ -121,10 +121,11 @@ namespace RimTCP
             try
             {
                 const int ListenerPollIntervalMs = 100;
-                _listener = new TcpListener(IPAddress.Loopback, _port);
+                var bindAddress = GetBindAddress();
+                _listener = new TcpListener(bindAddress, _port);
                 _listener.Start();
                 Log.Message(
-                    $"[MLBridge] Waiting for Python client connection on localhost:{_port}..."
+                    $"{Constants.LogPrefix} Waiting for Python client connection on {FormatBindAddress(bindAddress)}:{_port}..."
                 );
 
                 while (_isRunning)
@@ -139,7 +140,7 @@ namespace RimTCP
                         _totalConnectionsAccepted++;
                         _lastClientConnectTime = DateTime.UtcNow;
                         Log.Message(
-                            $"[MLBridge] Client connected! connection_id={_totalConnectionsAccepted}, time={_lastClientConnectTime:HH:mm:ss}"
+                            $"{Constants.LogPrefix} Client connected! connection_id={_totalConnectionsAccepted}, time={_lastClientConnectTime:HH:mm:ss}"
                         );
 
                         // Handle this client until disconnect
@@ -147,7 +148,7 @@ namespace RimTCP
 
                         var connectionDuration = DateTime.UtcNow - _lastClientConnectTime;
                         Log.Message(
-                            $"[MLBridge] Client disconnected after {connectionDuration.TotalSeconds:F1}s, waiting for new connection..."
+                            $"{Constants.LogPrefix} Client disconnected after {connectionDuration.TotalSeconds:F1}s, waiting for new connection..."
                         );
                     }
                     else
@@ -158,12 +159,76 @@ namespace RimTCP
             }
             catch (Exception e)
             {
-                Log.Error($"[MLBridge] Server error: {e.Message}\n{e.StackTrace}");
+                Log.Error($"{Constants.LogPrefix} Server error: {e.Message}\n{e.StackTrace}");
             }
             finally
             {
                 _listener?.Stop();
             }
+        }
+
+        private static IPAddress GetBindAddress()
+        {
+            try
+            {
+                // Default to loopback for safety. Docker/multi-host scenarios can opt-in.
+                // Examples:
+                // - RIMTCP_BIND_ALL=1
+                // - RIMTCP_BIND_ADDRESS=0.0.0.0
+                var bindAll = Environment.GetEnvironmentVariable("RIMTCP_BIND_ALL");
+                if (!string.IsNullOrWhiteSpace(bindAll))
+                {
+                    bindAll = bindAll.Trim();
+                    if (
+                        bindAll == "1"
+                        || bindAll.Equals("true", StringComparison.OrdinalIgnoreCase)
+                    )
+                    {
+                        return IPAddress.Any;
+                    }
+                }
+
+                var bindAddressRaw = Environment.GetEnvironmentVariable("RIMTCP_BIND_ADDRESS");
+                if (string.IsNullOrWhiteSpace(bindAddressRaw))
+                {
+                    return IPAddress.Loopback;
+                }
+
+                bindAddressRaw = bindAddressRaw.Trim();
+                if (
+                    bindAddressRaw == "0.0.0.0"
+                    || bindAddressRaw == "*"
+                    || bindAddressRaw.Equals("any", StringComparison.OrdinalIgnoreCase)
+                )
+                {
+                    return IPAddress.Any;
+                }
+
+                if (bindAddressRaw.Equals("localhost", StringComparison.OrdinalIgnoreCase))
+                {
+                    return IPAddress.Loopback;
+                }
+
+                return IPAddress.Parse(bindAddressRaw);
+            }
+            catch (Exception e)
+            {
+                Log.Warning(
+                    $"{Constants.LogPrefix} Failed to parse bind address env vars; defaulting to loopback. Error: {e.Message}"
+                );
+                return IPAddress.Loopback;
+            }
+        }
+
+        private static string FormatBindAddress(IPAddress address)
+        {
+            if (address == null)
+                return "<null>";
+            if (address.Equals(IPAddress.Any))
+                return "0.0.0.0";
+            if (address.Equals(IPAddress.Loopback))
+                return "127.0.0.1";
+            return address.ToString();
         }
 
         private void HandleClient()
@@ -209,7 +274,7 @@ namespace RimTCP
                             TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         };
                         Log.Warning(
-                            $"[MLBridge] Response timeout for command {command.Type} after {ResponseTimeoutMs}ms"
+                            $"{Constants.LogPrefix} Response timeout for command {command.Type} after {ResponseTimeoutMs}ms"
                         );
                     }
 
@@ -225,7 +290,7 @@ namespace RimTCP
                 if (_isRunning) // Only log if not intentional shutdown
                 {
                     Log.Warning(
-                        $"[MLBridge] Client handler error: {e.Message}, msgs_rx={clientMsgsReceived}, msgs_tx={clientMsgsSent}"
+                        $"{Constants.LogPrefix} Client handler error: {e.Message}, msgs_rx={clientMsgsReceived}, msgs_tx={clientMsgsSent}"
                     );
                 }
             }
@@ -253,7 +318,7 @@ namespace RimTCP
                 var connected = IsConnected ? 1 : 0;
 
                 Log.Message(
-                    $"[MLBridge] Heartbeat: uptime={uptime.TotalMinutes:F1}min, connected={connected}, "
+                    $"{Constants.LogPrefix} Heartbeat: uptime={uptime.TotalMinutes:F1}min, connected={connected}, "
                         + $"conns_total={_totalConnectionsAccepted}, msgs_rx={_totalMessagesReceived}, "
                         + $"msgs_tx={_totalMessagesSent}, errors={_totalErrors}"
                 );
@@ -276,7 +341,7 @@ namespace RimTCP
                 {
                     _totalErrors++;
                     Log.Error(
-                        $"[MLBridge] Error executing command {command.Type}: {e.Message}\n{e.StackTrace}"
+                        $"{Constants.LogPrefix} Error executing command {command.Type}: {e.Message}\n{e.StackTrace}"
                     );
                     _responseQueue.Enqueue(
                         new RichStateMessage
@@ -293,7 +358,7 @@ namespace RimTCP
 
         private RichStateMessage ExecuteCommand(CommandMessage command)
         {
-            Log.Message($"[MLBridge] Executing command: {command.Type}");
+            Log.Message($"{Constants.LogPrefix} Executing command: {command.Type}");
 
             var state = new RichStateMessage
             {
@@ -316,7 +381,7 @@ namespace RimTCP
             {
                 case CommandType.Step:
                     // Phase III: Grant permission to advance ticks
-                    if (MlBridgeMod.TrainingMode)
+                    if (RimTcpMod.TrainingMode)
                     {
                         int ticksToRun = command.TicksToRun > 0 ? command.TicksToRun : 60;
 
@@ -325,11 +390,11 @@ namespace RimTCP
                         Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
 
                         // Allow ticks and run them immediately on the main thread.
-                        MlBridgeMod.TicksToRun = ticksToRun;
-                        MlBridgeMod.StepPermitted = true;
+                        RimTcpMod.TicksToRun = ticksToRun;
+                        RimTcpMod.StepPermitted = true;
 
                         Log.Message(
-                            $"[MLBridge] STEP command: running {ticksToRun} ticks (Training Mode)"
+                            $"{Constants.LogPrefix} STEP command: running {ticksToRun} ticks (Training Mode)"
                         );
                         for (int i = 0; i < ticksToRun; i++)
                         {
@@ -348,7 +413,7 @@ namespace RimTCP
 
                 case CommandType.QueryState:
                     // Return current state without advancing
-                    state.StatusMessage = MlBridgeMod.TrainingMode
+                    state.StatusMessage = RimTcpMod.TrainingMode
                         ? "State queried (Training Mode)"
                         : "State queried (Inference Mode)";
                     break;
@@ -360,20 +425,22 @@ namespace RimTCP
                         ? "TRAINING (Synchronous)"
                         : "INFERENCE (Asynchronous)";
 
-                    if (MlBridgeMod.TrainingMode != newMode)
+                    if (RimTcpMod.TrainingMode != newMode)
                     {
-                        MlBridgeMod.TrainingMode = newMode;
-                        MlBridgeMod.StepPermitted = false; // Reset step permission on mode change
-                        MlBridgeMod.TicksToRun = 0;
+                        RimTcpMod.TrainingMode = newMode;
+                        RimTcpMod.StepPermitted = false; // Reset step permission on mode change
+                        RimTcpMod.TicksToRun = 0;
 
                         // When switching to inference mode, ensure game is unpaused
                         if (!newMode && Find.TickManager.Paused)
                         {
                             Find.TickManager.CurTimeSpeed = TimeSpeed.Normal;
-                            Log.Message("[MLBridge] Auto-unpaused game for inference mode");
+                            Log.Message(
+                                $"{Constants.LogPrefix} Auto-unpaused game for inference mode"
+                            );
                         }
 
-                        Log.Message($"[MLBridge] Mode switched to: {modeStr}");
+                        Log.Message($"{Constants.LogPrefix} Mode switched to: {modeStr}");
                         state.StatusMessage = $"Mode changed to {modeStr}";
                     }
                     else
@@ -390,7 +457,9 @@ namespace RimTCP
                     if (oldSpeed != newSpeed)
                     {
                         Find.TickManager.CurTimeSpeed = newSpeed;
-                        Log.Message($"[MLBridge] Game speed changed: {oldSpeed} → {newSpeed}");
+                        Log.Message(
+                            $"{Constants.LogPrefix} Game speed changed: {oldSpeed} → {newSpeed}"
+                        );
                         state.StatusMessage = $"Speed changed to {newSpeed}";
                     }
                     else
@@ -404,7 +473,7 @@ namespace RimTCP
                     // For now, return informative message. Full implementation tracked in Phase VI roadmap.
                     state.StatusMessage = "Reset requires save/load - see Phase VI roadmap";
                     Log.Message(
-                        "[MLBridge] Reset command received - not yet implemented (Phase VI)"
+                        $"{Constants.LogPrefix} Reset command received - not yet implemented (Phase VI)"
                     );
                     break;
 
@@ -413,7 +482,7 @@ namespace RimTCP
                     // Intent-based actions (DRAFT, GOTO, ATTACK) need validation and pathfinding
                     state.StatusMessage = "Action execution planned for Phase VI";
                     Log.Message(
-                        "[MLBridge] ExecuteAction received - not yet implemented (Phase VI)"
+                        $"{Constants.LogPrefix} ExecuteAction received - not yet implemented (Phase VI)"
                     );
                     break;
             }
@@ -471,7 +540,7 @@ namespace RimTCP
                 state.TimestampMs = currentTime;
 
                 // Phase III: Set current execution mode
-                state.CurrentMode = MlBridgeMod.TrainingMode
+                state.CurrentMode = RimTcpMod.TrainingMode
                     ? ExecutionMode.ModeTraining
                     : ExecutionMode.ModeInference;
 
@@ -513,12 +582,14 @@ namespace RimTCP
                 state.IsDelta = false;
 
                 Log.Message(
-                    $"[MLBridge] Populated state: {state.Colonists.Count} colonists, {state.Map?.Buildings?.Count ?? 0} buildings, frame {state.FrameId}, dt={state.DeltaTimeMs}ms"
+                    $"{Constants.LogPrefix} Populated state: {state.Colonists.Count} colonists, {state.Map?.Buildings?.Count ?? 0} buildings, frame {state.FrameId}, dt={state.DeltaTimeMs}ms"
                 );
             }
             catch (Exception e)
             {
-                Log.Warning($"[MLBridge] Error populating state: {e.Message}\n{e.StackTrace}");
+                Log.Warning(
+                    $"{Constants.LogPrefix} Error populating state: {e.Message}\n{e.StackTrace}"
+                );
                 state.IsReady = false;
                 state.StatusMessage = $"Error: {e.Message}";
             }
@@ -782,14 +853,14 @@ namespace RimTCP
                 );
 
                 Log.Message(
-                    $"[MLBridge] Phase V state: {state.Map?.Buildings?.Count ?? 0} buildings, "
+                    $"{Constants.LogPrefix} Phase V state: {state.Map?.Buildings?.Count ?? 0} buildings, "
                         + $"{state.Incidents?.IncidentHistory?.Count ?? 0} incidents, "
                         + $"{state.World?.Factions?.Count ?? 0} factions"
                 );
             }
             catch (Exception e)
             {
-                Log.Warning($"[MLBridge] Error populating Phase V state: {e.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error populating Phase V state: {e.Message}");
             }
         }
 

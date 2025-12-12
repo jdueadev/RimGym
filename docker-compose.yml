@@ -11,8 +11,8 @@ services:
     environment:
       - RIMWORLD_PATH=/opt/rimworld
       - DISPLAY=:99
-    ports:
-      - "50051:50051"
+    expose:
+      - "50051"
     command: ["interactive"]
     stdin_open: true
     tty: true
@@ -32,8 +32,8 @@ services:
       - RIMWORLD_PATH=/opt/rimworld
       - DISPLAY=:99
       - INTEGRATION_MODE=true
-    ports:
-      - "50051:50051"
+    expose:
+      - "50051"
     # Use the entrypoint script that properly sets up mods and config
     command: ["test"]
     healthcheck:

@@ -3,7 +3,7 @@
 ## Current Status: Production Ready 🚀
 
 **Version**: 0.5.0  
-**Last Updated**: 2025-12-11
+**Last Updated**: 2025-12-12
 
 All major development phases are complete. The project is ready for public release.
 
@@ -66,6 +66,7 @@ All major development phases are complete. The project is ready for public relea
 - ✅ MkDocs documentation site
 - ✅ Steam Workshop packaging scripts
 - ✅ Docker integration testing
+- ✅ Multi-instance headless training compose (no host ports) + trainer worker
 - ✅ Contributor guides and templates
 
 ---
@@ -108,6 +109,7 @@ All major development phases are complete. The project is ready for public relea
 - **2025-12-11**: Dashboard (RimStats) complete
 - **2025-12-11**: Codebase cleanup & refactoring complete
 - **2025-12-11**: Phase V Production Hardening complete
+- **2025-12-12**: Legacy naming cleanup (RimworldMLBridge → RimTCP)
 - **2025-12-10**: Phase V Option C (Full Observability) complete
 - **2025-12-10**: Phase IV Python Client complete
 - **2025-12-10**: Phase III Hybrid Valve complete

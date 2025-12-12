@@ -25,7 +25,8 @@ namespace RimTCP.Services
         {
             lock (_lock)
             {
-                if (_initialized) return;
+                if (_initialized)
+                    return;
 
                 try
                 {
@@ -35,11 +36,13 @@ namespace RimTCP.Services
                     _incidentService = new IncidentService();
                     _initialized = true;
 
-                    Log.Message("[MLBridge] ServiceRegistry initialized successfully");
+                    Log.Message($"{Constants.LogPrefix} ServiceRegistry initialized successfully");
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"[MLBridge] Failed to initialize ServiceRegistry: {ex.Message}");
+                    Log.Error(
+                        $"{Constants.LogPrefix} Failed to initialize ServiceRegistry: {ex.Message}"
+                    );
                 }
             }
         }
@@ -121,7 +124,7 @@ namespace RimTCP.Services
 
         /// <summary>
         /// Extract comprehensive game state using all services.
-        /// This is the main entry point for the ML bridge to query game state.
+        /// This is the main entry point for RimTCP to query game state.
         /// MUST be called from the main thread.
         /// </summary>
         public static GameStateDTO GetFullGameState()
@@ -164,7 +167,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error extracting game state: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error extracting game state: {ex.Message}");
                 state.IsReady = false;
                 state.StatusMessage = $"Error: {ex.Message}";
             }
@@ -202,13 +205,16 @@ namespace RimTCP.Services
 
         // Map info
         public int CurrentMapId { get; set; }
-        public System.Collections.Generic.List<MapDTO> Maps { get; set; } = new System.Collections.Generic.List<MapDTO>();
+        public System.Collections.Generic.List<MapDTO> Maps { get; set; } =
+            new System.Collections.Generic.List<MapDTO>();
         public MapWeatherDTO Weather { get; set; }
         public MapCreaturesSummaryDTO CreaturesSummary { get; set; }
 
         // Colonists
-        public System.Collections.Generic.List<ColonistDTO> Colonists { get; set; } = new System.Collections.Generic.List<ColonistDTO>();
-        public System.Collections.Generic.List<ColonistDetailedDTO> ColonistsDetailed { get; set; } = new System.Collections.Generic.List<ColonistDetailedDTO>();
+        public System.Collections.Generic.List<ColonistDTO> Colonists { get; set; } =
+            new System.Collections.Generic.List<ColonistDTO>();
+        public System.Collections.Generic.List<ColonistDetailedDTO> ColonistsDetailed { get; set; } =
+            new System.Collections.Generic.List<ColonistDetailedDTO>();
 
         // Resources
         public ResourcesSummaryDTO ResourcesSummary { get; set; }

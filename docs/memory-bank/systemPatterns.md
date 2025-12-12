@@ -36,9 +36,9 @@ Dual-mode tick control for training vs inference:
 ```csharp
 // TickManager_DoSingleTick_Patch
 public static bool Prefix() {
-    if (MlBridgeMod.TrainingMode) {
+    if (RimTcpMod.TrainingMode) {
         // Block tick unless STEP command received
-        return MlBridgeMod.StepRequested;
+        return RimTcpMod.StepPermitted;
     }
     return true; // Normal flow in inference mode
 }
@@ -145,12 +145,12 @@ TcpProtobufServer.SendResponse()
 try {
     var colonists = Find.CurrentMap?.mapPawns?.FreeColonistsSpawned;
     if (colonists == null) {
-        Log.Warning("[MLBridge] No colonists available");
+        Log.Warning("[RimTCP] No colonists available");
         return new StateMessage { frame_id = 0 };
     }
     // Process colonists...
 } catch (Exception e) {
-    Log.Error($"[MLBridge] State extraction failed: {e}");
+    Log.Error($"[RimTCP] State extraction failed: {e}");
     return new StateMessage { error = e.Message };
 }
 ```

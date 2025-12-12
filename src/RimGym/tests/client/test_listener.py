@@ -10,7 +10,7 @@ import pytest
 from client.listener import EventDetectionConfig, ListenerThread
 from client.queues import EventPriority, EventQueue, StateQueue
 
-from shared.python.src.mlbridge_pb2 import StateMessage
+from shared.python.src.rimgym_pb2 import StateMessage
 
 
 class TestEventDetectionConfig:

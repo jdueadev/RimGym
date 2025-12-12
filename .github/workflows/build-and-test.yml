@@ -26,10 +26,10 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Restore dependencies
-        run: dotnet restore RimworldMLBridge.sln
+        run: dotnet restore src/RimTCP/RimTCP/RimTCP.sln
 
       - name: Build mod (Release)
-        run: dotnet build RimworldMLBridge.sln -c Release --no-restore
+        run: dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release --no-restore
 
       - name: Verify no native DLLs
         shell: pwsh
@@ -44,17 +44,17 @@ jobs:
       - name: Upload mod artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: rimworld-ml-bridge-mod
+          name: rimtcp-mod
           path: |
-            1.6/Assemblies/*.dll
-            About/About.xml
+            src/RimTCP/1.6/Assemblies/*.dll
+            src/RimTCP/About/About.xml
           retention-days: 30
 
       - name: List build outputs
         shell: pwsh
         run: |
           Write-Host "Build outputs:"
-          Get-ChildItem 1.6\Assemblies\*.dll | ForEach-Object { 
+          Get-ChildItem src\RimTCP\1.6\Assemblies\*.dll | ForEach-Object { 
             Write-Host "  $($_.Name) - $([math]::Round($_.Length/1KB, 2)) KB"
           }
 
@@ -78,14 +78,14 @@ jobs:
         run: uv sync
 
       - name: Generate protobuf bindings
-        run: uv run python python/generate_proto.py
+        run: uv run python src/shared/python/src/generate_proto.py
 
       - name: Run Python unit tests
-        run: uv run pytest python/tests/ -v
+        run: uv run pytest src/RimGym/tests/ -v
 
       - name: Verify protobuf generation
         run: |
-          if [ ! -f "python/mlbridge_pb2.py" ]; then
+          if [ ! -f "src/shared/python/src/rimgym_pb2.py" ]; then
             echo "❌ Protobuf bindings not generated"
             exit 1
           fi
@@ -113,13 +113,13 @@ jobs:
         run: uv python install ${{ env.PYTHON_VERSION }}
 
       - name: Build mod
-        run: dotnet build RimworldMLBridge.sln -c Release
+        run: dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release
 
       - name: Install dependencies
         run: uv sync
 
       - name: Generate protobuf bindings
-        run: uv run python python/generate_proto.py
+        run: uv run python src/shared/python/src/generate_proto.py
 
       - name: Copy mod to RimWorld
         shell: pwsh
@@ -129,15 +129,15 @@ jobs:
             exit 1
           }
 
-          $modPath = Join-Path $env:RIMWORLD_PATH "Mods\RimworldMLBridge"
+          $modPath = Join-Path $env:RIMWORLD_PATH "Mods\RimTCP"
 
           # Clean and create mod directory
           if (Test-Path $modPath) { Remove-Item $modPath -Recurse -Force }
           New-Item -ItemType Directory -Path $modPath -Force
 
           # Copy mod files
-          Copy-Item -Path "1.6" -Destination $modPath -Recurse
-          Copy-Item -Path "About" -Destination $modPath -Recurse
+          Copy-Item -Path "src\RimTCP\1.6" -Destination $modPath -Recurse
+          Copy-Item -Path "src\RimTCP\About" -Destination $modPath -Recurse
 
           Write-Host "✅ Mod copied to RimWorld"
 

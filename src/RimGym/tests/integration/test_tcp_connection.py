@@ -1,5 +1,5 @@
-"""
-TCP+Protobuf client for RimWorld ML Bridge.
+"""TCP+Protobuf client for RimTCP.
+
 Replaces gRPC with a simple TCP socket using Protocol Buffers for serialization.
 """
 
@@ -9,8 +9,8 @@ import struct
 import shared.python.src.rimgym_pb2 as rimgym_pb2
 
 
-class MLBridgeClient:
-    """Client for connecting to RimWorld ML Bridge via TCP+Protobuf"""
+class RimTcpClient:
+    """Client for connecting to RimTCP via TCP+Protobuf."""
 
     def __init__(self, host="localhost", port=50051):
         self.host = host
@@ -21,7 +21,7 @@ class MLBridgeClient:
         """Connect to the RimWorld server"""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
-        print(f"Connected to RimWorld ML Bridge at {self.host}:{self.port}")
+        print(f"Connected to RimTCP at {self.host}:{self.port}")
 
     def disconnect(self):
         """Disconnect from the server"""

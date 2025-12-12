@@ -1,7 +1,7 @@
-"""
-RimWorld ML Bridge - Python Client Package
+"""RimGym Python client package.
 
-Provides a triple-threaded client for autonomous RL agent interaction with RimWorld.
+Provides a triple-threaded client for autonomous RL agent interaction with RimWorld,
+connecting to the RimTCP mod via TCP + Protocol Buffers.
 """
 
 from .actor import ActorThread

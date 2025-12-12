@@ -1,6 +1,6 @@
 # Phase IV: Python Client Usage Guide
 
-This guide explains how to use the Phase IV Python Triple-Threaded Client for RimWorld ML Bridge.
+This guide explains how to use the Phase IV Python Triple-Threaded Client for RimTCP.
 
 ## Overview
 
@@ -16,7 +16,7 @@ Phase IV implements a sophisticated autonomous agent client with three concurren
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/RimworldMLBridge.git
+git clone https://github.com/yourusername/RimGym.git
 cd RimGym
 
 # Install core dependencies
@@ -55,7 +55,7 @@ The simplest way to see the client in action:
 uv sync
 
 # Run spectator demo
-uv run python python/examples/spectator_demo.py --duration 60
+uv run --project src/RimGym python src/RimGym/src/examples/spectator_demo.py --duration 60
 ```
 
 This will:

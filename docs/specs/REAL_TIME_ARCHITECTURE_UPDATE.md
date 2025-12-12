@@ -42,7 +42,7 @@ Unity forbids background threads from touching game objects.
 
 ### **3.1 The "Organ Transplant" Strategy**
 
-Instead of reinventing data extraction, we integrate the robust memory-reading logic from the *RIMAPI* project into our lightweight RimworldMLBridge.
+Instead of reinventing data extraction, we integrate the robust memory-reading logic from the *RIMAPI* project into our lightweight RimTCP.
 
 * **Source:** *RIMAPI* Services/ (e.g., ColonistService.cs, MapService.cs).  
 * **Refactoring:** We strip the HTTP/JSON layers. The services will return raw C\# DTOs (Data Transfer Objects).  
@@ -134,7 +134,7 @@ To decouple inference time from game speed, the Python client (SpectatorClient.p
    * TCP/Protobuf Server operational.  
    * Basic Tick Hijacking operational.  
 2. **Phase II: The Organ Transplant (Current Priority)**  
-   * Port Services/ from *RIMAPI* to *RimworldMLBridge*.  
+   * Port Services/ from *RIMAPI* to *RimTCP*.  
    * Implement ProtobufAdapter to serialize complex DTOs.  
    * Implement "Intent-Based" Action definition in Protobuf.  
 3. **Phase III: The Hybrid Valve**  

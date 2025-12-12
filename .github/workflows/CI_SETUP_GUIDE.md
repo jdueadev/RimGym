@@ -53,7 +53,7 @@ git commit -m "Add CI/CD workflows"
 git push origin main
 ```
 
-Check: <https://github.com/YOUR_USERNAME/RimworldMLBridge/actions>
+Check: <https://github.com/YOUR_USERNAME/RimGym/actions>
 
 ### 3. Self-Hosted Runner (Optional - For Integration Tests)
 
@@ -87,7 +87,7 @@ git commit -m "Test CI pipeline"
 git push
 ```
 
-Watch the workflow run: <https://github.com/YOUR_USERNAME/RimworldMLBridge/actions>
+Watch the workflow run: <https://github.com/YOUR_USERNAME/RimGym/actions>
 
 ### 5. Integration Test Trigger
 
@@ -167,7 +167,7 @@ For Steam Workshop upload or other integrations:
 Already added to README.md:
 
 ```markdown
-[![Build](https://github.com/jmduea/RimworldMLBridge/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/jmduea/RimworldMLBridge/actions/workflows/build-and-test.yml)
+[![Build](https://github.com/jmduea/RimGym/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/jmduea/RimGym/actions/workflows/build-and-test.yml)
 ```
 
 ### Email Notifications
@@ -202,16 +202,18 @@ Add webhook notifications (optional):
 
 ```powershell
 # Test locally with exact CI commands
-dotnet restore RimworldMLBridge.sln
-dotnet build RimworldMLBridge.sln -c Release --no-restore
-dotnet test --no-build -c Release
+dotnet restore src\RimTCP\RimTCP\RimTCP.sln
+dotnet build src\RimTCP\RimTCP\RimTCP.sln -c Release --no-restore
+dotnet test tests\RimTCP.Tests\RimTCP.Tests.csproj -c Release
+```
+
 ```
 
 ### Python Tests Fail on CI
 
 **Cause**: Protobuf not generated
 
-**Solution**: Workflow already handles this with `uv run python python/generate_proto.py`
+**Solution**: Workflow already handles this with `uv run python src/shared/python/src/generate_proto.py`
 
 ### Integration Tests Timeout
 

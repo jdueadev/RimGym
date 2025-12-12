@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 app = FastAPI(
     title="RimWorld ML Dashboard API",
-    description="Real-time training visualization for RimWorld ML Bridge",
+    description="Real-time training visualization for RimGym/RimTCP",
     version="0.1.0",
     lifespan=lifespan,
 )

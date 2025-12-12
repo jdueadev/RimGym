@@ -33,15 +33,15 @@ jobs:
               uses: nuget/setup-nuget@v2
 
             - name: Restore NuGet Packages
-              run: nuget restore RimworldMLBridge.sln
+              run: nuget restore src\RimTCP\RimTCP\RimTCP.sln
 
             - name: Build Solution
-              run: msbuild RimworldMLBridge.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
+              run: msbuild src\RimTCP\RimTCP\RimTCP.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
 
             - name: Verify No Native DLLs
               shell: pwsh
               run: |
-                  $nativeDlls = Get-ChildItem -Path "1.6\Assemblies" -Filter "*csharp_ext*.dll" -ErrorAction SilentlyContinue
+                  $nativeDlls = Get-ChildItem -Path "src\RimTCP\1.6\Assemblies" -Filter "*csharp_ext*.dll" -ErrorAction SilentlyContinue
                   if ($nativeDlls) {
                     Write-Error "ERROR: Native DLLs found in output! $($nativeDlls.Name -join ', ')"
                     exit 1
@@ -53,12 +53,12 @@ jobs:
               with:
                   name: csharp-assemblies
                   path: |
-                      1.6/Assemblies/*.dll
-                      About/About.xml
+                  src/RimTCP/1.6/Assemblies/*.dll
+                  src/RimTCP/About/About.xml
                   retention-days: 7
 
             - name: Run C# Tests
-              run: dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+              run: dotnet test tests\RimTCP.Tests\RimTCP.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
 
             - name: Publish Test Results
               uses: dorny/test-reporter@v1
@@ -91,14 +91,14 @@ jobs:
               run: uv sync --all-extras
 
             - name: Run Ruff Linting
-              run: uv run ruff check python/ --output-format=github
+              run: uv run --project src/RimGym ruff check src/RimGym/ --output-format=github
               continue-on-error: true
 
             - name: Run Ruff Format Check
-              run: uv run ruff format python/ --check
+              run: uv run --project src/RimGym ruff format src/RimGym/ --check
 
             - name: Run MyPy Type Checking
-              run: uv run mypy python/client python/policies python/gym_env --strict
+              run: uv run --project src/RimGym mypy src/RimGym/src --strict
               continue-on-error: true
 
     # ============================================================================
@@ -127,7 +127,7 @@ jobs:
               run: uv sync --all-extras
 
             - name: Run Unit Tests
-              run: uv run pytest python/tests/ -v --tb=short --cov=client --cov=policies --cov=gym_env --cov-report=xml --cov-report=term --junit-xml=pytest-results.xml
+              run: uv run --project src/RimGym pytest src/RimGym/tests/ -v --tb=short --cov=rimgym --cov-report=xml --cov-report=term --junit-xml=pytest-results.xml
 
             - name: Upload Coverage to Codecov
               uses: codecov/codecov-action@v4
@@ -163,7 +163,7 @@ jobs:
                   repo-token: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Validate Protobuf Syntax
-              run: protoc --proto_path=Protos --descriptor_set_out=/dev/null Protos/mlbridge.proto
+              run: protoc --proto_path=src/shared/Protos --descriptor_set_out=/dev/null src/shared/Protos/rimgym.proto
 
             - name: Install UV
               uses: astral-sh/setup-uv@v4
@@ -173,13 +173,12 @@ jobs:
 
             - name: Generate Python Protobuf
               run: |
-                  uv pip install protobuf
-                  uv run python python/generate_proto.py
+                  uv run python src/shared/python/src/generate_proto.py
 
             - name: Verify Generated Files
               run: |
-                  if [ ! -f "python/mlbridge_pb2.py" ]; then
-                    echo "ERROR: mlbridge_pb2.py not generated!"
+                  if [ ! -f "src/shared/python/src/rimgym_pb2.py" ]; then
+                    echo "ERROR: rimgym_pb2.py not generated!"
                     exit 1
                   fi
                   echo "✓ Protobuf files generated successfully"
@@ -217,7 +216,7 @@ jobs:
                   file: ./Dockerfile
                   push: false
                   load: true
-                  tags: rimworld-ml-bridge:test
+                  tags: rimgym-rimworld:test
                   cache-from: type=gha
                   cache-to: type=gha,mode=max
 
@@ -232,7 +231,7 @@ jobs:
 
             - name: Start Docker Test Container
               run: |
-                  docker-compose up -d test
+                  docker compose up -d test
                   sleep 30  # Allow RimWorld to initialize
 
             - name: Wait for Server

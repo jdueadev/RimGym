@@ -50,8 +50,8 @@ Fixes #(issue number)
 
 ```bash
 # Commands run:
-uv run pytest python/tests/ -v
-dotnet test RimworldMLBridge.Tests/
+uv run pytest src/RimGym/tests/ -v
+dotnet test tests/RimTCP.Tests/RimTCP.Tests.csproj -c Release
 ```
 
 ### Integration Tests

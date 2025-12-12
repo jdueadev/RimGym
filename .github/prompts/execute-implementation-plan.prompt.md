@@ -384,8 +384,8 @@ Tasks: 3 | Estimated Files: 3
 ═══════════════════════════════════════════════════════════
 
 ───────────────────────────────────────────────────────────
-TASK-001: Delete RimworldMLBridge/GrpcService.cs
-Files: RimworldMLBridge/GrpcService.cs
+TASK-001: Delete src/legacy/GrpcService.cs
+Files: src/legacy/GrpcService.cs
 ───────────────────────────────────────────────────────────
 [Executing] Deleting file... ✅
 [Validating] File removed... ✅

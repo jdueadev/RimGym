@@ -63,7 +63,7 @@ services:
     ports:
       - "50051:50051"
     volumes:
-      - ../python:/app:ro
+      - ../shared/python/src:/app:ro
     working_dir: /app
     command: |
       sh -c "
@@ -72,7 +72,7 @@ services:
 import socket
 import time
 import struct
-from mlbridge_pb2 import StateMessage, Entity
+from rimgym_pb2 import StateMessage, Entity
 
 def serve():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

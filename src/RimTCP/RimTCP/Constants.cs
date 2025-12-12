@@ -1,13 +1,13 @@
 namespace RimTCP
 {
     /// <summary>
-    /// Centralized constants for RimWorld ML Bridge configuration.
+    /// Centralized constants for RimTCP configuration.
     /// </summary>
     public static class Constants
     {
         // Network Configuration
         /// <summary>
-        /// Default TCP port for the ML Bridge server.
+        /// Default TCP port for the RimTCP server.
         /// </summary>
         public const int DefaultPort = 50051;
 
@@ -56,15 +56,15 @@ namespace RimTCP
 
         // Logging
         /// <summary>
-        /// Log prefix for all ML Bridge messages.
+        /// Log prefix for all RimTCP messages.
         /// </summary>
-        public const string LogPrefix = "[MLBridge]";
+        public const string LogPrefix = "[RimTCP]";
 
         // Mod Identity
         /// <summary>
         /// Harmony ID for this mod.
         /// </summary>
-        public const string HarmonyId = "com.jmduea.rimworldmlbridge";
+        public const string HarmonyId = "unknwnentity.rimtcp";
 
         /// <summary>
         /// Current mod version.

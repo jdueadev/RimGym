@@ -1,5 +1,4 @@
-"""
-Metrics collection and monitoring for RimWorld ML Bridge client.
+"""Metrics collection and monitoring for the RimGym client.
 
 Tracks performance, throughput, latencies, and queue health.
 """

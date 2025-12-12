@@ -70,10 +70,10 @@ The Docker testing infrastructure is **production-ready**. All critical function
 
 ```bash
 # CURRENT (line 67):
-cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimworldMLBridge/
+cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimTCP/
 
 # RECOMMENDED:
-if ! cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimworldMLBridge/; then
+if ! cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimTCP/; then
     echo "ERROR: Failed to copy mod files"
     exit 1
 fi
@@ -85,7 +85,7 @@ fi
 
    ```bash
    # After mod installation
-   if [ ! -f "${RIMWORLD_PATH}/Mods/RimworldMLBridge/1.6/Assemblies/RimworldMLBridge.dll" ]; then
+   if [ ! -f "${RIMWORLD_PATH}/Mods/RimTCP/1.6/Assemblies/RimTCP.dll" ]; then
        echo "ERROR: Mod DLL not found after installation"
        exit 1
    fi

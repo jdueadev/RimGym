@@ -306,7 +306,7 @@ Edit `run_full_suite()`:
 ```python
 speeds = [
     # ... existing speeds ...
-    ("4x Speed", mlbridge_pb2.SPEED_ULTRAFAST, 900, 1100),  # ~1000 ticks expected
+  ("4x Speed", rimgym_pb2.SPEED_ULTRAFAST, 900, 1100),  # ~1000 ticks expected
 ]
 ```
 

@@ -63,7 +63,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD/actions-runner-win-x64-2.311.0.zip", "$PWD")
 
 # Configure
-./config.cmd --url https://github.com/YOUR_ORG/RimworldMLBridge --token YOUR_TOKEN
+./config.cmd --url https://github.com/YOUR_ORG/RimGym --token YOUR_TOKEN
 
 # Run as service (recommended)
 ./svc.sh install
@@ -114,10 +114,10 @@ jobs:
 
 ```powershell
 # Allow RimWorld on local network (for TCP server)
-New-NetFirewallRule -DisplayName "RimWorld ML Bridge" -Direction Inbound -Protocol TCP -LocalPort 50051 -Action Allow
+New-NetFirewallRule -DisplayName "RimTCP" -Direction Inbound -Protocol TCP -LocalPort 50051 -Action Allow
 
 # Verify
-Get-NetFirewallRule -DisplayName "RimWorld ML Bridge"
+Get-NetFirewallRule -DisplayName "RimTCP"
 ```
 
 ### Isolation
@@ -144,7 +144,7 @@ cd C:\actions-runner
 # Download new version and extract
 
 ./config.cmd remove --token YOUR_TOKEN
-./config.cmd --url https://github.com/YOUR_ORG/RimworldMLBridge --token NEW_TOKEN
+./config.cmd --url https://github.com/YOUR_ORG/RimGym --token NEW_TOKEN
 ./svc.sh install
 ./svc.sh start
 ```

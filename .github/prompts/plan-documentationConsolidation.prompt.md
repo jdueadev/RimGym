@@ -5,7 +5,7 @@ Update all documentation to reflect the current project state and structure. Con
 
 ## 1. Terminology Standardization
 - **RimGym**: The overarching project name.
-- **RimTCP**: The C# RimWorld mod (formerly "RimWorld ML Bridge" mod).
+- **RimTCP**: The C# RimWorld mod (formerly the legacy mod name).
 - **RimGym (Python)**: The Python Gymnasium environment and client.
 - **RimStats**: The training visualization dashboard.
 
@@ -34,7 +34,7 @@ Update all documentation to reflect the current project state and structure. Con
 
 ## 4. Global Documentation (`docs/`)
 - **`docs/specs/`**:
-    - [ ] Review architecture specs. Update "RimWorld ML Bridge" to "RimGym" or "RimTCP" where appropriate.
+    - [ ] Review architecture specs. Update legacy naming to "RimGym" or "RimTCP" where appropriate.
 - **`docs/guides/`**:
     - [ ] `installation.md`: Split into "Mod Installation" (RimTCP) and "Environment Setup" (RimGym).
     - [ ] `python-client.md`: Move content to `src/RimGym/README.md` or link to it.
@@ -42,7 +42,7 @@ Update all documentation to reflect the current project state and structure. Con
     - [ ] Keep as historical/deep-dive, but update context notes.
 
 ## 5. Action Items
-1.  **Search & Replace**: Run a global search for "RimWorld ML Bridge" and replace with "RimGym" (project context) or "RimTCP" (mod context).
+1.  **Search & Replace**: Run a global search for legacy naming and replace with "RimGym" (project context) or "RimTCP" (mod context).
 2.  **Move Content**: Extract sections from root `README.md` into `src/RimTCP/README.md` and `src/RimGym/README.md`.
 3.  **Update Links**: Fix relative links in all markdown files to point to the new locations.
 4.  **Verify**: Check `mkdocs.yml` (if active) to ensure the site builds correctly with the new structure.

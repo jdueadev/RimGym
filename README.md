@@ -265,6 +265,11 @@ This project is proprietary software. See LICENSE file for details.
 - **Gymnasium** by Farama Foundation
 - **Protocol Buffers** by Google
 
+### Projects that inspired or aided this work
+
+- [**RIMAPI**](https://github.com/IlyaChichkov/RIMAPI)
+- [**Rimworld-Together**](https://github.com/RimWorldTogether/RimWorldTogether)
+
 ## 📞 Contact
 
 - **GitHub**: [@jmduea](https://github.com/jmduea)

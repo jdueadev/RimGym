@@ -1,5 +1,5 @@
 """
-SpectatorClient - Main orchestrator for RimWorld ML Bridge client.
+SpectatorClient - Main orchestrator for RimGym client.
 
 Manages connection, threads, and provides high-level API for RL agents.
 """
@@ -81,7 +81,7 @@ class ClientConfig:
 
 class SpectatorClient:
     """
-    Main client orchestrating all threads for RimWorld ML Bridge.
+    Main client orchestrating all threads for RimGym/RimTCP.
 
     Manages:
     - Connection to RimWorld server

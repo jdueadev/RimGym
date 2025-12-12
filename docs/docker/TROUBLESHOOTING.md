@@ -47,7 +47,7 @@ Convert `entrypoint.sh` to Unix (LF) line endings:
 **In PowerShell:**
 
 ```powershell
-(Get-Content docker\entrypoint.sh -Raw) -replace "`r`n", "`n" | Set-Content docker\entrypoint.sh -NoNewline
+(Get-Content scripts\entrypoint.sh -Raw) -replace "`r`n", "`n" | Set-Content scripts\entrypoint.sh -NoNewline
 ```
 
 **In Git Bash:**
@@ -60,7 +60,7 @@ dos2unix docker/entrypoint.sh
 
 ```powershell
 # Should show "UnixText"
-Get-Content docker\entrypoint.sh -Raw | Format-Hex | Select-String "0D 0A"
+Get-Content scripts\entrypoint.sh -Raw | Format-Hex | Select-String "0D 0A"
 # No output = LF only = correct
 ```
 
@@ -86,8 +86,8 @@ Mount only specific directories needed by the container:
 
 ```yaml
 volumes:
-  - ./python:/app/python          # Python test scripts
-  - ./Protos:/app/Protos          # Protobuf definitions
+   - ./src/RimGym:/app/src/RimGym  # Python client + tests
+   - ./src/shared:/app/src/shared  # Protobuf generation + schema
   - rimworld-data:/opt/rimworld   # Game data (separate volume)
    # DO NOT mount: .:/app or ./src/RimGym:/app
 ```
@@ -98,7 +98,7 @@ volumes:
 
 **Symptoms:**
 
-- RimWorld starts but MLBridge mod not active
+- RimWorld starts but RimTCP mod not active
 - No TCP server on port 50051
 - Log shows "Active mods: Core, Royalty, Ideology..." but missing "RimTCP"
 
@@ -170,24 +170,24 @@ Standard Xvfb configuration is sufficient: `Xvfb :99 -screen 0 1024x768x24`
 - `docker ps` shows port 50051 not mapped
 
 **Root Cause:**
-Port mapping may not be configured in docker-compose.yml or RimWorld hasn't started yet.
+Either RimWorld hasn't started yet, or you're trying to connect from the host while ports are not published.
 
 **Solution:**
 
-1. Verify port mapping:
-
-```yaml
-ports:
-  - "50051:50051"
-```
-
-1. Check RimWorld started and mod loaded:
+1. Check RimWorld started and the mod loaded:
 
 ```bash
 # Look for these log lines:
 docker logs rimgym-integration-1 | grep "TCP+Protobuf server started successfully"
-docker logs rimgym-integration-1 | grep "Listening on 0.0.0.0:50051"
 ```
+
+1. Verify the server port is open inside the container:
+
+```bash
+docker exec rimgym-integration-1 nc -zv localhost 50051
+```
+
+If you need host access for debugging, publish a port explicitly in your own override compose file (not enabled by default).
 
 1. Wait for startup:
 
@@ -224,7 +224,7 @@ docker logs rimgym-integration-1 | grep "Sending state"
 If training mode is stuck, send a STEP command:
 
 ```python
-from mlbridge_pb2 import CommandMessage
+from rimgym_pb2 import CommandMessage
 msg = CommandMessage(step_ticks=60, training_mode=True)
 # Send via TCP connection
 ```

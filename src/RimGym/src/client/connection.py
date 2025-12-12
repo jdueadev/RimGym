@@ -1,5 +1,5 @@
 """
-Connection Manager for RimWorld ML Bridge.
+Connection Manager for RimGym.
 
 Handles TCP connection with reconnection logic, health monitoring, and command execution.
 """
@@ -15,7 +15,7 @@ from typing import Optional
 
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
 
-from shared.python.src.mlbridge_pb2 import (
+from shared.python.src.rimgym_pb2 import (
     CommandMessage,
     RichStateMessage,
     StateMessage,

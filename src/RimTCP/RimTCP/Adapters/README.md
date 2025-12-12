@@ -240,7 +240,7 @@ try
 }
 catch (Exception e)
 {
-    Log.Error($"[MLBridge] Adapter error: {e.Message}");
+    Log.Error($"[RimTCP] Adapter error: {e.Message}");
     return new ColonistState { ThingId = dto?.ThingID ?? 0 };
 }
 ```

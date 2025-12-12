@@ -69,11 +69,12 @@ file scripts/entrypoint.sh
 docker logs rimgym-integration-1 | grep "TCP+Protobuf server started"
 ```
 
-**Verify port mapping:**
+**Verify port mapping (if you explicitly publish ports):**
 
 ```bash
 docker ps --format "table {{.Names}}\t{{.Ports}}"
-# Should show: 0.0.0.0:50051->50051/tcp
+# With the default compose files, this will typically show no host-published ports.
+# That's expected: services use internal-only networking via `expose: [\"50051\"]`.
 ```
 
 ### Tests Fail
@@ -189,7 +190,7 @@ Before running, verify:
 
 - [ ] `entrypoint.sh` has LF line endings
 - [ ] Docker has 8GB+ RAM available
-- [ ] Port 50051 is not in use
+- [ ] If you publish ports manually, port 50051 is not in use
 - [ ] RimWorld volume is set up correctly
 - [ ] docker-compose.yml uses selective mounts (not `.:/app`)
 

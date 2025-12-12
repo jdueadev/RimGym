@@ -38,8 +38,14 @@ case "$1" in
             echo "The rimworld-data volume appears to be empty."
             echo ""
             echo "Please run the setup script first:"
-            echo "  .\\docker\\setup-rimworld-volume.ps1 \"C:\\RimworldLinux\""
+            echo "  .\\scripts\\setup-rimworld-volume.ps1 \"C:\\RimworldLinux\""
             exit 1
+        fi
+
+        # Defensive cleanup: remove legacy mod folder if it exists in the volume.
+        if [ -d "${RIMWORLD_PATH}/Mods/RimworldMLBridge" ]; then
+            echo "Removing legacy mod folder: ${RIMWORLD_PATH}/Mods/RimworldMLBridge"
+            rm -rf "${RIMWORLD_PATH}/Mods/RimworldMLBridge" || true
         fi
         
         # Install Harmony dependency (required by our mod)
@@ -128,10 +134,97 @@ EOF
 
             echo ""
             echo "Tests failed! RimWorld log (filtered STEP/mode/speed):"
-            grep -E "\[MLBridge\] Executing command: (Step|SetMode|SetSpeed)|\[MLBridge\] STEP command|\[MLBridge\] Mode switched|\[MLBridge\] Game speed changed|Auto-unpaused" /app/rimworld.log | tail -n 200 || true
+            grep -E "\[RimTCP\] Executing command: (Step|SetMode|SetSpeed)|\[RimTCP\] STEP command|\[RimTCP\] Mode switched|\[RimTCP\] Game speed changed|Auto-unpaused" /app/rimworld.log | tail -n 200 || true
         fi
         
         exit $TEST_EXIT_CODE
+        ;;
+
+    server)
+        echo "Starting RimWorld server (headless mode)..."
+
+        INSTANCE_ID=${INSTANCE_ID:-rimworld}
+        RIMWORLD_LOGFILE=${RIMWORLD_LOGFILE:-/app/rimworld-${INSTANCE_ID}.log}
+
+        # Check if RimWorld is installed
+        if [ ! -f "${RIMWORLD_PATH}/RimWorldLinux" ]; then
+            echo ""
+            echo "ERROR: RimWorld not found at ${RIMWORLD_PATH}"
+            echo "The rimworld-data volume appears to be empty."
+            echo ""
+            echo "Please run the setup script first:"
+            echo "  .\\scripts\\setup-rimworld-volume.ps1 \"C:\\RimworldLinux\""
+            exit 1
+        fi
+
+        # Defensive cleanup: remove legacy mod folder if it exists in the volume.
+        if [ -d "${RIMWORLD_PATH}/Mods/RimworldMLBridge" ]; then
+            echo "Removing legacy mod folder: ${RIMWORLD_PATH}/Mods/RimworldMLBridge"
+            rm -rf "${RIMWORLD_PATH}/Mods/RimworldMLBridge" || true
+        fi
+
+        # Install Harmony dependency (required by our mod)
+        # Note: When Mods/HarmonyMod is a named volume mount, the directory will exist
+        # even when empty. Validate required files instead of only checking the dir.
+        if [ ! -f "${RIMWORLD_PATH}/Mods/HarmonyMod/About/About.xml" ] || [ ! -f "${RIMWORLD_PATH}/Mods/HarmonyMod/Assemblies/0Harmony.dll" ]; then
+            echo "Installing Harmony mod dependency..."
+            mkdir -p ${RIMWORLD_PATH}/Mods/HarmonyMod/About
+            mkdir -p ${RIMWORLD_PATH}/Mods/HarmonyMod/Assemblies
+
+            cat > ${RIMWORLD_PATH}/Mods/HarmonyMod/About/About.xml << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+    <name>Harmony</name>
+    <author>Andreas Pardeike</author>
+    <packageId>brrainz.harmony</packageId>
+    <supportedVersions>
+        <li>1.6</li>
+    </supportedVersions>
+    <description>Harmony library for RimWorld modding</description>
+    <url>https://github.com/pardeike/HarmonyRimWorld</url>
+</ModMetaData>
+EOF
+
+            cp /app/1.6/Assemblies/0Harmony.dll ${RIMWORLD_PATH}/Mods/HarmonyMod/Assemblies/
+            echo "✓ Harmony installed"
+        fi
+
+        # Install mod to RimWorld Mods directory (mod is in /app from build)
+        echo "Installing RimTCP mod..."
+        mkdir -p ${RIMWORLD_PATH}/Mods/RimTCP
+        cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimTCP/
+        cp -r /app/About ${RIMWORLD_PATH}/Mods/RimTCP/
+        echo "✓ Mod installed to ${RIMWORLD_PATH}/Mods/RimTCP"
+
+        # Create ModsConfig.xml to enable our mods
+        echo "Creating ModsConfig.xml..."
+        mkdir -p "/root/.config/unity3d/Ludeon Studios/RimWorld by Ludeon Studios/Config"
+        cat > "/root/.config/unity3d/Ludeon Studios/RimWorld by Ludeon Studios/Config/ModsConfig.xml" << 'EOF'
+<?xml version="1.0" encoding="utf-8"?>
+<ModsConfigData>
+  <version>1.6.7146 rev475</version>
+    <activeMods>
+        <li>ludeon.rimworld</li>
+        <li>brrainz.harmony</li>
+        <li>unknwnentity.rimtcp</li>
+    </activeMods>
+</ModsConfigData>
+EOF
+        echo "✓ ModsConfig.xml created"
+
+        echo "Launching RimWorld (headless mode)..."
+        echo "- INSTANCE_ID=${INSTANCE_ID}"
+        echo "- Log: ${RIMWORLD_LOGFILE}"
+
+        cd ${RIMWORLD_PATH}
+        ./RimWorldLinux \
+            -batchmode \
+            -nographics \
+            -quicktest \
+            -logfile "${RIMWORLD_LOGFILE}" &
+        RIMWORLD_PID=$!
+
+        wait $RIMWORLD_PID
         ;;
         
     build)
@@ -146,7 +239,7 @@ EOF
         ;;
         
     *)
-        echo "Usage: docker run rimtcp [test|build|interactive]"
+        echo "Usage: docker run rimtcp [test|server|build|interactive]"
         exit 1
         ;;
 esac

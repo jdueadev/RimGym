@@ -29,7 +29,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error finding pawn {id}: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error finding pawn {id}: {ex.Message}");
                 return null;
             }
         }
@@ -60,7 +60,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting colonists: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting colonists: {ex.Message}");
             }
 
             return colonists;
@@ -100,7 +100,9 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting detailed colonists: {ex.Message}");
+                Log.Warning(
+                    $"{Constants.LogPrefix} Error getting detailed colonists: {ex.Message}"
+                );
             }
 
             return colonists;
@@ -176,7 +178,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error converting pawn to DTO: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error converting pawn to DTO: {ex.Message}");
                 return new ColonistDetailedDTO
                 {
                     Colonist = new ColonistDTO { Id = pawn.thingIDNumber, Name = "Error" },
@@ -285,7 +287,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting work priorities: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting work priorities: {ex.Message}");
                 return priorities;
             }
         }
@@ -379,7 +381,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting social info: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting social info: {ex.Message}");
             }
 
             return dto;
@@ -427,7 +429,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting inventory: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting inventory: {ex.Message}");
             }
 
             return inventory;

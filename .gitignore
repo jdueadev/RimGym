@@ -27,7 +27,6 @@ ENV/
 dist/
 build/
 *.egg
-rimworldmlbridge.egg-info/
 
 # C#
 [Bb]in/
@@ -47,8 +46,8 @@ rimworldmlbridge.egg-info/
 1.6/Assemblies/runtimes/
 
 # Generated Protobuf Files
-python/mlbridge_pb2.py
-python/mlbridge_pb2_grpc.py
+src/shared/python/src/*_pb2.py
+src/shared/python/src/*_pb2_grpc.py
 
 # IDE
 .vscode/

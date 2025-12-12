@@ -24,10 +24,11 @@ namespace RimTCP.Services
             try
             {
                 var map = MapService.GetMapByID(mapId);
-                if (map == null) return new ResourcesSummaryDTO();
+                if (map == null)
+                    return new ResourcesSummaryDTO();
 
-                var allItems = map.listerThings.AllThings
-                    .Where(t => t.def.EverStorable(false))
+                var allItems = map
+                    .listerThings.AllThings.Where(t => t.def.EverStorable(false))
                     .ToList();
 
                 var summary = new ResourcesSummaryDTO
@@ -36,14 +37,14 @@ namespace RimTCP.Services
                     TotalMarketValue = allItems.Sum(t => t.MarketValue * t.stackCount),
                     LastUpdated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                     Categories = GetResourcesCategorizedList(map),
-                    CriticalResources = AnalyzeCriticalResources(map, allItems)
+                    CriticalResources = AnalyzeCriticalResources(map, allItems),
                 };
 
                 return summary;
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting resources summary: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting resources summary: {ex.Message}");
                 return new ResourcesSummaryDTO();
             }
         }
@@ -58,23 +59,26 @@ namespace RimTCP.Services
             try
             {
                 var map = MapService.GetMapByID(mapId);
-                if (map == null) return analysis;
+                if (map == null)
+                    return analysis;
 
                 var stockpiles = map.zoneManager.AllZones.OfType<Zone_Stockpile>().ToList();
                 analysis.TotalStockpiles = stockpiles.Count;
                 analysis.TotalCells = stockpiles.Sum(z => z.CellCount);
                 analysis.UsedCells = stockpiles.Sum(z =>
-                    z.Cells.Count(c => c.GetItemCount(map) > 0));
+                    z.Cells.Count(c => c.GetItemCount(map) > 0)
+                );
 
                 if (analysis.TotalCells > 0)
                 {
                     analysis.UtilizationPercent = (int)(
-                        (double)analysis.UsedCells / analysis.TotalCells * 100);
+                        (double)analysis.UsedCells / analysis.TotalCells * 100
+                    );
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting storage summary: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting storage summary: {ex.Message}");
             }
 
             return analysis;
@@ -90,14 +94,16 @@ namespace RimTCP.Services
             try
             {
                 var map = MapService.GetMapByID(mapId);
-                if (map == null) return itemsByCategory;
+                if (map == null)
+                    return itemsByCategory;
 
                 var items = GetItemsFromStorageLocations(map);
 
                 foreach (var thing in items)
                 {
                     var category = GetPrimaryCategoryForThing(thing.def);
-                    if (category == null) continue;
+                    if (category == null)
+                        continue;
 
                     var categoryLabel = category.defName;
 
@@ -112,7 +118,7 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting stored resources: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error getting stored resources: {ex.Message}");
             }
 
             return itemsByCategory;
@@ -128,19 +134,23 @@ namespace RimTCP.Services
             try
             {
                 var map = MapService.GetMapByID(mapId);
-                if (map == null) return items;
+                if (map == null)
+                    return items;
 
                 var allItems = GetItemsFromStorageLocations(map);
 
                 foreach (var thing in allItems)
                 {
-                    if (!IsThingInCategory(thing, categoryDef)) continue;
+                    if (!IsThingInCategory(thing, categoryDef))
+                        continue;
                     items.Add(ThingToDTO(thing));
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting resources by category: {ex.Message}");
+                Log.Warning(
+                    $"{Constants.LogPrefix} Error getting resources by category: {ex.Message}"
+                );
             }
 
             return items;
@@ -169,7 +179,9 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error analyzing critical resources: {ex.Message}");
+                Log.Warning(
+                    $"{Constants.LogPrefix} Error analyzing critical resources: {ex.Message}"
+                );
             }
 
             return critical;
@@ -189,9 +201,11 @@ namespace RimTCP.Services
                     FoodTotal = foodItems.Sum(t => t.stackCount),
                     TotalNutrition = map.resourceCounter.TotalHumanEdibleNutrition,
                     MealsCount = allItems.Count(t =>
-                        t.def.IsNutritionGivingIngestible && t.def.ingestible?.IsMeal == true),
+                        t.def.IsNutritionGivingIngestible && t.def.ingestible?.IsMeal == true
+                    ),
                     RawFoodCount = allItems.Count(t =>
-                        t.def.IsNutritionGivingIngestible && t.def.ingestible?.IsMeal != true)
+                        t.def.IsNutritionGivingIngestible && t.def.ingestible?.IsMeal != true
+                    ),
                 };
             }
             catch
@@ -211,8 +225,9 @@ namespace RimTCP.Services
             {
                 var categoryData = new Dictionary<ThingCategoryDef, (int count, double value)>();
 
-                var rootCategories = DefDatabase<ThingCategoryDef>.AllDefs
-                    .Where(cat => cat.resourceReadoutRoot);
+                var rootCategories = DefDatabase<ThingCategoryDef>.AllDefs.Where(cat =>
+                    cat.resourceReadoutRoot
+                );
 
                 foreach (var category in rootCategories)
                 {
@@ -241,13 +256,13 @@ namespace RimTCP.Services
                     {
                         Category = kvp.Key.LabelCap,
                         Count = kvp.Value.count,
-                        MarketValue = kvp.Value.value
+                        MarketValue = kvp.Value.value,
                     })
                     .ToList();
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error categorizing resources: {ex.Message}");
+                Log.Warning($"{Constants.LogPrefix} Error categorizing resources: {ex.Message}");
             }
 
             return categories;
@@ -297,7 +312,9 @@ namespace RimTCP.Services
             }
             catch (Exception ex)
             {
-                Log.Warning($"[MLBridge] Error getting items from storage: {ex.Message}");
+                Log.Warning(
+                    $"{Constants.LogPrefix} Error getting items from storage: {ex.Message}"
+                );
             }
 
             return things;
@@ -321,8 +338,10 @@ namespace RimTCP.Services
         private bool IsThingInCategory(Thing thing, string categoryDef)
         {
             var categories = thing.def.thingCategories;
-            return categories != null && categories.Any(c =>
-                c.defName.Equals(categoryDef, StringComparison.OrdinalIgnoreCase));
+            return categories != null
+                && categories.Any(c =>
+                    c.defName.Equals(categoryDef, StringComparison.OrdinalIgnoreCase)
+                );
         }
 
         /// <summary>
@@ -335,17 +354,19 @@ namespace RimTCP.Services
                 ThingId = thing.thingIDNumber,
                 DefName = thing.def?.defName,
                 Label = thing.Label,
-                Categories = thing.def?.thingCategories?.Select(c => c.defName).ToList() ?? new List<string>(),
+                Categories =
+                    thing.def?.thingCategories?.Select(c => c.defName).ToList()
+                    ?? new List<string>(),
                 Position = new PositionDTO
                 {
                     X = thing.Position.x,
                     Y = thing.Position.y,
-                    Z = thing.Position.z
+                    Z = thing.Position.z,
                 },
                 StackCount = thing.stackCount,
                 MarketValue = thing.MarketValue,
                 IsForbidden = thing.IsForbidden(Faction.OfPlayer),
-                Quality = -1
+                Quality = -1,
             };
 
             if (thing.TryGetQuality(out QualityCategory quality))

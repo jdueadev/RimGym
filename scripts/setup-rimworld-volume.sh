@@ -42,7 +42,7 @@ echo "Copying RimWorld files to Docker volume (this may take a minute)..."
 docker run --rm \
     -v "$RIMWORLD_SOURCE:/source:ro" \
     -v "$VOLUME_NAME:/dest" \
-    alpine sh -c "cp -r /source/. /dest/ && chmod +x /dest/RimWorldLinux"
+    alpine sh -c "cp -r /source/. /dest/ && rm -rf /dest/Mods/RimworldMLBridge /dest/Mods/RimWorldMLBridge || true && chmod +x /dest/RimWorldLinux"
 
 echo ""
 echo "✅ RimWorld Docker volume setup complete!"
@@ -53,4 +53,4 @@ echo ""
 echo "Use in tests:"
 echo "  docker-compose up test"
 echo "  or"
-echo "  docker run --rm -v $VOLUME_NAME:/opt/rimworld rimworld-ml-bridge test"
+echo "  docker compose up test"

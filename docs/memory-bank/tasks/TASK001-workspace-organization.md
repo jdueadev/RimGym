@@ -17,7 +17,7 @@ After reviewing the workspace structure, several organizational issues were iden
 2. **Documentation Scattered**: Multiple markdown files at root level without clear organization
 3. **Filename Typo**: REAL_TIME_ARCHITECURE_UPDATE.md missing a 'T'
 4. **Missing Phase II Infrastructure**: Services/, DTOs/, Adapters/ directories not yet created
-5. **Build Artifacts Not Ignored**: rimworldmlbridge.egg-info/ should be gitignored
+5. **Build Artifacts Not Ignored**: rimgym.egg-info/ should be gitignored
 
 The approach follows the memory-bank instructions pattern to create:
 
@@ -85,8 +85,8 @@ The approach follows the memory-bank instructions pattern to create:
 - ✅ Moved ARCHITECTURE.md, TCP_PROTOBUF_IMPLEMENTATION.md, NATIVE_DLL_FIX.md, GRPC_MIGRATION.md, IMPLEMENTATION_SUMMARY.md to docs/
 - ✅ Created docs/README.md with documentation index
 - ✅ Created docs/guides/installation.md with comprehensive setup guide
-- ✅ Created RimworldMLBridge/Services/README.md
-- ✅ Created RimworldMLBridge/Adapters/README.md
+- ✅ Created src/RimTCP/RimTCP/Services/README.md
+- ✅ Created src/RimTCP/RimTCP/Adapters/README.md
 - ✅ Updated .gitignore with Python egg-info, build artifacts, and native DLL patterns
 - ✅ Enhanced build.sh with environment verification, clean step, and better error messages
 - ✅ Updated main README.md with new documentation links and Phase II status

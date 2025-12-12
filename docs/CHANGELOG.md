@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the RimWorld ML Bridge project are documented in this file.
+All notable changes to the RimGym / RimTCP project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated PR template to reference CONTRIBUTING.md for contributor guidelines
 - Consolidated documentation structure (architecture, API, guides)
-- Updated Harmony ID to `com.jmduea.rimworldmlbridge`
+- Updated Harmony ID to `unknwnentity.rimtcp`
 - Standardized version numbers across all package files
 - Refactored TODOs to documented Phase VI roadmap items
 
@@ -51,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `GrpcService.cs` - Legacy gRPC service (replaced by TCP)
 - `EntityState` protobuf message (deprecated, use `ColonistState`)
 - `test_connection.py` - Duplicate gRPC test client
-- `mlbridge_pb2_grpc.py` - Unused gRPC Python stubs
+- `mlbridge_pb2_grpc.py` - Unused legacy gRPC Python stubs
 - `UnitTest1.cs` - Placeholder test file
 
 ### Fixed
@@ -132,7 +132,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial project structure
 - gRPC server implementation (later replaced)
 - Basic Harmony patches (Root.Update, TickManager)
-- Protobuf schema (mlbridge.proto)
+- Protobuf schema (rimgym.proto)
 - Python client prototype
 - About.xml mod metadata
 - README and basic documentation

@@ -6,7 +6,7 @@
 
 ## Overview
 
-The RimWorld ML Bridge Dashboard is a **multi-run monitoring system** that provides real-time visualization of machine learning training sessions. It uses a **hybrid persistence strategy** (Redis + SQLite) to balance low-latency access to hot data with long-term historical analysis.
+The RimStats Dashboard is a **multi-run monitoring system** that provides real-time visualization of machine learning training sessions. It uses a **hybrid persistence strategy** (Redis + SQLite) to balance low-latency access to hot data with long-term historical analysis.
 
 ### Design Goals
 

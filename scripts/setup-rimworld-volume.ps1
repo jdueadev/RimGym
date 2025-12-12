@@ -68,7 +68,7 @@ Write-Host "Copying RimWorld files to Docker volume (this may take a minute)..."
 docker run --rm `
     -v "${dockerPath}:/source:ro" `
     -v "${VolumeName}:/dest" `
-    alpine sh -c "cp -r /source/. /dest/ && find /dest -name 'RimWorldLinux' -type f -exec chmod +x {} \;"
+    alpine sh -c "cp -r /source/. /dest/ && rm -rf /dest/Mods/RimworldMLBridge /dest/Mods/RimWorldMLBridge || true && find /dest -name 'RimWorldLinux' -type f -exec chmod +x {} \;"
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
@@ -80,7 +80,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "Use in tests:" -ForegroundColor Cyan
     Write-Host "  docker-compose up test" -ForegroundColor White
     Write-Host "  or" -ForegroundColor White
-    Write-Host "  docker run --rm -v ${VolumeName}:/opt/rimworld rimworld-ml-bridge test" -ForegroundColor White
+    Write-Host "  docker compose up test" -ForegroundColor White
 }
 else {
     Write-Error "Failed to setup Docker volume"

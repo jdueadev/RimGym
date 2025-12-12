@@ -5,11 +5,11 @@ namespace RimTCP
 {
     /// <summary>
     /// Phase III: Hybrid Valve Tick Control
-    /// 
-    /// Training Mode (Synchronous): 
+    ///
+    /// Training Mode (Synchronous):
     ///   - Prefix returns false to block tick unless StepPermitted is true
     ///   - Game pauses between steps, only advances on explicit STEP command
-    ///   
+    ///
     /// Inference Mode (Asynchronous):
     ///   - Prefix returns true to allow normal game flow
     ///   - Agent queries state without blocking game
@@ -25,23 +25,24 @@ namespace RimTCP
         /// </summary>
         public static bool Prefix(TickManager __instance)
         {
-            if (!MlBridgeMod.ServerRunning) return true; // Let game run normally if server not active
+            if (!RimTcpMod.ServerRunning)
+                return true; // Let game run normally if server not active
 
             // Inference Mode (Asynchronous): Always allow ticks
-            if (!MlBridgeMod.TrainingMode)
+            if (!RimTcpMod.TrainingMode)
             {
                 return true;
             }
 
             // Training Mode (Synchronous): Only allow tick if step permitted
-            if (MlBridgeMod.StepPermitted && MlBridgeMod.TicksToRun > 0)
+            if (RimTcpMod.StepPermitted && RimTcpMod.TicksToRun > 0)
             {
-                MlBridgeMod.TicksToRun--;
+                RimTcpMod.TicksToRun--;
 
                 // If this was the last tick in the step, revoke permission
-                if (MlBridgeMod.TicksToRun == 0)
+                if (RimTcpMod.TicksToRun == 0)
                 {
-                    MlBridgeMod.StepPermitted = false;
+                    RimTcpMod.StepPermitted = false;
                 }
 
                 return true; // Execute the tick
@@ -56,15 +57,18 @@ namespace RimTCP
         /// </summary>
         public static void Postfix(TickManager __instance)
         {
-            if (!MlBridgeMod.ServerRunning) return;
+            if (!RimTcpMod.ServerRunning)
+                return;
 
             tickCount++;
 
             // Log periodically (not every tick to avoid spam)
             if (tickCount % _reportEveryNTicks == 0)
             {
-                string modeStr = MlBridgeMod.TrainingMode ? "TRAINING" : "INFERENCE";
-                Log.Message($"[MLBridge] [{modeStr}] Tick: {tickCount} (Frame: {Find.TickManager.TicksAbs})");
+                string modeStr = RimTcpMod.TrainingMode ? "TRAINING" : "INFERENCE";
+                Log.Message(
+                    $"{Constants.LogPrefix} [{modeStr}] Tick: {tickCount} (Frame: {Find.TickManager.TicksAbs})"
+                );
             }
         }
     }

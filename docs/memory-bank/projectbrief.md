@@ -1,8 +1,8 @@
-# RimWorld ML Bridge - Project Brief
+# RimGym / RimTCP - Project Brief
 
 ## Project Name
 
-RimGym (formerly RimWorld ML Bridge / Project Aether)
+RimGym (formerly Project Aether)
 
 ## Vision
 

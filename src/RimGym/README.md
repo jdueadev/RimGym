@@ -31,8 +31,8 @@ uv sync
 ### Basic Client Example
 
 ```python
-from rimgym.client import SpectatorClient
-from rimgym.protos import mlbridge_pb2
+from client import SpectatorClient
+from shared.python.src import rimgym_pb2
 
 # Connect to the game
 client = SpectatorClient(host="localhost", port=50051)

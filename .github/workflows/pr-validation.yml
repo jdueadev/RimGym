@@ -22,16 +22,16 @@ jobs:
           dotnet-version: "8.0.x"
 
       - name: Check formatting
-        run: dotnet format --verify-no-changes --verbosity diagnostic RimworldMLBridge.sln
+        run: dotnet format --verify-no-changes --verbosity diagnostic src/RimTCP/RimTCP/RimTCP.sln
         continue-on-error: true
 
       - name: Restore and build
         run: |
-          dotnet restore RimworldMLBridge.sln
-          dotnet build RimworldMLBridge.sln -c Release --no-restore
+          dotnet restore src/RimTCP/RimTCP/RimTCP.sln
+          dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release --no-restore
 
       - name: Run C# tests
-        run: dotnet test RimworldMLBridge.Tests/RimworldMLBridge.Tests.csproj --no-build -c Release
+        run: dotnet test tests/RimTCP.Tests/RimTCP.Tests.csproj --no-build -c Release
 
       - name: Install UV
         uses: astral-sh/setup-uv@v4
@@ -39,9 +39,9 @@ jobs:
       - name: Python tests
         run: |
           uv python install 3.11
-          uv sync
-          uv run python python/generate_proto.py
-          uv run pytest python/tests/ -v
+          uv sync --project src/RimGym --group dev
+          uv run python src/shared/python/src/generate_proto.py
+          uv run --project src/RimGym pytest src/RimGym/tests/ -v
 
       - name: Comment on PR
         if: always()

@@ -110,8 +110,8 @@ environment:
 **Fix**:
 
 ```powershell
-(Get-Content docker\entrypoint.sh -Raw) -replace "`r`n", "`n" | 
-  Set-Content docker\entrypoint.sh -NoNewline
+(Get-Content scripts\entrypoint.sh -Raw) -replace "`r`n", "`n" | 
+  Set-Content scripts\entrypoint.sh -NoNewline
 ```
 
 **Issue 2: Volume Mount Conflicts**
@@ -133,8 +133,8 @@ To:
 
 ```yaml
 volumes:
-  - ./python:/app/python  # GOOD: Selective mounts
-  - ./Protos:/app/Protos
+  - ./src/RimGym:/app/src/RimGym  # GOOD: Selective mounts
+  - ./src/shared:/app/src/shared
   - rimworld-data:/opt/rimworld
 ```
 
@@ -288,7 +288,7 @@ volumes:
 4. Skip problematic startup checks
 5. Start game with minimal UI
 
-**Result**: Mod loads before crash can occur, MLBridge can hook into system successfully.
+**Result**: Mod loads before crash can occur, RimTCP can hook into system successfully.
 
 ### Line Endings Deep Dive
 
