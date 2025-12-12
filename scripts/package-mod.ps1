@@ -1,5 +1,5 @@
 #!/usr/bin/env pwsh
-# Package RimWorld ML Bridge mod for release or Steam Workshop upload
+# Package RimTCP (RimWorld mod) for release or Steam Workshop upload
 
 param(
     [Parameter(Mandatory = $true)]
@@ -18,7 +18,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "RimWorld ML Bridge Package Builder" -ForegroundColor Cyan
+Write-Host "RimTCP Package Builder" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Version: $Version" -ForegroundColor Yellow
@@ -37,7 +37,7 @@ if (-not $SkipBuild) {
     
     # Restore NuGet packages
     Write-Host "  → Restoring NuGet packages..."
-    nuget restore RimworldMLBridge.sln | Out-Null
+    nuget restore src\RimTCP\RimTCP\RimTCP.sln | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Error "NuGet restore failed"
         exit 1
@@ -45,7 +45,7 @@ if (-not $SkipBuild) {
     
     # Build solution
     Write-Host "  → Building solution (Release configuration)..."
-    msbuild RimworldMLBridge.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
+    msbuild src\RimTCP\RimTCP\RimTCP.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Build failed"
         exit 1
@@ -59,7 +59,7 @@ else {
 
 # Verify no native DLLs
 Write-Host "[2/7] Verifying assemblies..." -ForegroundColor Green
-$nativeDlls = Get-ChildItem -Path "1.6\Assemblies" -Filter "*csharp_ext*.dll" -ErrorAction SilentlyContinue
+$nativeDlls = Get-ChildItem -Path "src\RimTCP\1.6\Assemblies" -Filter "*csharp_ext*.dll" -ErrorAction SilentlyContinue
 if ($nativeDlls) {
     Write-Error "ERROR: Native DLLs found in output! $($nativeDlls.Name -join ', ')"
     Write-Error "These will crash RimWorld. Run build cleanup."
@@ -68,7 +68,7 @@ if ($nativeDlls) {
 Write-Host "  ✓ No native DLLs found" -ForegroundColor Green
 
 # Create package directory structure
-$packageName = "RimworldMLBridge-v$Version"
+$packageName = "RimTCP-v$Version"
 $packagePath = Join-Path $OutputDir $packageName
 
 Write-Host "[3/7] Creating package structure..." -ForegroundColor Green
@@ -82,18 +82,18 @@ New-Item -ItemType Directory -Path $packagePath -Force | Out-Null
 Write-Host "[4/7] Copying mod files..." -ForegroundColor Green
 
 Write-Host "  → About/ folder..."
-Copy-Item -Path "About" -Destination "$packagePath\About" -Recurse -Force
+Copy-Item -Path "src\RimTCP\About" -Destination "$packagePath\About" -Recurse -Force
 
 Write-Host "  → 1.6/Assemblies/ folder..."
-Copy-Item -Path "1.6" -Destination "$packagePath\1.6" -Recurse -Force
+Copy-Item -Path "src\RimTCP\1.6" -Destination "$packagePath\1.6" -Recurse -Force
 
 Write-Host "  → Protos/ folder..."
-Copy-Item -Path "Protos" -Destination "$packagePath\Protos" -Recurse -Force
+Copy-Item -Path "src\shared\Protos" -Destination "$packagePath\Protos" -Recurse -Force
 
 # Copy documentation
 Write-Host "  → Documentation..."
 Copy-Item -Path "README.md" -Destination "$packagePath\" -Force
-Copy-Item -Path "QUICKSTART_PHASE4.md" -Destination "$packagePath\" -Force
+if (Test-Path "docs\docker\QUICKSTART.md") { Copy-Item -Path "docs\docker\QUICKSTART.md" -Destination "$packagePath\" -Force }
 Copy-Item -Path "CONTRIBUTING.md" -Destination "$packagePath\" -Force
 
 # Copy guides
@@ -129,26 +129,26 @@ Release date: $(Get-Date -Format 'yyyy-MM-dd')
 
 ### For Modders:
 1. Extract this folder to your RimWorld Mods/ directory
-2. Enable "RimWorld ML Bridge" in the game's mod settings
-3. Ensure Harmony is enabled (loaded before ML Bridge)
-4. Start a game and check Player.log for "[MLBridge] TCP+Protobuf server started"
+2. Enable "RimTCP" in the game's mod settings
+3. Ensure Harmony is enabled (loaded before RimTCP)
+4. Start a game and check Player.log for "[RimTCP]" logs indicating the TCP+Protobuf server started
 
 ### For ML Researchers:
 ```bash
-pip install rimworldmlbridge==$Version
+pip install rimgym==$Version
 ```
 
-See QUICKSTART_PHASE4.md for detailed usage instructions.
+See docs/ for detailed usage instructions.
 
 ## Full Changelog
 
-See: https://github.com/jmduea/RimworldMLBridge/releases/tag/v$Version
+See: https://github.com/jmduea/RimGym/releases/tag/v$Version
 
 ## Support
 
-- GitHub Issues: https://github.com/jmduea/RimworldMLBridge/issues
-- Documentation: https://jmduea.github.io/RimworldMLBridge/
-- Discussions: https://github.com/jmduea/RimworldMLBridge/discussions
+- GitHub Issues: https://github.com/jmduea/RimGym/issues
+- Documentation: https://jmduea.github.io/RimGym/
+- Discussions: https://github.com/jmduea/RimGym/discussions
 "@
 
 $changelogContent | Out-File -FilePath "$packagePath\CHANGELOG.md" -Encoding utf8 -Force

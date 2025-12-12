@@ -1,4 +1,4 @@
-# Docker-based Testing for RimWorld ML Bridge
+# Docker-based Testing for RimGym / RimTCP
 
 ## Overview
 
@@ -58,17 +58,17 @@ docker-compose up test
 docker-compose up integration -d
 
 # Check logs
-docker logs rimworldmlbridge-integration-1
+docker logs rimgym-integration-1
 
 # Test connection from Python
-uv run python python/test_tcp_connection.py
+uv run --project src/RimGym python src/RimGym/tests/integration/test_tcp_connection.py
 
 # Or with Docker directly
-docker build -t rimworld-ml-bridge .
+docker build -t rimgym .
 docker run --rm \
   -v rimworld-data:/opt/rimworld \
   -v $(pwd)/test_results.txt:/app/test_results.txt \
-  rimworld-ml-bridge test
+  rimgym test
 ```
 
 ### View Results
@@ -205,7 +205,7 @@ docker-compose up test
 docker-compose run --rm dev
 
 # Inside container:
-dotnet build RimworldMLBridge.sln
+dotnet build src/RimTCP/RimTCP/RimTCP.sln
 uv run python python/test_tcp_connection.py
 ```
 

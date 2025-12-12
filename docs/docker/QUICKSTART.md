@@ -38,7 +38,7 @@ Before starting, be aware of these common issues (see [TROUBLESHOOTING.md](TROUB
 
 **⚠️ Windows users:** Docker uses Linux containers, so you need the Linux version of RimWorld.
 
-**Option A: Using SteamCMD (Recommended)**
+#### Option A: Using SteamCMD (Recommended)
 
 1. Download [SteamCMD](https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip)
 2. Extract to `C:\steamcmd\`
@@ -51,7 +51,7 @@ cd C:\steamcmd
 
 **Important**: Replace `YOUR_STEAM_USERNAME` with your actual Steam username. You'll be prompted for your password.
 
-**Option B: Using DepotDownloader (More Reliable)**
+#### Option B: Using DepotDownloader (More Reliable)
 
 1. Install DepotDownloader via Windows Package Manager CLI (winget)
 
@@ -59,7 +59,7 @@ cd C:\steamcmd
 winget install --exact --id SteamRE.DepotDownloader
 ```
 
-2. Download RimWorld Linux version:
+1. Download RimWorld Linux version:
 
 ```powershell
 .\DepotDownloader.exe -app 294100 -os linux -osarch 64 -username YOUR_STEAM_USERNAME -dir C:\RimWorldLinux
@@ -88,7 +88,7 @@ docker-compose up test
 
 **Expected output**:
 
-```
+```text
 ✅ Game ready! (took 25s)
 ✅ PASS - Paused: Training 60 ticks (1153ms) | Inference 121 ticks (2014ms)
 ✅ PASS - 1x Speed: Training 60 ticks (1035ms) | Inference 122 ticks (2008ms)
@@ -155,7 +155,7 @@ Once Docker works locally, enable CI:
 
    ```bash
    git push origin main
-   # Go to: https://github.com/YOUR_USERNAME/RimworldMLBridge/actions
+   # Go to: https://github.com/YOUR_USERNAME/RimGym/actions
    ```
 
 ## 🐛 Troubleshooting

@@ -3,12 +3,14 @@
 
 set -e
 
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 echo "========================================="
 echo "Native DLL Exclusion Verification"
 echo "========================================="
 echo ""
 
-ASSEMBLIES_DIR="../Assemblies"
+ASSEMBLIES_DIR="${1:-$REPO_ROOT/src/RimTCP/1.6/Assemblies}"
 
 echo "Checking $ASSEMBLIES_DIR for native DLLs..."
 echo ""
@@ -42,10 +44,10 @@ echo "Checking for expected managed DLLs..."
 echo ""
 
 # Check for managed DLLs that SHOULD be present
-if [ -f "$ASSEMBLIES_DIR/RimworldMLBridge.dll" ]; then
-    echo "✅ PASS: Found RimworldMLBridge.dll (our mod)"
+if [ -f "$ASSEMBLIES_DIR/RimTCP.dll" ]; then
+    echo "✅ PASS: Found RimTCP.dll (our mod)"
 else
-    echo "⚠️  WARN: RimworldMLBridge.dll not found (build may not have run)"
+    echo "⚠️  WARN: RimTCP.dll not found (build may not have run)"
 fi
 
 if [ -f "$ASSEMBLIES_DIR/Grpc.Core.dll" ] || [ -f "$ASSEMBLIES_DIR/Grpc.Core.Api.dll" ]; then

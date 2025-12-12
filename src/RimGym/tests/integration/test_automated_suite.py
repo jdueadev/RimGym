@@ -1,5 +1,5 @@
 """
-Automated Test Suite for RimWorld ML Bridge - Phase III Hybrid Valve
+Automated Test Suite for RimTCP Integration Hybrid Valve
 
 This script automates the full testing process:
 1. Launches RimWorld with dev mode quicktest
@@ -27,7 +27,6 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-import shared.python.src.mlbridge_pb2 as mlbridge_pb2
 import shared.python.src.rimgym_pb2 as rimgym_pb2
 
 
@@ -102,24 +101,30 @@ class AutomatedTestClient:
 
     def set_speed(self, speed):
         """Set game speed"""
-        cmd = mlbridge_pb2.CommandMessage(type=mlbridge_pb2.SET_SPEED, speed=speed)
+        cmd = rimgym_pb2.CommandMessage(type=rimgym_pb2.SET_SPEED, speed=speed)
         response = self.send_command(cmd)
         return response
 
     def step(self, ticks=60, timeout=10.0, poll_interval=0.05):
         """Send STEP command and wait for completion"""
-        cmd = mlbridge_pb2.CommandMessage(type=mlbridge_pb2.STEP, ticks_to_run=ticks)
+        cmd = rimgym_pb2.CommandMessage(type=rimgym_pb2.STEP, ticks_to_run=ticks)
 
-        initial_state = self.send_command(cmd)
-        initial_frame = initial_state.frame_id
+        before = self.query_state()
+        before_frame = before.frame_id
         start_time = time.time()
 
-        # Poll until ticks complete or timeout
+        # Some server implementations complete the STEP synchronously and return the post-step state.
+        state = self.send_command(cmd)
+        if state.frame_id >= before_frame + ticks:
+            elapsed_ms = int((time.time() - start_time) * 1000)
+            return state, elapsed_ms
+
+        # Otherwise poll until ticks complete or timeout
         while time.time() - start_time < timeout:
             time.sleep(poll_interval)
             state = self.query_state()
 
-            if state.frame_id >= initial_frame + ticks:
+            if state.frame_id >= before_frame + ticks:
                 elapsed_ms = int((time.time() - start_time) * 1000)
                 return state, elapsed_ms
 
@@ -127,7 +132,7 @@ class AutomatedTestClient:
 
     def query_state(self):
         """Query current state"""
-        cmd = mlbridge_pb2.CommandMessage(type=mlbridge_pb2.QUERY_STATE)
+        cmd = rimgym_pb2.CommandMessage(type=rimgym_pb2.QUERY_STATE)
         return self.send_command(cmd)
 
     def wait_for_game_ready(self, timeout=120, poll_interval=2):
@@ -217,7 +222,7 @@ def run_speed_test(
 
         # Test Training Mode
         print("\n📍 Testing Training Mode...")
-        client.set_mode(mlbridge_pb2.MODE_TRAINING)
+        client.set_mode(rimgym_pb2.MODE_TRAINING)
 
         before = client.query_state()
         state, elapsed_ms = client.step(60)
@@ -236,7 +241,7 @@ def run_speed_test(
 
         # Test Inference Mode
         print("\n📍 Testing Inference Mode...")
-        client.set_mode(mlbridge_pb2.MODE_INFERENCE)
+        client.set_mode(rimgym_pb2.MODE_INFERENCE)
 
         before = client.query_state()
         time.sleep(2.0)
@@ -279,10 +284,10 @@ def run_full_suite(client):
 
     # Test configurations: (name, enum, min_ticks, max_ticks)
     speeds = [
-        ("Paused", mlbridge_pb2.SPEED_PAUSED, 0, 0),
-        ("1x Speed", mlbridge_pb2.SPEED_NORMAL, 100, 140),  # ~120 expected
-        ("2x Speed", mlbridge_pb2.SPEED_FAST, 250, 400),  # ~300 expected
-        ("3x Speed", mlbridge_pb2.SPEED_SUPERFAST, 600, 800),  # ~720 expected
+        ("Paused", rimgym_pb2.SPEED_PAUSED, 0, 0),
+        ("1x Speed", rimgym_pb2.SPEED_NORMAL, 100, 140),  # ~120 expected
+        ("2x Speed", rimgym_pb2.SPEED_FAST, 250, 400),  # ~300 expected
+        ("3x Speed", rimgym_pb2.SPEED_SUPERFAST, 600, 800),  # ~720 expected
     ]
 
     results = []

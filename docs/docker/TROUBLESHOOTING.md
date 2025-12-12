@@ -89,7 +89,7 @@ volumes:
   - ./python:/app/python          # Python test scripts
   - ./Protos:/app/Protos          # Protobuf definitions
   - rimworld-data:/opt/rimworld   # Game data (separate volume)
-  # DO NOT mount: .:/app or ./RimworldMLBridge:/app
+   # DO NOT mount: .:/app or ./src/RimGym:/app
 ```
 
 ---
@@ -100,7 +100,7 @@ volumes:
 
 - RimWorld starts but MLBridge mod not active
 - No TCP server on port 50051
-- Log shows "Active mods: Core, Royalty, Ideology..." but missing "RimworldMLBridge"
+- Log shows "Active mods: Core, Royalty, Ideology..." but missing "RimTCP"
 
 **Root Cause:**
 RimWorld only loads mods listed in `ModsConfig.xml`. Having mod folders in `Mods/` is not sufficient.
@@ -110,10 +110,10 @@ The `entrypoint.sh` script creates the correct `ModsConfig.xml` automatically. V
 
 ```bash
 # Check container logs for mod setup
-docker logs rimworldmlbridge-integration-1 | grep "Setting up ModsConfig.xml"
+docker logs rimgym-integration-1 | grep "Setting up ModsConfig.xml"
 
 # Manually verify (if needed)
-docker exec rimworldmlbridge-integration-1 cat /root/.config/unity3d/Ludeon\ Studios/RimWorld\ by\ Ludeon\ Studios/Config/ModsConfig.xml
+docker exec rimgym-integration-1 cat /root/.config/unity3d/Ludeon\ Studios/RimWorld\ by\ Ludeon\ Studios/Config/ModsConfig.xml
 ```
 
 Required mods in config:
@@ -126,7 +126,7 @@ Required mods in config:
   <li>ludeon.rimworld.biotech</li>
   <li>ludeon.rimworld.anomaly</li>
   <li>brrainz.harmony</li>
-  <li>unknwnentity.rimworldmlbridge</li>
+   <li>unknwnentity.rimtcp</li>
 </activeMods>
 ```
 
@@ -181,15 +181,15 @@ ports:
   - "50051:50051"
 ```
 
-2. Check RimWorld started and mod loaded:
+1. Check RimWorld started and mod loaded:
 
 ```bash
 # Look for these log lines:
-docker logs rimworldmlbridge-integration-1 | grep "TCP+Protobuf server started successfully"
-docker logs rimworldmlbridge-integration-1 | grep "Listening on 0.0.0.0:50051"
+docker logs rimgym-integration-1 | grep "TCP+Protobuf server started successfully"
+docker logs rimgym-integration-1 | grep "Listening on 0.0.0.0:50051"
 ```
 
-3. Wait for startup:
+1. Wait for startup:
 
 ```bash
 # Health check waits 60 seconds for game to start
@@ -215,10 +215,10 @@ Verify game state in logs:
 
 ```bash
 # Check for tick progression
-docker logs rimworldmlbridge-integration-1 | grep "DoSingleTick"
+docker logs rimgym-integration-1 | grep "DoSingleTick"
 
 # Check for server responses
-docker logs rimworldmlbridge-integration-1 | grep "Sending state"
+docker logs rimgym-integration-1 | grep "Sending state"
 ```
 
 If training mode is stuck, send a STEP command:
@@ -242,7 +242,7 @@ Before deploying, verify:
 - [ ] Port 50051 mapped correctly
 - [ ] Health check configured with 60s start period
 - [ ] Memory limits appropriate (4GB for RimWorld)
-- [ ] ModsConfig.xml includes Harmony + RimworldMLBridge
+- [ ] ModsConfig.xml includes Harmony + RimTCP
 
 ---
 
@@ -252,13 +252,13 @@ Before deploying, verify:
 
 ```bash
 # Last 100 lines
-docker logs rimworldmlbridge-integration-1 --tail 100
+docker logs rimgym-integration-1 --tail 100
 
 # Follow logs in real-time
-docker logs -f rimworldmlbridge-integration-1
+docker logs -f rimgym-integration-1
 
 # Search logs for errors
-docker logs rimworldmlbridge-integration-1 2>&1 | grep -i "error\|exception\|fail"
+docker logs rimgym-integration-1 2>&1 | grep -i "error\|exception\|fail"
 ```
 
 ### Check Container Status
@@ -268,26 +268,26 @@ docker logs rimworldmlbridge-integration-1 2>&1 | grep -i "error\|exception\|fai
 docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
 # Resource usage
-docker stats rimworldmlbridge-integration-1 --no-stream
+docker stats rimgym-integration-1 --no-stream
 
 # Health check status
-docker inspect rimworldmlbridge-integration-1 | jq '.[0].State.Health'
+docker inspect rimgym-integration-1 | jq '.[0].State.Health'
 ```
 
 ### Interactive Debugging
 
 ```bash
 # Access container shell
-docker exec -it rimworldmlbridge-integration-1 bash
+docker exec -it rimgym-integration-1 bash
 
 # Check files inside container
-docker exec rimworldmlbridge-integration-1 ls -la /opt/rimworld/Mods/
+docker exec rimgym-integration-1 ls -la /opt/rimworld/Mods/
 
 # Check ModsConfig.xml
-docker exec rimworldmlbridge-integration-1 cat /root/.config/unity3d/Ludeon\ Studios/RimWorld\ by\ Ludeon\ Studios/Config/ModsConfig.xml
+docker exec rimgym-integration-1 cat /root/.config/unity3d/Ludeon\ Studios/RimWorld\ by\ Ludeon\ Studios/Config/ModsConfig.xml
 
 # Test TCP port from inside container
-docker exec rimworldmlbridge-integration-1 nc -zv localhost 50051
+docker exec rimgym-integration-1 nc -zv localhost 50051
 ```
 
 ### Clean Rebuild
@@ -308,7 +308,7 @@ If none of these solutions work:
 1. **Capture Full Logs:**
 
    ```bash
-   docker logs rimworldmlbridge-integration-1 > debug_logs.txt 2>&1
+   docker logs rimgym-integration-1 > debug_logs.txt 2>&1
    ```
 
 2. **Verify RimWorld Installation:**

@@ -8,9 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using RimTCP.Adapters;
+using RimTCP.Protos;
 using RimTCP.Services;
 using RimWorld;
-using RimTCP.Protos;
 using Verse;
 
 namespace RimTCP
@@ -320,21 +320,23 @@ namespace RimTCP
                     {
                         int ticksToRun = command.TicksToRun > 0 ? command.TicksToRun : 60;
 
-                        // Ensure game is unpaused so ticks can advance
-                        if (Find.TickManager.Paused)
-                        {
-                            Find.TickManager.CurTimeSpeed = TimeSpeed.Normal;
-                            Log.Message("[MLBridge] Auto-unpaused game for training mode STEP");
-                        }
+                        // Deterministic stepping: keep the game paused and advance ticks explicitly.
+                        // Relying on the normal tick scheduler is not reliable in headless quicktest.
+                        Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
 
-                        // Set flags to allow tick advancement
+                        // Allow ticks and run them immediately on the main thread.
                         MlBridgeMod.TicksToRun = ticksToRun;
                         MlBridgeMod.StepPermitted = true;
 
-                        state.StatusMessage = $"Step initiated: {ticksToRun} ticks (Training Mode)";
                         Log.Message(
-                            $"[MLBridge] STEP command: granting permission for {ticksToRun} ticks"
+                            $"[MLBridge] STEP command: running {ticksToRun} ticks (Training Mode)"
                         );
+                        for (int i = 0; i < ticksToRun; i++)
+                        {
+                            Find.TickManager.DoSingleTick();
+                        }
+
+                        state.StatusMessage = $"Step completed: {ticksToRun} ticks (Training Mode)";
                     }
                     else
                     {

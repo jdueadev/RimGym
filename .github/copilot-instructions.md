@@ -1,143 +1,85 @@
-# RimGym Monorepo - AI Coding Agent Instructions
+# RimGym Monorepo - Copilot Instructions
 
-## Project Overview
-This is a repository containing all of the projects necessary to enable reinforcement learning research with RimWorld through the standard Gymnasium interface via custom Gymnasisum environment `RimGymEnv`.
-The key components are:
+## What This Repo Contains
 
-- **RimWorld Mod (`RimTCP`)**: A mod that exposes a TCP server interface using Protocol Buffers for communication. It supports both synchronous (training) and asynchronous (inference) modes via a hybrid valve system.
+- **RimTCP (RimWorld Mod)**: C#/.NET Framework 4.8 mod that exposes a TCP server speaking Protocol Buffers.
+- **RimGym (Python)**: Python client + Gymnasium environment that connects to RimTCP for RL training/inference.
+- **RimStats (Dashboard)**: Real-time observability (FastAPI backend + React/TS frontend) with Redis + SQLite.
+- **Shared Protos**: Single source of truth schema used by both C# and Python.
 
-- **Custom Gymnasium Environment (`rimgym`)**: A Gymnasium environment that connects to the RimWorld mod over TCP, sending commands and receiving state updates. It provides standard Gym interfaces for RL algorithms.
+## Non-Negotiables (Read Before Changing Anything)
 
-- **Real Time Observability Dashboard (`RimStats`)**: a **multi-run monitoring system** with hybrid persistence (Redis + SQLite):
+### Unity/RimWorld Threading Rule
 
-  - **Backend**: FastAPI (Python) serving REST API + WebSocket
-  - **Frontend**: React + TypeScript with Plotly charts
-  - **Storage**: Redis (hot data) + SQLite (historical data)
+- RimWorld/Unity APIs are main-thread-only.
+- The TCP listener runs on a background thread and must never touch `Find.*`, `Current.Game`, `Pawn`, `Thing`, etc.
+- Background thread: network I/O + enqueue/dequeue only.
+- Main thread (Harmony patch on `Root.Update()`): execute commands, extract state, validate actions.
 
-- **Shared Protobuf Definitions**: The `.proto` files defining the message schema for communication between the Python agent and RimWorld mod.
+If you violate this, you will get intermittent null refs / crashes.
 
-## Architecture & Communication Flow
+### No Native gRPC Runtime
 
-```
-Python RL Agent (TCP Client)  ←→  RimWorld Mod (TCP Server)
-   Port 50051, Protobuf              Background Thread → Main Thread
+- RimWorld (Mono) cannot load native gRPC DLLs (e.g., `grpc_csharp_ext`).
+- Keep runtime transport as raw TCP + managed protobuf only.
+- `Grpc.Tools` is for build-time codegen only.
 
-Dual Operating Modes:
-  Training Mode:   Game pauses → Agent thinks → STEP command → Game runs N ticks
-  Inference Mode:  Game runs freely → Agent queries state asynchronously → Issues intents
-```
+## Communication & Modes
 
-### The Threading Model (Critical!)
-RimWorld runs on Unity's single-threaded architecture. **All Unity/RimWorld API calls MUST execute on the main thread**. The mod implements this pattern:
+TCP framing is length-prefixed: 4-byte big-endian length header + protobuf bytes.
 
-1. **Background Thread**: `TcpProtobufServer` listens for connections and reads messages
-2. **Thread-Safe Queue**: Commands are enqueued via `ConcurrentQueue<CommandMessage>`
-3. **Main Thread Processing**: `Root_Update_Patch` (Harmony postfix on `Root.Update()`) dequeues and processes commands
-4. **Response Queue**: Results are enqueued and sent back by background thread
-5. **Server-Side Validation**: Actions are validated before execution (pawn alive? target reachable?) to handle latency/stale data
+Dual operating modes:
 
-**Never access `Current.Game`, `Find.*`, or any `Pawn`/`Thing` from background threads!**
+- **Training (Synchronous)**: game pauses; advances only on STEP.
+- **Inference (Asynchronous)**: game runs; agent polls state (QUERY_STATE) and issues intents.
 
-### The Hybrid Valve (Dual-Mode Operation)
-- **Training Mode (Synchronous)**: `TickManager` is hijacked. Game strictly pauses between steps, waits for STEP command. Ensures deterministic, reproducible training.
-- **Inference Mode (Asynchronous)**: `TickManager` runs freely at normal speed. Agent queries state via QUERY_STATE without blocking game. Tests real-time performance under latency.
+## Key Paths (Use These, Don’t Guess)
 
-Implementation: `TickPatch.cs` checks a mode flag. In training mode, prefix patch returns `false` to skip original `DoSingleTick()` unless agent sends STEP.
+- Protobuf schema: `src/shared/Protos/rimgym.proto`
+- Python proto generation: `src/shared/python/src/generate_proto.py`
+- RimTCP build output: `src/RimTCP/1.6/Assemblies/`
+- RimStats compose file: `src/RimStats/docker-compose.yml`
 
-### Protocol Buffers Schema (`Protos/rimgym.proto`)
-- **CommandMessage**: Agent → Game (STEP, RESET, QUERY_STATE, EXECUTE_ACTION)
-- **StateMessage**: Game → Agent (frame_id, entities, global state, timestamps)
-- **Entity**: Represents pawns with health, needs, position, velocity vectors, current job
-- **Action**: Intent-based commands (ExecuteJob with ThingID, not fragile coordinates)
-  - Uses semantic intents: `ATTACK(targetID=402)` not `ATTACK(x=10, y=15)`
-  - C# validates: Is pawn drafted? Is target alive? Is path reachable?
-  - Failures send FAILURE_SIGNAL events for agent replanning
+## Build & Test Commands
 
-**Performance Optimizations**:
-- Messages use length-prefixed framing: 4-byte big-endian length header + serialized protobuf bytes
-- Delta compression for map data: Only changed cells sent in async mode
-- Velocity vectors in Entity messages allow agent to extrapolate positions under latency
+### C# (.NET Framework 4.8)
 
-## Build System
-
-### C# Build (.NET Framework 4.8)
-**Output Directory**: `1.6/Assemblies/` (RimWorld 1.6 mod structure)
-
-**Critical .csproj Settings**:
-- `<OutputPath>..\1.6\Assemblies</OutputPath>` - Direct output to mod structure
-- `<DebugType>none</DebugType>` - No PDB files for mods
-- `ExcludeAssets="native"` on Grpc.Core - Prevents native DLL inclusion
-- Post-build target `RemoveNativeDlls` - Safety cleanup for any native libraries
-
-**Required References**:
-- RimWorld: `Assembly-CSharp.dll` from `$(RimWorldPath)`
-- Unity: `UnityEngine.CoreModule.dll`
-- Harmony: `0Harmony.dll` from workshop mod #2009463077
-- Protobuf: `Google.Protobuf` NuGet (managed only)
-
-**Path Variables**: Set `$(RimWorldPath)`, `$(WorkshopPath)`, `$(HarmonyPath)` in `.csproj` or environment
-
-### Python Build
-Run `src/shared/python/src/generate_proto.py` to generate `rimtcp_pb2.py` from the `.proto` file. Only requires `protobuf` package (NOT `grpcio`).
-
-### Build Commands
 ```powershell
-# Full build
-dotnet build RimworldMLBridge.sln -c Release
+dotnet build src\RimTCP\RimTCP\RimTCP.sln -c Release
+dotnet test tests\RimTCP.Tests\RimTCP.Tests.csproj -c Release
 
-# Verify no native DLLs in output
-Get-ChildItem 1.6\Assemblies\*.dll | Where-Object { $_.Name -like "*csharp_ext*" }
-# Should return nothing
+# Verify no native gRPC DLLs slipped in
+Get-ChildItem src\RimTCP\1.6\Assemblies\*.dll | Where-Object { $_.Name -like "*csharp_ext*" }
 ```
 
-### Harmony Best Practices for RimTCP Mod
-- Use `[StaticConstructorOnStartup]` for mod initialization (see `RimTCP`)
-- Harmony ID: `"com.jmduea.rimtcp"`
-- Always catch exceptions in patch bodies to avoid crashing RimWorld
-- Log all important events with `[RimTCP]` prefix for easy filtering
+### Python (UV)
 
-## State Extraction Pattern
+```powershell
+uv sync
+uv run python src/shared/python/src/generate_proto.py
+uv run pytest src/RimGym/tests/
+uv run ruff format src/RimGym/
+uv run ruff check src/RimGym/
+```
 
-**Key RimWorld APIs**:
-- `Find.CurrentMap`: Current active map
-- `Find.TickManager`: Game time/speed control
-- `Find.WorldGrid`: World coordinates
-- `Current.Game`: Game session (null in main menu)
-- Pawns: `mapPawns.FreeColonistsSpawned`, `AllPawnsSpawned`
+### Docker
 
-## Common Development Tasks
+```powershell
+# RimStats dashboard
+docker compose -f src/RimStats/docker-compose.yml up -d
 
-### Adding New Protobuf Messages
-1. Edit `Protos/rimgym.proto`
-2. Rebuild C# (Grpc.Tools auto-generates C# from `.proto`)
-3. Run `src/shared/python/src/generate_proto.py` for Python bindings
-4. Update `TcpProtobufServer.ProcessCommands()` to handle new command types
+# Repo-level compose (integration)
+docker compose up -d
+```
 
-### Configuring Training vs Inference Mode
-1. Set `RimTCPMod.TrainingMode = true/false` flag
-2. In training mode: Game pauses automatically, only advances on STEP commands
-3. In inference mode: Game runs at normal speed, agent polls asynchronously
-4. Test both modes: Training for deterministic learning, Inference for real-time robustness
+## Logging & Safety Conventions
 
-### Debugging Threading Issues
-If you see `NullReferenceException` on Unity objects:
-- Check if code runs on background thread (bad!)
-- Move logic into `TcpProtobufServer.ProcessCommands()` (main thread)
-- Use `ConcurrentQueue` to pass data between threads
+- Prefix RimTCP logs with `[RimTCP]`.
+- Always guard game-state reads: check `Current.Game != null` and null-check `Find.CurrentMap`.
+- Catch exceptions inside Harmony patches (do not crash the game loop).
 
-**Known Issues**:
-- If native gRPC DLLs slip into `1.6/Assemblies/`, RimWorld crashes with `BadImageFormatException`
-- Solution: Post-build cleanup target in `.csproj` must run successfully
+## Protobuf Evolution Rules
 
-## Code Style Conventions
-- Use `[RimTCP]` prefix in all logs for easy filtering
-- Wrap Unity API calls in try-catch with graceful degradation
-- Check `Current.Game != null` before accessing game state
-- Use `?.` null-conditional operator extensively for RimWorld objects
-- Comment threading boundaries (main thread vs background thread)
-
-## When You Need to Know More
-- **RimWorld modding basics**: Check official docs at https://rimworldwiki.com/wiki/Modding_Tutorials
-- **Harmony patching**: https://harmony.pardeike.net/
-- **Protocol Buffers**: https://protobuf.dev/
-- **Unity threading**: Unity forbids accessing GameObject/Transform from background threads
+- Never reuse field numbers.
+- Prefer additive changes (new optional fields) over breaking changes.
+- Keep message names consistent across C# and Python (schema is the contract).

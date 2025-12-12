@@ -19,13 +19,13 @@ docker-compose down
 
 ```bash
 # Live logs
-docker logs -f rimworldmlbridge-integration-1
+docker logs -f rimgym-integration-1
 
 # Last 50 lines
-docker logs rimworldmlbridge-integration-1 --tail 50
+docker logs rimgym-integration-1 --tail 50
 
 # Search for errors
-docker logs rimworldmlbridge-integration-1 2>&1 | grep -i error
+docker logs rimgym-integration-1 2>&1 | grep -i error
 ```
 
 ### Check Status
@@ -35,10 +35,10 @@ docker logs rimworldmlbridge-integration-1 2>&1 | grep -i error
 docker ps -a
 
 # Resource usage
-docker stats rimworldmlbridge-integration-1 --no-stream
+docker stats rimgym-integration-1 --no-stream
 
 # Health check status
-docker inspect rimworldmlbridge-integration-1 | grep -A 10 Health
+docker inspect rimgym-integration-1 | grep -A 10 Health
 ```
 
 ## ⚠️ Common Issues
@@ -66,7 +66,7 @@ file scripts/entrypoint.sh
 
 ```bash
 # Wait 60 seconds, then check logs
-docker logs rimworldmlbridge-integration-1 | grep "TCP+Protobuf server started"
+docker logs rimgym-integration-1 | grep "TCP+Protobuf server started"
 ```
 
 **Verify port mapping:**
@@ -102,7 +102,7 @@ docker-compose config | grep LIBGL
 **Verify Xvfb only:**
 
 ```bash
-docker exec rimworldmlbridge-integration-1 ps aux | grep Xvfb
+docker exec rimgym-integration-1 ps aux | grep Xvfb
 # Should show: Xvfb :99 -screen 0 1024x768x24
 ```
 
@@ -111,27 +111,27 @@ docker exec rimworldmlbridge-integration-1 ps aux | grep Xvfb
 ### Access Container Shell
 
 ```bash
-docker exec -it rimworldmlbridge-integration-1 bash
+docker exec -it rimgym-integration-1 bash
 ```
 
 ### Check Mod Installation
 
 ```bash
-docker exec rimworldmlbridge-integration-1 ls -la /opt/rimworld/Mods/
-# Should show: Harmony/ and RimworldMLBridge/
+docker exec rimgym-integration-1 ls -la /opt/rimworld/Mods/
+# Should show: Harmony/ and RimTCP/
 ```
 
 ### View ModsConfig.xml
 
 ```bash
-docker exec rimworldmlbridge-integration-1 cat \
+docker exec rimgym-integration-1 cat \
   /root/.config/unity3d/Ludeon\ Studios/RimWorld\ by\ Ludeon\ Studios/Config/ModsConfig.xml
 ```
 
 ### Test TCP Port Internally
 
 ```bash
-docker exec rimworldmlbridge-integration-1 nc -zv localhost 50051
+docker exec rimgym-integration-1 nc -zv localhost 50051
 # Should show: Connection to localhost 50051 port [tcp/*] succeeded!
 ```
 
@@ -157,7 +157,7 @@ docker-compose up integration
 docker images | grep rimworld
 
 # Remove specific image
-docker rmi rimworldmlbridge-integration
+docker rmi rimgym-integration
 
 # Remove all unused images
 docker image prune -a
@@ -223,7 +223,7 @@ Before running, verify:
 ## 🆘 Still Stuck?
 
 1. Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
-2. Review container logs: `docker logs rimworldmlbridge-integration-1 > debug.log`
+2. Review container logs: `docker logs rimgym-integration-1 > debug.log`
 3. Verify RimWorld volume: `docker volume inspect rimworld-data`
 4. Test without Docker (local RimWorld instance)
 5. Ask for help with debug.log attached

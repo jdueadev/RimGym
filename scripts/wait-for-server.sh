@@ -29,8 +29,8 @@ while true; do
         echo "Port ${PORT} is open (attempt ${attempt}, ${elapsed}s elapsed)"
         
         # Try to run health check if available
-        if command -v python3 &> /dev/null && [ -f "python/diagnostics/check_rimworld_health.py" ]; then
-            if python3 python/diagnostics/check_rimworld_health.py --single --host "$HOST" --port "$PORT" 2>/dev/null; then
+        if command -v uv &> /dev/null && [ -f "/app/src/RimGym/src/diagnostics/check_rimworld_health.py" ]; then
+            if PYTHONPATH=/app/src uv run --project /app/src/RimGym python /app/src/RimGym/src/diagnostics/check_rimworld_health.py --single --host "$HOST" --port "$PORT" 2>/dev/null; then
                 echo "✓ Server responded to QUERY_STATE"
                 echo "Server is ready for connections!"
                 exit 0

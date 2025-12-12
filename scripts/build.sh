@@ -1,9 +1,9 @@
 #!/bin/bash
-# Build script for RimWorld ML Bridge
+# Build script for RimTCP (RimWorld mod) + RimGym (Python client)
 set -e
 
 echo "========================================="
-echo "Building RimWorld ML Bridge"
+echo "Building RimTCP + RimGym"
 echo "========================================="
 
 # Verify environment
@@ -18,13 +18,13 @@ echo ""
 
 # Clean previous build
 echo "Cleaning previous build..."
-rm -rf 1.6/Assemblies/*.dll
-rm -rf RimworldMLBridge/bin
-rm -rf RimworldMLBridge/obj
+rm -rf src/RimTCP/1.6/Assemblies/*.dll
+rm -rf src/RimTCP/RimTCP/bin
+rm -rf src/RimTCP/RimTCP/obj
 
 # Build C# project
 echo "Building C# assembly..."
-dotnet build RimworldMLBridge.sln -c Release
+dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release
 
 if [ $? -eq 0 ]; then
     echo "✓ C# build successful"
@@ -45,8 +45,7 @@ fi
 # Generate Python protobuf files
 echo ""
 echo "Generating Python protobuf files..."
-cd python
-python3 generate_proto.py
+python3 src/shared/python/src/generate_proto.py
 
 if [ $? -eq 0 ]; then
     echo "✓ Python protobuf files generated"
@@ -55,21 +54,13 @@ else
     exit 1
 fi
 
-cd ..
-
 echo ""
 echo "========================================="
 echo "✓ Build completed successfully!"
 echo "========================================="
 echo ""
 echo "Next steps:"
-echo "  1. Install mod: ln -s $(pwd) $RIMWORLD_DIR/Mods/RimworldMLBridge"
-echo "  2. Install Python deps: pip install -e ."
+echo "  1. Install mod: ln -s $(pwd)/src/RimTCP $RIMWORLD_DIR/Mods/RimTCP"
+echo "  2. Install Python deps: uv sync --project src/RimGym"
 echo "  3. Start RimWorld and load a game"
-echo "  4. Test connection: python python/test_tcp_connection.py"
-echo ""
-echo "Next steps:"
-echo "  1. Copy the mod folder to RimWorld/Mods/"
-echo "  2. Install Python dependencies: pip install -e ."
-echo "  3. Run RimWorld and load a game"
-echo "  4. Run the test client: python python/test_connection.py"
+echo "  4. Test connection: uv run --project src/RimGym python src/RimGym/tests/integration/test_tcp_connection.py"

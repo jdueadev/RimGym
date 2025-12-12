@@ -32,15 +32,15 @@ RimGym bridges the gap between the RimWorld game engine and modern reinforcement
 
    ```bash
    # Download from Steam Workshop or build from source
-   cd src/RimTCP
-   dotnet build -c Release
+   dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release
    # Copy output to RimWorld mods folder
    ```
 
 2. **Install the Python client**:
 
    ```bash
-   pip install -e src/RimGym
+   uv sync
+   uv run python src/shared/python/src/generate_proto.py
    ```
 
 3. **Start RimWorld and load a save**
@@ -73,7 +73,7 @@ See the [Installation Guide](docs/guides/installation.md) for detailed instructi
 
 RimGym uses a **hybrid synchronous/asynchronous architecture** to support both training and inference:
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │                   RimWorld Game                      │
 │  ┌────────────────────────────────────────────┐     │
@@ -160,7 +160,7 @@ dotnet test
 
 ```bash
 # Using Docker (recommended)
-docker-compose up integration
+docker compose up integration
 
 # Manual
 # 1. Start RimWorld with RimTCP mod
@@ -177,13 +177,13 @@ Run RimWorld in a containerized environment for automated testing:
 
 ```bash
 # Quick test
-docker-compose up test
+docker compose up test
 
 # Interactive development
-docker-compose up dev
+docker compose up dev
 
 # Integration tests with health checks
-docker-compose up integration
+docker compose up integration
 ```
 
 See [Docker Documentation](docs/docker/README.md) for more options.
@@ -237,7 +237,7 @@ uv sync --dev
 
 ### Project Structure
 
-```
+```text
 RimGym/
 ├── src/
 │   ├── RimTCP/          # C# mod for RimWorld
@@ -273,4 +273,4 @@ This project is proprietary software. See LICENSE file for details.
 
 ---
 
-**Built with ❤️ for the RimWorld and ML communities**
+Built with ❤️ for the RimWorld and ML communities

@@ -3,9 +3,17 @@ set -e
 
 # Start virtual X server for headless Unity
 echo "Starting Xvfb..."
-Xvfb :99 -screen 0 1024x768x24 &
-XVFB_PID=$!
-sleep 2
+
+# Avoid flakiness from stale X locks or a pre-existing Xvfb
+if [ -f /tmp/.X99-lock ] && kill -0 "$(cat /tmp/.X99-lock)" 2>/dev/null; then
+    echo "Xvfb already running on :99"
+    XVFB_PID=""
+else
+    rm -f /tmp/.X99-lock || true
+    Xvfb :99 -screen 0 1024x768x24 &
+    XVFB_PID=$!
+    sleep 2
+fi
 
 # Function to cleanup on exit
 cleanup() {
@@ -13,7 +21,9 @@ cleanup() {
     if [ ! -z "$RIMWORLD_PID" ]; then
         kill $RIMWORLD_PID 2>/dev/null || true
     fi
-    kill $XVFB_PID 2>/dev/null || true
+    if [ ! -z "$XVFB_PID" ]; then
+        kill $XVFB_PID 2>/dev/null || true
+    fi
 }
 trap cleanup EXIT
 
@@ -102,17 +112,23 @@ EOF
         
         # Run tests
         cd /app
-        PYTHONPATH=/app/src \
-        uv run --project /app/src/RimGym python /app/src/RimGym/tests/integration/test_automated_suite.py \
+        set +e
+        PYTHONPATH=/app/src PYTHONUNBUFFERED=1 \
+        uv run --project /app/src/RimGym python -u /app/src/RimGym/tests/integration/test_automated_suite.py \
             --no-launch \
             --output test_results.txt
-        
+
         TEST_EXIT_CODE=$?
+        set -e
         
         # Show logs on failure
         if [ $TEST_EXIT_CODE -ne 0 ]; then
             echo "Tests failed! RimWorld log:"
-            tail -n 100 /app/rimworld.log
+            tail -n 400 /app/rimworld.log
+
+            echo ""
+            echo "Tests failed! RimWorld log (filtered STEP/mode/speed):"
+            grep -E "\[MLBridge\] Executing command: (Step|SetMode|SetSpeed)|\[MLBridge\] STEP command|\[MLBridge\] Mode switched|\[MLBridge\] Game speed changed|Auto-unpaused" /app/rimworld.log | tail -n 200 || true
         fi
         
         exit $TEST_EXIT_CODE
