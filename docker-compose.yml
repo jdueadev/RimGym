@@ -6,6 +6,7 @@ services:
       target: test-runner
     volumes:
       - .:/app
+      - /app/.venv
       - rimworld-data:/opt/rimworld
     environment:
       - RIMWORLD_PATH=/opt/rimworld
@@ -24,8 +25,8 @@ services:
       target: test-runner
     volumes:
       # Mount only specific directories, not .venv which causes issues
-      - ./src/RimGym/python:/app/python
-      - ./src/shared/Protos:/app/Protos
+      - ./src/RimGym:/app/src/RimGym
+      - ./src/shared:/app/src/shared
       - rimworld-data:/opt/rimworld
     environment:
       - RIMWORLD_PATH=/opt/rimworld
@@ -70,6 +71,7 @@ services:
       target: builder
     volumes:
       - .:/app
+      - /app/.venv
     command: build
 
 volumes:

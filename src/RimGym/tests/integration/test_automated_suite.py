@@ -27,6 +27,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+import shared.python.src.mlbridge_pb2 as mlbridge_pb2
 import shared.python.src.rimgym_pb2 as rimgym_pb2
 
 

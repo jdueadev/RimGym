@@ -42,6 +42,9 @@ RUN mkdir -p ${RIMWORLD_PATH}
 # Stage 3: Build environment
 FROM rimworld-base AS builder
 
+# keep uv environment in a fixed location
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+
 COPY . /app/
 
 # Restore and build C# project
@@ -50,20 +53,25 @@ COPY . /app/
 RUN dotnet restore src/RimTCP/RimTCP/RimTCP.sln && \
     dotnet build src/RimTCP/RimTCP/RimTCP.sln -c Release
 
-# Install Python dependencies
-RUN uv sync
+# Install dependencies for RimGym (pyproject.toml located in src/RimGym/)
+RUN uv sync --project src/RimGym --group dev
 
 # Generate protobuf bindings
-RUN uv run python src/shared/python/src/generate_proto.py
+# standalone script located at src/shared/python/src/generate_proto.py
+# deps are defined in-line
+RUN uv run src/shared/python/src/generate_proto.py
 
 # Stage 4: Test runtime
 FROM rimworld-base AS test-runner
 
+# keep uv environment in a fixed location
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+
 # Copy built artifacts
-COPY --from=builder /app/1.6 /app/1.6
-COPY --from=builder /app/About /app/About
-COPY --from=builder /app/Protos /app/Protos
-COPY --from=builder /app/python /app/python
+COPY --from=builder /app/src/RimTCP/1.6 /app/1.6
+COPY --from=builder /app/src/RimTCP/About /app/About
+COPY --from=builder /app/src/shared /app/src/shared
+COPY --from=builder /app/src/RimGym /app/src/RimGym
 COPY --from=builder /app/.venv /app/.venv
 
 # Copy to RimWorld Mods directory

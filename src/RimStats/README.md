@@ -1,6 +1,6 @@
-# RimWorld ML Dashboard
+# RimStats
 
-Real-time training visualization dashboard for RimWorld ML Bridge.
+Real-time training visualization dashboard for RimGym.
 
 ## Architecture
 

@@ -60,11 +60,11 @@ EOF
         fi
         
         # Install mod to RimWorld Mods directory (mod is in /app from build)
-        echo "Installing RimworldMLBridge mod..."
-        mkdir -p ${RIMWORLD_PATH}/Mods/RimworldRimGym
-        cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimworldMLBridge/
-        cp -r /app/About ${RIMWORLD_PATH}/Mods/RimworldMLBridge/
-        echo "✓ Mod installed to ${RIMWORLD_PATH}/Mods/RimworldMLBridge"
+        echo "Installing RimTCP mod..."
+        mkdir -p ${RIMWORLD_PATH}/Mods/RimTCP
+        cp -r /app/1.6 ${RIMWORLD_PATH}/Mods/RimTCP/
+        cp -r /app/About ${RIMWORLD_PATH}/Mods/RimTCP/
+        echo "✓ Mod installed to ${RIMWORLD_PATH}/Mods/RimTCP"
         
         # Create ModsConfig.xml to enable our mods
         echo "Creating ModsConfig.xml..."
@@ -81,7 +81,7 @@ EOF
     <li>Ludeon.RimWorld.Anomaly</li>
     <li>Ludeon.RimWorld.Odyssey</li>
     <li>brrainz.harmony</li>
-    <li>unknwnentity.rimworldmlbridge</li>
+    <li>unknwnentity.rimtcp</li>
   </activeMods>
 </ModsConfigData>
 EOF
@@ -102,7 +102,8 @@ EOF
         
         # Run tests
         cd /app
-        uv run python python/test_automated_suite.py \
+        PYTHONPATH=/app/src \
+        uv run --project /app/src/RimGym python /app/src/RimGym/tests/integration/test_automated_suite.py \
             --no-launch \
             --output test_results.txt
         
@@ -120,7 +121,7 @@ EOF
     build)
         echo "Building C# project..."
         cd /app
-        dotnet build RimworldMLBridge.sln -c Release
+        dotnet build RimTCP.sln -c Release
         ;;
         
     interactive)
@@ -129,7 +130,7 @@ EOF
         ;;
         
     *)
-        echo "Usage: docker run rimworld-ml-bridge [test|build|interactive]"
+        echo "Usage: docker run rimtcp [test|build|interactive]"
         exit 1
         ;;
 esac

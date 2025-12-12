@@ -1,9 +1,6 @@
 ---
 description: A comprehensive guide to using UV for Python project management, covering installation, environment management, package handling, and best practices.
-author: Cline
-version: 1.0
-tags: ["uv", "python", "package-manager", "venv", "guide"]
-globs: ["**/*.py", "pyproject.toml"]
+applyTo: '**/*.py'
 ---
 
 # UV Python Project Management Guide
