@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Development environment - Interactive shell with RimWorld available
   dev:
@@ -38,7 +36,8 @@ services:
     # Use the entrypoint script that properly sets up mods and config
     command: ["test"]
     healthcheck:
-      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/50051' || exit 1"]
+      test:
+        ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/50051' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
