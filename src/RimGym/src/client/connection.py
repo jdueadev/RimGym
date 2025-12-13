@@ -13,7 +13,7 @@ import time
 from threading import Lock
 from typing import Optional
 
-sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 
 from shared.python.src.rimgym_pb2 import (
     CommandMessage,

@@ -28,9 +28,6 @@ namespace RimTCP.Adapters
         /// <summary>
         /// Safely convert a DTO, returning null if input is null.
         /// </summary>
-        public TProto ToProtobufSafe(TDto dto)
-        {
-            return dto == null ? null : ToProtobuf(dto);
-        }
+        public TProto ToProtobufSafe(TDto dto) => dto == null ? null : ToProtobuf(dto);
     }
 }

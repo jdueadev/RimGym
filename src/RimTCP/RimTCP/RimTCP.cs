@@ -20,7 +20,7 @@ namespace RimTCP
         static RimTcpMod()
         {
             Log.Message($"{Constants.LogPrefix} =================================");
-            Log.Message($"{Constants.LogPrefix} Initializing RimTCP with TCP+Protobuf...");
+            Log.Message($"{Constants.LogPrefix} Initializing RimTCP...");
 
             try
             {

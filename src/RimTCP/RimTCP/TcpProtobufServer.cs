@@ -827,20 +827,22 @@ namespace RimTCP
                         // Count settlements for this faction
                         var settlementCount =
                             Find.WorldObjects?.Settlements?.Count(s => s.Faction == faction) ?? 0;
-
-                        worldDto.Factions.Add(
-                            new DTOs.FactionDTO
-                            {
-                                FactionId = faction.loadID,
-                                DefName = faction.def?.defName ?? "Unknown",
-                                Name = faction.Name ?? faction.def?.label ?? "Faction",
-                                Relation = faction.PlayerRelationKind.ToString(),
-                                Goodwill = faction.PlayerGoodwill,
-                                IsPlayer = faction.IsPlayer,
-                                Defeated = faction.defeated,
-                                SettlementCount = settlementCount,
-                            }
-                        );
+                        if (!faction.IsPlayer)
+                        {
+                            worldDto.Factions.Add(
+                                new DTOs.FactionDTO
+                                {
+                                    FactionId = faction.loadID,
+                                    DefName = faction.def?.defName ?? "Unknown",
+                                    Name = faction.Name ?? faction.def?.label ?? "Faction",
+                                    Relation = faction.PlayerRelationKind.ToString(),
+                                    Goodwill = faction.PlayerGoodwill,
+                                    IsPlayer = faction.IsPlayer,
+                                    Defeated = faction.defeated,
+                                    SettlementCount = settlementCount,
+                                }
+                            );
+                        }
                     }
                 }
 
@@ -869,21 +871,15 @@ namespace RimTCP
         /// </summary>
         private TimeSpeed ConvertGameSpeed(GameSpeed speed)
         {
-            switch (speed)
+            return speed switch
             {
-                case GameSpeed.SpeedPaused:
-                    return TimeSpeed.Paused;
-                case GameSpeed.SpeedNormal:
-                    return TimeSpeed.Normal;
-                case GameSpeed.SpeedFast:
-                    return TimeSpeed.Fast;
-                case GameSpeed.SpeedSuperfast:
-                    return TimeSpeed.Superfast;
-                case GameSpeed.SpeedUltrafast:
-                    return TimeSpeed.Ultrafast;
-                default:
-                    return TimeSpeed.Normal;
-            }
+                GameSpeed.SpeedPaused => TimeSpeed.Paused,
+                GameSpeed.SpeedNormal => TimeSpeed.Normal,
+                GameSpeed.SpeedFast => TimeSpeed.Fast,
+                GameSpeed.SpeedSuperfast => TimeSpeed.Superfast,
+                GameSpeed.SpeedUltrafast => TimeSpeed.Ultrafast,
+                _ => TimeSpeed.Normal,
+            };
         }
     }
 }

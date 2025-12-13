@@ -1676,6 +1676,7 @@ dependencies = [
     { name = "gymnasium" },
     { name = "numpy" },
     { name = "protobuf" },
+    { name = "requests" },
 ]
 
 [package.optional-dependencies]
@@ -1716,6 +1717,7 @@ requires-dist = [
     { name = "protobuf", specifier = ">=4.24.0" },
     { name = "pymdown-extensions", marker = "extra == 'docs'", specifier = ">=10.4.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.0.0" },
+    { name = "requests", specifier = ">=2.30.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
     { name = "stable-baselines3", marker = "extra == 'train'", specifier = ">=2.0.0" },
     { name = "tensorboard", marker = "extra == 'train'", specifier = ">=2.14.0" },

@@ -13,7 +13,7 @@ namespace RimTCP.Diagnostics
     {
         private static readonly Stopwatch _stopwatch = new Stopwatch();
         private static PerformanceStats _lastStats = new PerformanceStats();
-        
+
         /// <summary>
         /// Performance statistics for a single state extraction cycle.
         /// </summary>
@@ -25,29 +25,37 @@ namespace RimTCP.Diagnostics
             public long TotalExtractionMs { get; set; }
             public long SerializationMs { get; set; }
             public long TotalCycleMs { get; set; }
-            
+
             // Data complexity metrics
             public int BuildingCount { get; set; }
             public int ItemCount { get; set; }
             public int IncidentCount { get; set; }
             public int FactionCount { get; set; }
             public int SettlementCount { get; set; }
-            
+
             // Size metrics
             public int SerializedSizeBytes { get; set; }
-            
+
             public override string ToString()
             {
                 var sb = new StringBuilder();
                 sb.AppendLine("=== Phase V Performance Stats ===");
-                sb.AppendLine($"Map Extraction:      {MapExtractionMs,5} ms ({BuildingCount} buildings, {ItemCount} items)");
-                sb.AppendLine($"Incident Extraction: {IncidentExtractionMs,5} ms ({IncidentCount} incidents)");
-                sb.AppendLine($"World Extraction:    {WorldExtractionMs,5} ms ({FactionCount} factions, {SettlementCount} settlements)");
-                sb.AppendLine($"Total Extraction:    {TotalExtractionMs,5} ms");
-                sb.AppendLine($"Serialization:       {SerializationMs,5} ms");
-                sb.AppendLine($"Total Cycle:         {TotalCycleMs,5} ms");
-                sb.AppendLine($"Serialized Size:     {SerializedSizeBytes,7} bytes ({SerializedSizeBytes / 1024.0:F1} KB)");
-                
+                sb.AppendLine(
+                    $"Map Extraction:      {MapExtractionMs, 5} ms ({BuildingCount} buildings, {ItemCount} items)"
+                );
+                sb.AppendLine(
+                    $"Incident Extraction: {IncidentExtractionMs, 5} ms ({IncidentCount} incidents)"
+                );
+                sb.AppendLine(
+                    $"World Extraction:    {WorldExtractionMs, 5} ms ({FactionCount} factions, {SettlementCount} settlements)"
+                );
+                sb.AppendLine($"Total Extraction:    {TotalExtractionMs, 5} ms");
+                sb.AppendLine($"Serialization:       {SerializationMs, 5} ms");
+                sb.AppendLine($"Total Cycle:         {TotalCycleMs, 5} ms");
+                sb.AppendLine(
+                    $"Serialized Size:     {SerializedSizeBytes, 7} bytes ({SerializedSizeBytes / 1024.0:F1} KB)"
+                );
+
                 // Performance assessment
                 if (TotalExtractionMs <= 5)
                 {
@@ -61,11 +69,11 @@ namespace RimTCP.Diagnostics
                 {
                     sb.AppendLine("✗ NEEDS OPTIMIZATION: Extraction time exceeds 10ms");
                 }
-                
+
                 return sb.ToString();
             }
         }
-        
+
         /// <summary>
         /// Start timing for map extraction.
         /// </summary>
@@ -73,7 +81,7 @@ namespace RimTCP.Diagnostics
         {
             _stopwatch.Restart();
         }
-        
+
         /// <summary>
         /// End timing for map extraction and record duration.
         /// </summary>
@@ -83,7 +91,7 @@ namespace RimTCP.Diagnostics
             _lastStats.BuildingCount = buildingCount;
             _lastStats.ItemCount = itemCount;
         }
-        
+
         /// <summary>
         /// Start timing for incident extraction.
         /// </summary>
@@ -91,7 +99,7 @@ namespace RimTCP.Diagnostics
         {
             _stopwatch.Restart();
         }
-        
+
         /// <summary>
         /// End timing for incident extraction and record duration.
         /// </summary>
@@ -100,7 +108,7 @@ namespace RimTCP.Diagnostics
             _lastStats.IncidentExtractionMs = _stopwatch.ElapsedMilliseconds;
             _lastStats.IncidentCount = incidentCount;
         }
-        
+
         /// <summary>
         /// Start timing for world extraction.
         /// </summary>
@@ -108,7 +116,7 @@ namespace RimTCP.Diagnostics
         {
             _stopwatch.Restart();
         }
-        
+
         /// <summary>
         /// End timing for world extraction and record duration.
         /// </summary>
@@ -118,7 +126,7 @@ namespace RimTCP.Diagnostics
             _lastStats.FactionCount = factionCount;
             _lastStats.SettlementCount = settlementCount;
         }
-        
+
         /// <summary>
         /// Start timing for serialization.
         /// </summary>
@@ -126,7 +134,7 @@ namespace RimTCP.Diagnostics
         {
             _stopwatch.Restart();
         }
-        
+
         /// <summary>
         /// End timing for serialization and record duration.
         /// </summary>
@@ -135,18 +143,19 @@ namespace RimTCP.Diagnostics
             _lastStats.SerializationMs = _stopwatch.ElapsedMilliseconds;
             _lastStats.SerializedSizeBytes = serializedSizeBytes;
         }
-        
+
         /// <summary>
         /// Finalize stats calculation.
         /// </summary>
         public static void FinalizeStats(long totalCycleMs)
         {
-            _lastStats.TotalExtractionMs = _lastStats.MapExtractionMs 
-                + _lastStats.IncidentExtractionMs 
+            _lastStats.TotalExtractionMs =
+                _lastStats.MapExtractionMs
+                + _lastStats.IncidentExtractionMs
                 + _lastStats.WorldExtractionMs;
             _lastStats.TotalCycleMs = totalCycleMs;
         }
-        
+
         /// <summary>
         /// Get the last recorded performance stats.
         /// </summary>
@@ -154,15 +163,15 @@ namespace RimTCP.Diagnostics
         {
             return _lastStats;
         }
-        
+
         /// <summary>
         /// Log performance stats to RimWorld log.
         /// </summary>
         public static void LogStats()
         {
-            Log.Message($"[MLBridge:Performance] {_lastStats}");
+            Log.Message($"{Constants.LogPrefix} {_lastStats}");
         }
-        
+
         /// <summary>
         /// Reset profiler state.
         /// </summary>

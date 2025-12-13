@@ -208,7 +208,6 @@ HEARTBEAT_INTERVAL_SECONDS = 30
 
 ## Related Documentation
 
-- [Phase V Architecture](../specs/PHASE_V_ARCHITECTURE.md) - Detailed rich state specification
 - [TCP Implementation](../implementation/TCP_PROTOBUF_IMPLEMENTATION.md) - Protocol details
 - [Python API](../api/python/overview.md) - Client API reference
 
