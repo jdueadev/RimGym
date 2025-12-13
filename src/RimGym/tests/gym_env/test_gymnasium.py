@@ -370,6 +370,23 @@ class TestRimWorldEnv(unittest.TestCase):
         # Mock client behavior
         mock_client = MagicMock()
         mock_client.wait_ready.return_value = True
+
+        # Mock RESET + QUERY_STATE command cycle
+        mock_reset_response = MagicMock()
+        mock_reset_response.status_message = "Reset initiated"
+        mock_reset_response.reset_in_progress = True
+        mock_reset_response.is_ready = False
+
+        mock_ready_response = MagicMock()
+        mock_ready_response.status_message = "State queried"
+        mock_ready_response.reset_in_progress = False
+        mock_ready_response.is_ready = True
+
+        mock_client.connection.send_command.side_effect = [
+            mock_reset_response,
+            mock_ready_response,
+        ]
+
         mock_client.state_queue.get_latest.return_value = {
             "colonists": [{"id": "c1", "health": 1.0, "position": {}}],
             "global_state": {},

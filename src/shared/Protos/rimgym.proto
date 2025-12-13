@@ -65,6 +65,7 @@ message CommandMessage {
   repeated Action actions = 3;
   ExecutionMode mode = 4;  // For SET_MODE command
   GameSpeed speed = 5;     // For SET_SPEED command
+  string reset_save_name = 6; // For RESET command (optional; falls back to server config)
 }
 
 // Action verb types
@@ -253,6 +254,8 @@ message RichStateMessage {
   float delta_time_ms = 8;             // Phase III: Time since last frame (for velocity calculation)
   bool is_delta = 9;                   // Phase III: True if this is a delta update (only changed entities)
   ExecutionMode current_mode = 10;     // Phase III: Current execution mode
+  bool reset_in_progress = 14;         // Phase VI: True while a RESET save-load cycle is in progress
+  string reset_save_name = 15;         // Phase VI: Save name being loaded during RESET (if any)
   
   // Phase V: RIMAPI Full Integration
   MapState map = 11;                   // Map data (terrain, buildings, zones)

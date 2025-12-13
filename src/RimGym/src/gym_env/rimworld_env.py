@@ -5,12 +5,15 @@ Standard RL environment interface compatible with Stable-Baselines3.
 """
 
 import logging
+import os
 import time
 from typing import Any, Dict, Optional, Tuple
 
 import gymnasium as gym
 import numpy as np
 from client import ClientConfig, SpectatorClient
+
+from shared.python.src.rimgym_pb2 import CommandMessage, CommandType
 
 from .rewards import RewardCalculator
 from .spaces import ActionSpace, ObservationSpace
@@ -119,7 +122,7 @@ class RimWorldEnv(gym.Env):
             raise RuntimeError("Failed to connect to RimWorld server")
 
         # Send RESET command to server
-        reset_successful = self._send_reset_command()
+        reset_successful = self._send_reset_command(options=options)
         if not reset_successful:
             raise RuntimeError("Failed to reset RimWorld game")
 
@@ -248,7 +251,7 @@ class RimWorldEnv(gym.Env):
 
         return state
 
-    def _send_reset_command(self) -> bool:
+    def _send_reset_command(self, options: Optional[Dict[str, Any]] = None) -> bool:
         """
         Send RESET command to RimWorld server.
 
@@ -256,14 +259,57 @@ class RimWorldEnv(gym.Env):
             True if successful
 
         Note:
-            RESET command is planned for Phase VI. RimWorld game reset requires
-            a save/load cycle which is complex to implement. For training,
-            use manual save file management or Docker container restart.
+            RESET is implemented as a save-load cycle. Provide a save name via
+            options["save_name"], or configure the server with RIMTCP_RESET_SAVE.
         """
-        # Phase VI: RESET command requires save/load cycle in RimWorld
-        # For now, assume server handles reset externally (Docker restart, manual reload)
-        logger.warning("RESET command planned for Phase VI - use manual reset")
-        return True
+        if self.client is None:
+            raise RuntimeError("Client not initialized")
+
+        save_name = None
+        if options:
+            save_name = options.get("save_name")
+
+        # Allow client-side env var as a convenience.
+        if not save_name:
+            save_name = os.environ.get("RIMGYM_RESET_SAVE")
+
+        command = CommandMessage()
+        command.type = CommandType.RESET
+        if save_name:
+            command.reset_save_name = str(save_name)
+
+        # Send RESET request (response will usually indicate reset_in_progress)
+        response = self.client.connection.send_command(command, timeout=5.0)
+        if not response:
+            return False
+
+        # Poll until reset completes
+        deadline = time.time() + 120.0
+        while time.time() < deadline:
+            query = CommandMessage()
+            query.type = CommandType.QUERY_STATE
+            state = self.client.connection.send_command(query, timeout=5.0)
+
+            if not state:
+                time.sleep(0.2)
+                continue
+
+            # Hard failure
+            if state.status_message.startswith(
+                "RESET requires"
+            ) or state.status_message.startswith("Reset failed"):
+                logger.error(f"Reset failed: {state.status_message}")
+                return False
+
+            if (not getattr(state, "reset_in_progress", False)) and getattr(
+                state, "is_ready", False
+            ):
+                return True
+
+            time.sleep(0.2)
+
+        logger.error("Reset timed out waiting for completion")
+        return False
 
     def _send_step_command(self, ticks: int = 60):
         """
@@ -273,9 +319,15 @@ class RimWorldEnv(gym.Env):
             ticks: Number of ticks to advance
 
         Note:
-            Full STEP integration requires active connection to TcpProtobufServer.
-            Use SpectatorClient for production workloads.
+            STEP advances the sim deterministically in training mode.
         """
-        # Phase VI: Full STEP integration via SpectatorClient
-        # For now, simulate timing for standalone testing
-        time.sleep(ticks / 60.0)  # Approximate timing
+        if self.client is None:
+            raise RuntimeError("Client not initialized")
+
+        command = CommandMessage()
+        command.type = CommandType.STEP
+        command.ticks_to_run = int(ticks)
+
+        response = self.client.connection.send_command(command, timeout=10.0)
+        if not response:
+            raise RuntimeError("STEP command failed (no response)")

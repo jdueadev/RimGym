@@ -10,10 +10,11 @@
 - Main-thread dispatch pattern via Harmony patching.
 - Documentation site structure in `docs/` and generated `site/`.
 - Python environment management via `uv`.
+- Phase VI (partial): RESET via save-load cycle + client-side polling support.
 
 ## In Progress
 
-- No active feature implementation tracked in Memory Bank yet (Memory Bank was empty prior to 2025-12-13).
+- [TASK002] RESET loads known save (implemented; pending live RimWorld verification).
 
 ## Planned / Next Major Work (High Level)
 

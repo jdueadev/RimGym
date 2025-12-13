@@ -277,9 +277,7 @@ class ConnectionManager:
                 length_prefix = struct.pack(">I", command_length)
                 self._socket.sendall(length_prefix + command_bytes)
 
-                logger.debug(
-                    f"Sent command: {command.command_type} ({command_length} bytes)"
-                )
+                logger.debug(f"Sent command: {command.type} ({command_length} bytes)")
 
                 # Receive response length prefix
                 old_timeout = self._socket.gettimeout()

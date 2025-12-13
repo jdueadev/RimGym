@@ -1,12 +1,12 @@
 # Active Context — RimGym
 
-**Status:** Stable baseline; maintenance work
+**Status:** Phase VI feature work in progress
 **Last updated:** 2025-12-13
 
 ## Current Focus
 
-- Documentation and repo hygiene work on branch `chore/misc-cleanup`.
-- No uncommitted local changes at time of update.
+- Phase VI: implement Gym-compatible RESET using “load known save”.
+- Wire Python Gym env RESET/STEP to real TCP+Protobuf commands.
 
 ## Recent Context
 
@@ -14,11 +14,9 @@
 
 ## Immediate Next Steps
 
-- Keep Memory Bank current as work proceeds (new features should create/update task entries).
-- If starting Phase VI work:
-  - confirm requirements for action execution / reset semantics
-  - update shared protobuf schema additively
-  - validate main-thread dispatch remains intact
+- Verify RESET in a live RimWorld session (load a known save via `RIMTCP_RESET_SAVE`).
+- If stable, implement `EXECUTE_ACTION` and wire Gym `step()` to use it (rather than action_queue only).
+- Keep Memory Bank current (TASK002 created for RESET implementation).
 
 ## Known Constraints to Keep Top-of-Mind
 

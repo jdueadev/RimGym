@@ -24,7 +24,7 @@ from typing import Optional
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from shared.python.src.rimgym_pb2 import CommandMessage, RichStateMessage
+from shared.python.src.rimgym_pb2 import CommandMessage, CommandType, RichStateMessage
 
 # Minimum success rate threshold for health check to pass
 MIN_SUCCESS_RATE_PERCENT = 95.0
@@ -185,7 +185,7 @@ class RimWorldHealthChecker:
 
             # Send QUERY_STATE command
             command = CommandMessage()
-            command.command_type = CommandMessage.QUERY_STATE
+            command.type = CommandType.QUERY_STATE
 
             self._send_command(sock, command)
             response = self._receive_response(sock)

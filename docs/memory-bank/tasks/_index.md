@@ -4,7 +4,7 @@
 
 ## In Progress
 
-- (none)
+- [TASK002] Implement RESET (load known save) — Implemented protocol + wiring; pending live RimWorld verification
 
 ## Pending
 

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf;
@@ -58,6 +59,13 @@ namespace RimTCP
         private DateTime _lastClientConnectTime;
         private DateTime _lastHeartbeatTime;
         private const int HeartbeatIntervalSeconds = 30;
+
+        // Phase VI: RESET (save-load cycle) tracking
+        private volatile bool _resetInProgress;
+        private volatile string _resetSaveName;
+        private volatile bool _resetObservedLongEvent;
+        private volatile bool _resetObservedNotReady;
+        private volatile string _lastResetError;
 
         public bool IsConnected => _client != null && _client.Connected;
         public bool IsRunning => _isRunning;
@@ -330,6 +338,7 @@ namespace RimTCP
         /// </summary>
         public void ProcessCommands()
         {
+            UpdateResetProgress();
             while (_commandQueue.TryDequeue(out var command))
             {
                 try
@@ -366,16 +375,36 @@ namespace RimTCP
                 IsReady = false,
                 StatusMessage = $"Command {command.Type} executed",
                 TimestampMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                ResetInProgress = _resetInProgress,
+                ResetSaveName = _resetSaveName ?? string.Empty,
             };
 
-            // Check if game is loaded before executing commands
-            if (Current.Game == null || Find.CurrentMap == null)
+            // If a reset is currently running, reject commands that would mutate sim state.
+            // QueryState is still allowed so clients can poll for completion.
+            if (
+                _resetInProgress
+                && command.Type != CommandType.QueryState
+                && command.Type != CommandType.Reset
+            )
             {
-                state.StatusMessage = "Game not loaded - please load a save or start a new game";
+                state.IsReady = false;
+                state.StatusMessage = "Reset in progress - try again after reset completes";
                 return state;
             }
 
-            state.IsReady = true;
+            // RESET must be allowed even when no game is loaded yet.
+            // Other commands require a loaded game.
+            if (command.Type != CommandType.Reset)
+            {
+                if (Current.Game == null || Find.CurrentMap == null)
+                {
+                    state.StatusMessage =
+                        "Game not loaded - please load a save or start a new game";
+                    return state;
+                }
+
+                state.IsReady = true;
+            }
 
             switch (command.Type)
             {
@@ -469,12 +498,7 @@ namespace RimTCP
                     break;
 
                 case CommandType.Reset:
-                    // Phase VI: Game reset is complex in RimWorld - requires save/load cycle
-                    // For now, return informative message. Full implementation tracked in Phase VI roadmap.
-                    state.StatusMessage = "Reset requires save/load - see Phase VI roadmap";
-                    Log.Message(
-                        $"{Constants.LogPrefix} Reset command received - not yet implemented (Phase VI)"
-                    );
+                    ExecuteReset(command, state);
                     break;
 
                 case CommandType.ExecuteAction:
@@ -488,6 +512,18 @@ namespace RimTCP
             }
 
             // Populate state with game data (with profiling if enabled)
+            if (_resetInProgress)
+            {
+                // During reset we do not attempt to extract full state (it may be inconsistent).
+                state.IsReady = false;
+                state.ResetInProgress = true;
+                state.ResetSaveName = _resetSaveName ?? string.Empty;
+                state.StatusMessage = string.IsNullOrWhiteSpace(_lastResetError)
+                    ? $"Reset in progress (loading save '{state.ResetSaveName}')"
+                    : $"Reset in progress (last error: {_lastResetError})";
+                return state;
+            }
+
             var cycleStart = System.Diagnostics.Stopwatch.StartNew();
             PopulateGameState(state);
             cycleStart.Stop();
@@ -513,6 +549,19 @@ namespace RimTCP
         {
             try
             {
+                // Phase VI: expose reset status on every state message.
+                state.ResetInProgress = _resetInProgress;
+                state.ResetSaveName = _resetSaveName ?? string.Empty;
+
+                if (_resetInProgress)
+                {
+                    state.IsReady = false;
+                    state.StatusMessage = string.IsNullOrWhiteSpace(_lastResetError)
+                        ? $"Reset in progress (loading save '{state.ResetSaveName}')"
+                        : $"Reset in progress (last error: {_lastResetError})";
+                    return;
+                }
+
                 if (!ServiceRegistry.IsGameReady())
                 {
                     state.IsReady = false;
@@ -591,8 +640,247 @@ namespace RimTCP
                     $"{Constants.LogPrefix} Error populating state: {e.Message}\n{e.StackTrace}"
                 );
                 state.IsReady = false;
-                state.StatusMessage = $"Error: {e.Message}";
+                state.StatusMessage = $"Error populating state: {e.Message}";
             }
+        }
+
+        private void ExecuteReset(CommandMessage command, RichStateMessage state)
+        {
+            if (_resetInProgress)
+            {
+                state.IsReady = false;
+                state.StatusMessage = "Reset already in progress";
+                state.ResetInProgress = true;
+                state.ResetSaveName = _resetSaveName ?? string.Empty;
+                return;
+            }
+
+            var saveName = !string.IsNullOrWhiteSpace(command.ResetSaveName)
+                ? command.ResetSaveName.Trim()
+                : GetResetSaveNameFromEnv();
+
+            if (string.IsNullOrWhiteSpace(saveName))
+            {
+                state.IsReady = false;
+                state.StatusMessage =
+                    "RESET requires a save name (CommandMessage.reset_save_name) or env var RIMTCP_RESET_SAVE";
+                return;
+            }
+
+            _resetInProgress = true;
+            _resetSaveName = saveName;
+            _resetObservedLongEvent = false;
+            _resetObservedNotReady = false;
+            _lastResetError = null;
+
+            // Ensure we don't accidentally advance the sim during load.
+            RimTcpMod.StepPermitted = false;
+            RimTcpMod.TicksToRun = 0;
+
+            try
+            {
+                Log.Message($"{Constants.LogPrefix} RESET initiated: loading save '{saveName}'");
+
+                // The actual load is queued as a long event so RimWorld can load safely.
+                QueueLongEvent(
+                    () =>
+                    {
+                        LoadSaveByReflection(saveName);
+                    },
+                    $"RimTCP: Loading save '{saveName}'"
+                );
+
+                state.IsReady = false;
+                state.ResetInProgress = true;
+                state.ResetSaveName = saveName;
+                state.StatusMessage = $"Reset initiated: loading save '{saveName}'";
+            }
+            catch (Exception ex)
+            {
+                _lastResetError = ex.Message;
+                _resetInProgress = false;
+                state.IsReady = false;
+                state.ResetInProgress = false;
+                state.ResetSaveName = saveName;
+                state.StatusMessage = $"Reset failed to start: {ex.Message}";
+
+                Log.Error(
+                    $"{Constants.LogPrefix} RESET failed to start for save '{saveName}': {ex.Message}\n{ex.StackTrace}"
+                );
+            }
+        }
+
+        private void UpdateResetProgress()
+        {
+            if (!_resetInProgress)
+                return;
+
+            try
+            {
+                if (IsAnyLongEventNowOrWaiting())
+                {
+                    _resetObservedLongEvent = true;
+                }
+
+                if (!ServiceRegistry.IsGameReady())
+                {
+                    _resetObservedNotReady = true;
+                }
+
+                // Only consider reset complete after we have observed the load cycle begin.
+                if (
+                    (_resetObservedLongEvent || _resetObservedNotReady)
+                    && ServiceRegistry.IsGameReady()
+                    && !IsAnyLongEventNowOrWaiting()
+                )
+                {
+                    Log.Message(
+                        $"{Constants.LogPrefix} RESET complete: save '{_resetSaveName}' loaded"
+                    );
+
+                    _resetInProgress = false;
+                    _resetObservedLongEvent = false;
+                    _resetObservedNotReady = false;
+                    _lastResetError = null;
+
+                    // Reinitialize services to avoid stale state after load.
+                    ServiceRegistry.Reset();
+                    ServiceRegistry.Initialize();
+
+                    // Clear motion tracking to avoid bogus velocity deltas.
+                    _lastPositions.Clear();
+                    _lastPositionTimes.Clear();
+                    _lastFrameTimestamp = 0;
+                }
+            }
+            catch (Exception ex)
+            {
+                // Keep reset running; expose error via state messages.
+                _lastResetError = ex.Message;
+            }
+        }
+
+        private static string GetResetSaveNameFromEnv()
+        {
+            var raw = Environment.GetEnvironmentVariable("RIMTCP_RESET_SAVE");
+            return string.IsNullOrWhiteSpace(raw) ? null : raw.Trim();
+        }
+
+        private static void LoadSaveByReflection(string saveName)
+        {
+            if (string.IsNullOrWhiteSpace(saveName))
+            {
+                throw new ArgumentException("Save name must be non-empty", nameof(saveName));
+            }
+
+            var gameAssembly = typeof(Root).Assembly;
+            var loaderType =
+                gameAssembly.GetType("Verse.GameDataSaveLoader")
+                ?? gameAssembly.GetType("RimWorld.GameDataSaveLoader");
+
+            if (loaderType == null)
+            {
+                throw new InvalidOperationException(
+                    "Could not find GameDataSaveLoader type (expected Verse.GameDataSaveLoader)"
+                );
+            }
+
+            // Prefer a LoadGame(string) method.
+            var loadMethod = loaderType.GetMethod(
+                "LoadGame",
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static,
+                binder: null,
+                types: new[] { typeof(string) },
+                modifiers: null
+            );
+
+            if (loadMethod == null)
+            {
+                throw new InvalidOperationException(
+                    "Could not find static LoadGame(string) method on GameDataSaveLoader"
+                );
+            }
+
+            loadMethod.Invoke(null, new object[] { saveName });
+        }
+
+        private static bool IsAnyLongEventNowOrWaiting()
+        {
+            try
+            {
+                var type = typeof(LongEventHandler);
+                var prop = type.GetProperty(
+                    "AnyEventNowOrWaiting",
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static
+                );
+                if (prop != null && prop.PropertyType == typeof(bool))
+                {
+                    return (bool)prop.GetValue(null);
+                }
+
+                var method = type.GetMethod(
+                    "AnyEventNowOrWaiting",
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static,
+                    binder: null,
+                    types: Type.EmptyTypes,
+                    modifiers: null
+                );
+                if (method != null && method.ReturnType == typeof(bool))
+                {
+                    return (bool)method.Invoke(null, null);
+                }
+            }
+            catch
+            {
+                // If detection fails, assume no long events.
+            }
+
+            return false;
+        }
+
+        private static void QueueLongEvent(System.Action action, string label)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+            var type = typeof(LongEventHandler);
+            var methods = type.GetMethods(
+                    BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static
+                )
+                .Where(m => m.Name == "QueueLongEvent")
+                .ToArray();
+
+            foreach (var method in methods)
+            {
+                var parameters = method.GetParameters();
+                if (parameters.Length < 3)
+                    continue;
+
+                if (!typeof(System.Action).IsAssignableFrom(parameters[0].ParameterType))
+                    continue;
+                if (parameters[1].ParameterType != typeof(string))
+                    continue;
+                if (parameters[2].ParameterType != typeof(bool))
+                    continue;
+
+                var args = new object[parameters.Length];
+                args[0] = action;
+                args[1] = label;
+                args[2] = false; // canReturnToGame
+
+                for (int i = 3; i < parameters.Length; i++)
+                {
+                    var pType = parameters[i].ParameterType;
+                    args[i] = pType.IsValueType ? Activator.CreateInstance(pType) : null;
+                }
+
+                method.Invoke(null, args);
+                return;
+            }
+
+            throw new InvalidOperationException(
+                "Could not find a compatible LongEventHandler.QueueLongEvent overload"
+            );
         }
 
         /// <summary>
