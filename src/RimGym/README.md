@@ -72,3 +72,11 @@ uv run pytest tests/
 ```
 
 For full integration testing with the game, see the [Testing Automation Guide](../../docs/guides/testing-automation.md).
+
+## 📄 License
+
+MIT License - See main project LICENSE
+
+## Disclaimer
+
+- Portions of the materials used to create this content/mod are trademarks and/or copyrighted works of Ludeon Studios Inc. All rights reserved by Ludeon. This content/mod is not official and is not endorsed by Ludeon.

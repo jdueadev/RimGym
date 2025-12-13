@@ -2,8 +2,8 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![.NET 8.0](https://img.shields.io/badge/.NET-8.0-512BD4.svg)](https://dotnet.microsoft.com/)
-[![RimWorld 1.5](https://img.shields.io/badge/RimWorld-1.5-orange.svg)](https://rimworldgame.com/)
-[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](LICENSE)
+[![RimWorld 1.6](https://img.shields.io/badge/RimWorld-1.6-blue.svg)](https://rimworldgame.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **RimGym** is a comprehensive ecosystem that enables machine learning agents to interact with RimWorld through a high-performance TCP + Protocol Buffers interface. Train reinforcement learning agents to manage colonies, respond to threats, and optimize resource management in real-time.
 
@@ -21,7 +21,7 @@ RimGym bridges the gap between the RimWorld game engine and modern reinforcement
 
 ### Prerequisites
 
-- **RimWorld 1.5+** installed via Steam
+- **RimWorld 1.6** installed via Steam
 - **Python 3.11+** for the client
 - **.NET 8.0 SDK** (for mod development)
 - **Docker** (optional, for containerized testing)
@@ -254,16 +254,14 @@ RimGym/
 └── docker/              # Docker configuration
 ```
 
-## 📄 License
-
-This project is proprietary software. See LICENSE file for details.
-
 ## 🙏 Acknowledgments
 
 - **RimWorld** by Ludeon Studios
 - **Harmony** patching library by Andreas Pardeike
 - **Gymnasium** by Farama Foundation
 - **Protocol Buffers** by Google
+
+- Portions of the materials used to create this content/mod are trademarks and/or copyrighted works of Ludeon Studios Inc. All rights reserved by Ludeon. This content/mod is not official and is not endorsed by Ludeon.
 
 ### Projects that inspired or aided this work
 

@@ -28,6 +28,10 @@ The mod operates as a bridge between the Unity game engine and the external worl
 - **RimWorld** (Version 1.6+)
 - **Harmony** (Mod dependency)
 
+### Download from Steam Workshop
+
+- (Coming Soon)
+
 ### Manual Installation
 
 1. Build the project (see below) or download the latest release.
@@ -65,3 +69,7 @@ dotnet test src/RimTCP/RimTCP.Tests/RimTCP.Tests.csproj
 ### Integration Testing
 
 See the root [Docker Documentation](../../docs/docker/README.md) for running integration tests in a containerized RimWorld environment.
+
+### Disclaimer
+
+- Portions of the materials used to create this content/mod are trademarks and/or copyrighted works of Ludeon Studios Inc. All rights reserved by Ludeon. This content/mod is not official and is not endorsed by Ludeon.
