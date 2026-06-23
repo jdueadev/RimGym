@@ -5,7 +5,9 @@
 [![RimWorld 1.6](https://img.shields.io/badge/RimWorld-1.6-blue.svg)](https://rimworldgame.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**RimGym** is a comprehensive ecosystem that enables trained agents to interact with RimWorld through a high-performance TCP + Protocol Buffers interface. Train reinforcement learning agents to manage colonies, respond to threats, and optimize resource management in real-time.
+**NOT ACTIVELY BEING DEVELOPED (updated 6/23/26)**: While I personally still think this would be a VERY cool testing bed for training agents in especially considering the huge amount of customization rimworld provides through it's modding support, I currently do not have the time to continue working on this so no updates are planned for the forseeable future.
+
+**RimGym** is a prototype ecosystem aimed at enabling agents to interact with RimWorld through a high-performance TCP + Protocol Buffers interface. Train reinforcement learning agents to manage colonies, respond to threats, and optimize resource management in real-time.
 
 ## 🎯 What is RimGym?
 
