@@ -8,7 +8,7 @@ on:
     types: [opened, ready_for_review, reopened, labeled]
 
 concurrency:
-  group: claude-review-${{ github.event.pull_request.number }}
+  group: claude-review-${{ github.event.pull_request.number }}-${{ github.event.action == 'labeled' && github.event.label.name != 'claude-review' && 'ignored' || 'review' }}
   cancel-in-progress: true
 
 jobs:
