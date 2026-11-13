@@ -56,11 +56,11 @@ jobs:
         run: |
           if [ -f "${{ runner.temp }}/claude-execution-output.json" ]; then
             jq -r '
-              tostring | ascii_downcase |
-              if test("authentication_error|invalid.*(token|key)|unauthorized|401") then "Claude failure category: authentication rejected"
-              elif test("rate_limit|rate limit|429|usage limit") then "Claude failure category: rate or usage limit"
+              [.[] | select(.type == "result") | .result, .errors] | tostring | ascii_downcase |
+              if test("authentication_error|invalid.*(token|key)|unauthorized|\\b401\\b") then "Claude failure category: authentication rejected"
+              elif test("rate_limit|rate limit|\\b429\\b|usage limit") then "Claude failure category: rate or usage limit"
               elif test("credit balance|billing|insufficient_quota") then "Claude failure category: billing or quota"
-              elif test("model.*(not found|not available|access)|permission_error|403") then "Claude failure category: model or account access"
+              elif test("model.*(not found|not available|access)|permission_error|\\b403\\b") then "Claude failure category: model or account access"
               else "Claude failure category: unclassified; full execution content withheld"
               end
             ' "${{ runner.temp }}/claude-execution-output.json"
